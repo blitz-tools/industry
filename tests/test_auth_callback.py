@@ -2,6 +2,7 @@
 
 from urllib.parse import parse_qs, urlparse
 
+import httpx
 import respx
 from sqlalchemy import select
 
@@ -43,8 +44,13 @@ async def test_callback_happy_path(client, db_session):
 
     dashboard = await client.get("/dashboard")
     assert dashboard.status_code == 200
-    assert "Test Pilot" in dashboard.text
-    assert "4,321.50" in dashboard.text
+    assert "4,321.50" in dashboard.text  # single character: total == its wallet
+
+    characters = await client.get("/characters")
+    assert characters.status_code == 200
+    assert "Test Pilot" in characters.text
+    assert "4,321.50" in characters.text
+    assert "Add character" in characters.text
 
 
 @respx.mock
@@ -118,23 +124,61 @@ async def test_reauth_with_changed_owner_hash_overwrites_tokens(client, db_sessi
 
 
 @respx.mock
-async def test_dashboard_requires_login(client, db_session):
+async def test_pages_require_login(client, db_session):
     respx.post(SSO_TOKEN_URL).respond(json=token_response())
     respx.get(WALLET_URL).respond(json=0.0)
 
-    unauthenticated = await client.get("/dashboard")
-    assert unauthenticated.status_code == 302
-    assert unauthenticated.headers["location"] == "/"
+    for path in ("/dashboard", "/characters"):
+        unauthenticated = await client.get(path)
+        assert unauthenticated.status_code == 302
+        assert unauthenticated.headers["location"] == "/"
 
     state = await _start_login(client)
     await client.get("/auth/eve/callback", params={"code": "abc", "state": state})
     assert (await client.get("/dashboard")).status_code == 200
+    assert (await client.get("/characters")).status_code == 200
 
-    # Logout keeps the DB row; the page is gated again until re-login.
+    # Logout keeps the DB row; the pages are gated again until re-login.
     await client.get("/auth/logout")
     gated = await client.get("/dashboard")
     assert gated.status_code == 302
     assert await db_session.get(Character, 1234) is not None
+
+
+@respx.mock
+async def test_index_renders_login_page_when_unauthenticated(client):
+    response = await client.get("/")
+    assert response.status_code == 200
+    assert "Sign in with EVE Online" in response.text
+    # No sidebar chrome on the login page.
+    assert "sidebar" not in response.text
+
+
+@respx.mock
+async def test_dashboard_counts_accounts(client, db_session):
+    """Two characters sharing an owner hash are one account."""
+    respx.post(SSO_TOKEN_URL).mock(
+        side_effect=[
+            httpx.Response(200, json=token_response()),  # first login: 1234
+            httpx.Response(  # second login: 5678, same owner hash
+                200, json=token_response(character_id=5678, name="Alt Pilot")
+            ),
+        ]
+    )
+    respx.get("https://esi.test/latest/characters/1234/wallet/").respond(json=100.0)
+    respx.get("https://esi.test/latest/characters/5678/wallet/").respond(json=50.0)
+
+    for _ in range(2):
+        state = await _start_login(client)
+        await client.get("/auth/eve/callback", params={"code": "abc", "state": state})
+
+    response = await client.get("/dashboard")
+    assert response.status_code == 200
+    assert "150.00" in response.text  # summed total
+    assert '<p class="stat-value">2</p>' in response.text
+    assert "characters" in response.text
+    assert '<p class="stat-value">1</p>' in response.text
+    assert "EVE account" in response.text
 
 
 @respx.mock

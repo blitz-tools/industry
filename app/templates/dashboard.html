@@ -1,28 +1,22 @@
 {% extends "base.html" %}
 {% block title %}industry — dashboard{% endblock %}
 {% block content %}
-<h1>Characters</h1>
-{% if cards %}
-<div class="cards">
-  {% for card in cards %}
-  <div class="card">
-    <img src="{{ card.portrait }}" alt="{{ card.character.name }} portrait" width="64" height="64">
-    <div class="card-body">
-      <h2>{{ card.character.name }}</h2>
-      {% if card.needs_reauth %}
-        <p class="warn">Authorization expired — <a href="/auth/eve/login">re-authorize</a></p>
-      {% else %}
-        <p>Wallet: {{ "{:,.2f}".format(card.wallet) }} ISK</p>
-      {% endif %}
-      <p class="muted">Scopes: {{ card.character.scopes }}</p>
-    </div>
-    <form method="post" action="/characters/{{ card.character.character_id }}/forget">
-      <button class="danger" type="submit" title="Revoke tokens and remove this character">Forget</button>
-    </form>
+<h1>Dashboard</h1>
+<div class="stats">
+  <div class="stat">
+    <p class="stat-value isk">{{ "{:,.2f}".format(total_wallet) }}</p>
+    <p class="stat-label">Total wallet ISK</p>
   </div>
-  {% endfor %}
+  <div class="stat">
+    <p class="stat-value">{{ character_count }}</p>
+    <p class="stat-label">character{{ '' if character_count == 1 else 's' }}</p>
+  </div>
+  <div class="stat">
+    <p class="stat-value">{{ account_count }}</p>
+    <p class="stat-label">EVE account{{ '' if account_count == 1 else 's' }}</p>
+  </div>
 </div>
-{% else %}
-<p>No characters authorized yet. Use “Add character” above to sign in your first one.</p>
+{% if unavailable %}
+<p class="stat-note">{{ unavailable }} character{{ '' if unavailable == 1 else 's' }} unavailable — re-authorize on the Characters page.</p>
 {% endif %}
 {% endblock %}
