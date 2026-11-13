@@ -28,34 +28,66 @@ future asset manager and industry planner.
 
 ## Local development
 
+Development and testing run inside a local container — no local dependency
+installs. The only host requirements are `uv` (to build) and a container
+runtime with compose (`podman compose` on Fedora, or `docker compose`).
+
 ```sh
 cp .env.example .env
 # fill in ESI_CLIENT_ID, ESI_CLIENT_SECRET, SECRET_KEY (openssl rand -hex 32)
 
-uv sync
-uv run alembic upgrade head
-uv run uvicorn app.main:app --reload
+podman compose -f compose.dev.yml up dev
 ```
 
 Open <http://localhost:8000>, sign in, and you should land on the dashboard
 with your character's portrait and wallet balance — proving the full
 OAuth code → token → ESI call chain.
 
-### Tests
+How it works:
+
+- The repo is bind-mounted at `/app` inside the container, so code edits
+  pick up immediately via `--reload` — no rebuild needed.
+- All dependencies (including dev tools) are baked into the image's `dev`
+  stage with the venv at `/opt/venv`; rebuild with
+  `podman compose -f compose.dev.yml build dev` only after changing
+  `pyproject.toml` or `uv.lock`.
+- The dev database is `industry.db` at the repo root, shared with the
+  pre-container workflow — authorized characters carry over.
+- Under rootless podman, the container runs as root mapped to your user,
+  so files it writes into the mount (caches, the DB) keep host ownership.
+
+### Tests, lint, migrations
+
+All inside the same container:
 
 ```sh
-uv run pytest
-uv run ruff check .
+podman compose -f compose.dev.yml run --rm dev pytest
+podman compose -f compose.dev.yml run --rm dev ruff check .
+
+# migration cycle against a throwaway database
+podman compose -f compose.dev.yml run --rm dev sh -c \
+  'DATABASE_URL=sqlite+aiosqlite:////tmp/mig.db alembic upgrade head && \
+   DATABASE_URL=sqlite+aiosqlite:////tmp/mig.db alembic downgrade base && \
+   DATABASE_URL=sqlite+aiosqlite:////tmp/mig.db alembic upgrade head'
 ```
+
+### Direct uv alternative
+
+The container is the supported path, but the plain-uv workflow still works
+if a container runtime is unavailable: `uv sync`, then `uv run` for the
+commands above.
 
 ## Docker
 
 ```sh
-docker compose up --build
+docker compose up --build      # or: podman compose up --build
 ```
 
-The SQLite database lives in `./data/` (bind-mounted to `/data` in the
-container) and survives restarts. Migrations run automatically on start.
+The image is multi-stage: the default (production) target ships only
+runtime dependencies and the app code; the `dev` target used by
+`compose.dev.yml` adds the dev toolchain. The SQLite database lives in
+`./data/` (bind-mounted to `/data` in the container) and survives restarts.
+Migrations run automatically on start.
 
 ## Security notes
 

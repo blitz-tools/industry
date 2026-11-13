@@ -1,0 +1,14 @@
+# Keeps the build context small; the Dockerfile copies explicit paths, so
+# nothing here is needed inside an image. Bind mounts (compose) are not
+# affected by this file.
+.git
+.claude
+.env
+.venv
+.pytest_cache
+.ruff_cache
+__pycache__
+**/__pycache__
+*.pyc
+data
+industry.db
