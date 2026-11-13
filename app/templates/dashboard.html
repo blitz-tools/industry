@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}industry — dashboard{% endblock %}
+{% block content %}
+<h1>Characters</h1>
+{% if cards %}
+<div class="cards">
+  {% for card in cards %}
+  <div class="card">
+    <img src="{{ card.portrait }}" alt="{{ card.character.name }} portrait" width="64" height="64">
+    <div class="card-body">
+      <h2>{{ card.character.name }}</h2>
+      {% if card.needs_reauth %}
+        <p class="warn">Authorization expired — <a href="/auth/eve/login">re-authorize</a></p>
+      {% else %}
+        <p>Wallet: {{ "{:,.2f}".format(card.wallet) }} ISK</p>
+      {% endif %}
+      <p class="muted">Scopes: {{ card.character.scopes }}</p>
+    </div>
+    <form method="post" action="/characters/{{ card.character.character_id }}/forget">
+      <button class="danger" type="submit" title="Revoke tokens and remove this character">Forget</button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p>No characters authorized yet. Use “Add character” above to sign in your first one.</p>
+{% endif %}
+{% endblock %}

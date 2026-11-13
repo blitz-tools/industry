@@ -1,0 +1,67 @@
+:root {
+  --bg: #12141a;
+  --panel: #1b1f29;
+  --text: #d8dee9;
+  --muted: #8a93a6;
+  --accent: #e8a33d;
+  --danger: #c96a6a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background: var(--panel);
+}
+
+nav .brand { font-weight: 700; color: var(--accent); text-decoration: none; }
+nav .spacer { flex: 1; }
+nav a { color: var(--text); text-decoration: none; }
+nav a:hover { color: var(--accent); }
+
+main { max-width: 60rem; margin: 0 auto; padding: 1.5rem; }
+
+.center { text-align: center; margin-top: 4rem; }
+
+.button, button {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 1rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+.button:hover, button:hover { background: var(--accent); color: var(--bg); }
+
+button.danger { border-color: var(--danger); color: var(--danger); }
+button.danger:hover { background: var(--danger); color: var(--bg); }
+
+.cards { display: grid; gap: 1rem; }
+
+.card {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1rem;
+  background: var(--panel);
+  border-radius: 6px;
+}
+.card img { border-radius: 4px; }
+.card-body { flex: 1; }
+.card h2 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+
+.muted { color: var(--muted); font-size: 0.85rem; }
+.warn { color: var(--accent); }
