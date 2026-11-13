@@ -30,6 +30,13 @@ class Settings(BaseSettings):
     sso_base_url: str = SSO_BASE_URL
     esi_base_url: str = ESI_BASE_URL
 
+    # Asset sync: background interval and page-render knobs.
+    assets_sync_interval_minutes: int = 30
+    assets_page_size: int = 50
+    # Restricted structures (ESI 403) are not retried for this many days —
+    # every 403 burns ESI's error-limit budget.
+    structure_retry_days: int = 7
+
     @field_validator("esi_scopes", mode="before")
     @classmethod
     def _parse_scopes(cls, value: str | list[str]) -> list[str]:
