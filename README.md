@@ -13,6 +13,12 @@ future asset manager and industry planner.
   character" authorizes one more character (EVE's SSO screen lets you switch
   accounts). The dashboard shows every stored character, and background token
   refreshes work for all of them.
+- **Character assets sync in the background.** Every 30 minutes (and on
+  demand via the Sync now button) all characters' assets are pulled into the
+  local database; the Assets page — grouped by region-filterable system →
+  structure with per-structure pagination and a character filter — is served
+  entirely from stored data and never touches ESI. Structures your
+  characters can't dock in show as `Structure #<id>`.
 - **SQLite** stores characters and tokens (via SQLAlchemy + Alembic, swappable
   to Postgres later).
 

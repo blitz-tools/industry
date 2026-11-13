@@ -1,0 +1,44 @@
+{% if rows %}
+<table class="asset-table">
+  <thead>
+    <tr>
+      <th class="sr-only">Icon</th>
+      <th>Type</th>
+      <th>Character</th>
+      <th class="num">Qty</th>
+      <th class="num">Volume</th>
+      <th>Flag</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+    <tr>
+      <td><img class="type-icon" loading="lazy" src="{{ type_icon_url(row.type_id) }}" alt="" width="32" height="32"></td>
+      <td class="type-name">
+        {{ row.type_name or 'Unknown type #' ~ row.type_id }}
+        {% if row.is_blueprint_copy %}<span class="badge bpc">Copy</span>{% endif %}
+      </td>
+      <td class="owner-cell">
+        <img class="owner-portrait" loading="lazy" src="{{ portrait_url(row.owner_id, 32) }}" alt="" width="24" height="24">
+        {{ row.owner_name }}
+      </td>
+      <td class="num qty">{{ '{:,}'.format(row.quantity) }}</td>
+      <td class="num volume">{% if row.volume_total is not none %}{{ '{:,.1f}'.format(row.volume_total) }} m³{% else %}—{% endif %}</td>
+      <td class="flag">{{ row.location_flag }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="stat-note">No assets here.</p>
+{% endif %}
+
+<nav class="pagination" aria-label="Structure pages">
+  {% if pages > 1 %}
+    {% for p in range(1, pages + 1) %}
+    <a class="page{% if p == page %} current{% endif %}" data-page="{{ p }}"
+       href="/assets/structure/{{ location_id }}?page={{ p }}{% if selected %}&chars={{ selected | join(',') }}{% endif %}">{{ p }}</a>
+    {% endfor %}
+  {% endif %}
+  <span class="total">{{ total }} type{{ '' if total == 1 else 's' }}</span>
+</nav>

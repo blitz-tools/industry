@@ -45,7 +45,11 @@ TEST_SETTINGS = Settings(
     esi_client_id="test-client-id",
     esi_client_secret="test-client-secret",
     esi_callback_url="http://testserver/auth/eve/callback",
-    esi_scopes=["publicData", "esi-wallet.read_character_wallet.v1"],
+    esi_scopes=[
+        "publicData",
+        "esi-wallet.read_character_wallet.v1",
+        "esi-assets.read_assets.v1",
+    ],
     base_url="http://testserver",
     secret_key="test-secret-key",
     database_url="sqlite+aiosqlite://",
@@ -65,7 +69,11 @@ def make_access_token(
     """Fabricate an SSO v2 access-token JWT. Decoding is unverified, so any
     signature works; scopes exercise both the list and bare-string forms."""
     if scopes is None:
-        scopes = ["publicData", "esi-wallet.read_character_wallet.v1"]
+        scopes = [
+            "publicData",
+            "esi-wallet.read_character_wallet.v1",
+            "esi-assets.read_assets.v1",
+        ]
     now = int(time.time())
     payload = {
         "sub": f"CHARACTER:EVE:{character_id}",
