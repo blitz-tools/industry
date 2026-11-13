@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}industry{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <nav>
+    <a class="brand" href="/">industry</a>
+    <span class="spacer"></span>
+    {% if authenticated %}
+      <a href="/auth/eve/login">Add character</a>
+      <a href="/auth/logout">Log out</a>
+    {% else %}
+      <a href="/auth/eve/login">Sign in with EVE</a>
+    {% endif %}
+  </nav>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
