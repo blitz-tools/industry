@@ -27,3 +27,24 @@ class Character(Base, TimestampMixin):
         DateTime(), nullable=False, default=utc_now
     )
     refresh_token: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class EsiCache(Base, TimestampMixin):
+    """Cached ESI response body with its ETag, for If-None-Match revalidation.
+
+    Rows are disposable derived data: pruning or dropping the table never
+    loses anything the API can't resupply. Keyed by character (authenticated
+    routes serve character-specific content at shared URLs), path, and
+    canonical params JSON.
+    """
+
+    __tablename__ = "esi_cache"
+
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    character_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
+    path: Mapped[str] = mapped_column(String(500), nullable=False)
+    params_json: Mapped[str] = mapped_column(Text, nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    etag: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(), nullable=True)
+    last_modified: Mapped[datetime | None] = mapped_column(DateTime(), nullable=True)
