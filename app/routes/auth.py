@@ -80,14 +80,20 @@ async def callback(
         return templates.TemplateResponse(
             request,
             "error.html",
-            {"message": "Missing code or state in the SSO response."},
+            {
+                "authenticated": False,
+                "message": "Missing code or state in the SSO response.",
+            },
             status_code=400,
         )
     if not hmac.compare_digest(state, expected):
         return templates.TemplateResponse(
             request,
             "error.html",
-            {"message": "SSO state mismatch — please try signing in again."},
+            {
+                "authenticated": False,
+                "message": "SSO state mismatch — please try signing in again.",
+            },
             status_code=400,
         )
 
@@ -97,7 +103,10 @@ async def callback(
         claims = decode_access_token(tokens.access_token)
     except SSOError as exc:
         return templates.TemplateResponse(
-            request, "error.html", {"message": f"EVE SSO error: {exc}"}, status_code=502
+            request,
+            "error.html",
+            {"authenticated": False, "message": f"EVE SSO error: {exc}"},
+            status_code=502,
         )
 
     await upsert_character(db, claims, tokens)
