@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db import utc_now
 from ..deps import DbDep, HttpDep
+from ..esi.etag import purge_character
 from ..esi.sso import (
     CharacterClaims,
     SSOClient,
@@ -42,6 +43,10 @@ async def upsert_character(
     if character is None:
         character = Character(character_id=claims.character_id)
         db.add(character)
+    elif character.owner_hash != claims.owner_hash:
+        # Transfer: the previous owner's cached ESI responses belong to a
+        # different grant; drop them so nothing stale is ever served.
+        await purge_character(db, claims.character_id)
     character.name = claims.name
     character.owner_hash = claims.owner_hash
     character.scopes = " ".join(claims.scopes)

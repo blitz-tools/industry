@@ -13,6 +13,7 @@ import time
 
 import httpx
 import jwt
+import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
@@ -20,8 +21,25 @@ from sqlalchemy.pool import StaticPool
 
 from app import models  # noqa: F401  (register models)
 from app.config import Settings
-from app.db import Base
+from app.db import Base, utc_now
+from app.esi.limiter import ESILimiter
 from app.main import create_app
+
+
+class FakeClock:
+    """Records sleeps instead of waiting, so backoff/limiter tests are fast
+    and their pause durations assertable."""
+
+    def __init__(self):
+        self._now = utc_now()
+        self.sleeps: list[float] = []
+
+    def now(self):
+        return self._now
+
+    async def sleep(self, seconds: float) -> None:
+        self.sleeps.append(seconds)
+
 
 TEST_SETTINGS = Settings(
     esi_client_id="test-client-id",
@@ -84,7 +102,8 @@ async def app():
 
     ASGITransport does not run the lifespan, so the shared httpx client the
     lifespan would create is provided here directly; respx intercepts it
-    regardless of which client instance makes the call.
+    regardless of which client instance makes the call. A FakeClock-backed
+    limiter keeps limiter pauses and retry backoff instant and observable.
     """
     application = create_app(TEST_SETTINGS)
     engine = create_async_engine(
@@ -96,9 +115,17 @@ async def app():
         await conn.run_sync(Base.metadata.create_all)
     application.state.session_factory = async_sessionmaker(engine, expire_on_commit=False)
     application.state.http = httpx.AsyncClient()
+    clock = FakeClock()
+    application.state.esi_clock = clock
+    application.state.esi_limiter = ESILimiter(clock)
     yield application
     await application.state.http.aclose()
     await engine.dispose()
+
+
+@pytest.fixture
+def fake_clock(app) -> FakeClock:
+    return app.state.esi_clock
 
 
 @pytest_asyncio.fixture
