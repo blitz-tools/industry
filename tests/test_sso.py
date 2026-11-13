@@ -22,7 +22,9 @@ def test_authorize_url_contains_required_params(sso):
     assert params["response_type"] == "code"
     assert params["client_id"] == "test-client-id"
     assert params["redirect_uri"] == "http://testserver/auth/eve/callback"
-    assert params["scope"] == "publicData esi-wallet.read_character_wallet.v1"
+    assert params["scope"] == (
+        "publicData esi-wallet.read_character_wallet.v1 esi-assets.read_assets.v1"
+    )
     assert params["state"] == "some-state"
 
 
