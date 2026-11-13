@@ -1,0 +1,28 @@
+# Local development container: the repo is bind-mounted at /app and all
+# dependencies (including dev tools) live in the image's "dev" stage, so no
+# local installs are needed. Rebuild only when pyproject.toml/uv.lock change.
+#
+#   podman compose -f compose.dev.yml up dev           # app on :8000, auto-reload
+#   podman compose -f compose.dev.yml run --rm dev pytest
+#   podman compose -f compose.dev.yml run --rm dev ruff check .
+#   podman compose -f compose.dev.yml run --rm dev sh  # anything else
+#
+# Works with docker compose as well; podman-compose just needs the -f flag.
+services:
+  dev:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      # Reuse the developer database at the repo root — the same one the
+      # pre-container workflow used, so authorized characters carry over.
+      DATABASE_URL: sqlite+aiosqlite:////app/industry.db
+    volumes:
+      - .:/app
+    security_opt:
+      # Fedora/SELinux: let the container read the bind-mounted repo without
+      # relabeling it (the :Z alternative would rewrite labels on the tree).
+      - label=disable
