@@ -115,6 +115,57 @@ a:hover {
   color: var(--text);
 }
 
+/* --- Nav group (Corporation) -------------------------------------------- */
+
+.nav-group {
+  margin-top: 0.75rem;
+}
+
+.nav-group-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-left: 3px solid transparent;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+}
+
+.nav-group-toggle::after {
+  content: "▸";
+  transition: transform 0.15s ease;
+}
+
+.nav-group-toggle[aria-expanded="true"]::after {
+  transform: rotate(90deg);
+}
+
+.nav-group-toggle:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.nav-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 0.75rem;
+}
+
+/* The flex display above out-specifies the UA's [hidden] rule. */
+.nav-group-items[hidden] {
+  display: none;
+}
+
 /* --- Content area ----------------------------------------------------- */
 
 .content {
@@ -371,4 +422,213 @@ button.danger:hover {
   .sidebar {
     transition: none;
   }
+
+  .nav-group-toggle::after {
+    transition: none;
+  }
+}
+
+/* --- Assets page --------------------------------------------------------- */
+
+.assets-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.char-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+  accent-color: var(--cyan);
+}
+
+.char-filter label {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  cursor: pointer;
+}
+
+.char-filter select {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.sync-form {
+  display: inline-flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.last-sync {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.sync-statuses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.asset-system h2 {
+  margin: 1.75rem 0 0.75rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--cyan);
+}
+
+.asset-system .region-name {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.structure-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.structure {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.structure summary {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.structure summary:hover {
+  background: var(--hover);
+}
+
+.structure .count {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.structure.restricted .structure-name {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.structure-body {
+  padding: 0 1rem 0.75rem;
+}
+
+.asset-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.asset-table th {
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+.asset-table td {
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.asset-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.asset-table .qty {
+  color: var(--yellow);
+}
+
+.asset-table .volume {
+  color: var(--muted);
+}
+
+.asset-table .flag {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.owner-portrait {
+  margin-right: 0.4rem;
+  border-radius: 50%;
+  vertical-align: -0.45rem;
+}
+
+.badge.bpc {
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.3rem;
+  border: 1px solid var(--purple);
+  border-radius: 4px;
+  color: var(--purple);
+  font-size: 0.7rem;
+}
+
+.pagination {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  margin-top: 0.75rem;
+}
+
+.pagination .page {
+  min-width: 1.6rem;
+  padding: 0.15rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--cyan);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.pagination a.page:hover {
+  background: var(--hover);
+  text-decoration: none;
+}
+
+.pagination .page.current {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.pagination .total {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.85rem;
 }

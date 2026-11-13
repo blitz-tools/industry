@@ -6,10 +6,12 @@ from datetime import timedelta
 
 from fastapi import APIRouter, Request
 from fastapi.responses import RedirectResponse
+from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db import utc_now
 from ..deps import DbDep, HttpDep
+from ..esi.assets import OWNER_CHARACTER
 from ..esi.etag import purge_character
 from ..esi.sso import (
     CharacterClaims,
@@ -18,7 +20,7 @@ from ..esi.sso import (
     TokenResponse,
     decode_access_token,
 )
-from ..models import Character
+from ..models import Asset, AssetSync, Character
 from ..templates import templates
 
 router = APIRouter()
@@ -132,5 +134,17 @@ async def forget(character_id: int, request: Request, http: HttpDep, db: DbDep):
         except SSOError:
             pass  # best-effort; drop the row regardless
         await db.delete(character)
+        # Their asset snapshot and sync state go with the character.
+        await db.execute(
+            delete(Asset).where(
+                Asset.owner_type == OWNER_CHARACTER, Asset.owner_id == character_id
+            )
+        )
+        await db.execute(
+            delete(AssetSync).where(
+                AssetSync.owner_type == OWNER_CHARACTER,
+                AssetSync.owner_id == character_id,
+            )
+        )
         await db.commit()
     return RedirectResponse("/dashboard", status_code=303)

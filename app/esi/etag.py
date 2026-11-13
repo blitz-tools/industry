@@ -21,6 +21,27 @@ from .clock import Clock
 # Cached rows older than this are pruned opportunistically on store().
 CACHE_TTL_DAYS = 14
 
+# Response headers worth persisting alongside the body (lowercase names).
+# X-Pages lets get_paginated iterate a list endpoint even when every page
+# is served from the fresh window (no HTTP, no live headers).
+PERSISTED_HEADERS = ("x-pages",)
+
+
+def filter_persisted(headers: Any) -> dict[str, str]:
+    """Subset of a headers mapping (case-insensitive .get, e.g.
+    httpx.Headers) worth storing with a cache entry."""
+    return {name: headers.get(name) for name in PERSISTED_HEADERS if headers.get(name)}
+
+
+def stored_headers(entry: EsiCache) -> dict[str, str]:
+    """Deserialized persisted headers; {} when none were stored."""
+    if not entry.headers_json:
+        return {}
+    try:
+        return json.loads(entry.headers_json)
+    except (TypeError, ValueError):
+        return {}
+
 
 def canonical_params(params: dict[str, Any] | None) -> str:
     """Deterministic serialization for cache keys — never str(params)."""
@@ -69,6 +90,7 @@ class ETagCache:
         expires_at: datetime | None,
         last_modified: datetime | None,
         params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
     ) -> None:
         """Upsert a cache entry and prune stale rows."""
         entry = await self._db.get(EsiCache, key)
@@ -82,6 +104,7 @@ class ETagCache:
         entry.etag = etag
         entry.expires_at = expires_at
         entry.last_modified = last_modified
+        entry.headers_json = json.dumps(headers) if headers else None
         await self._db.commit()
 
         # Opportunistic housekeeping keeps the table bounded; disposable data.

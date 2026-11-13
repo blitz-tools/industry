@@ -20,6 +20,20 @@
     <nav aria-label="Sections">
       <a href="/dashboard"{% if active == 'dashboard' %} class="active" aria-current="page"{% endif %}>Dashboard</a>
       <a href="/characters"{% if active == 'characters' %} class="active" aria-current="page"{% endif %}>Characters</a>
+      <a href="/assets"{% if active == 'assets' %} class="active" aria-current="page"{% endif %}>Assets</a>
+      {% set corp_active = active is defined and active.startswith('corp') %}
+      <div class="nav-group" id="nav-corp-group">
+        <button class="nav-group-toggle" type="button" aria-controls="nav-corp"
+                aria-expanded="{{ 'true' if corp_active else 'false' }}">
+          Corporation
+        </button>
+        <div class="nav-group-items" id="nav-corp"{% if not corp_active %} hidden{% endif %}>
+          <a href="/corp/assets"{% if active == 'corp-assets' %} class="active" aria-current="page"{% endif %}>Assets</a>
+          <a href="/corp/jobs"{% if active == 'corp-jobs' %} class="active" aria-current="page"{% endif %}>Jobs</a>
+          <a href="/corp/wallets"{% if active == 'corp-wallets' %} class="active" aria-current="page"{% endif %}>Wallets</a>
+          <a href="/corp/blueprints"{% if active == 'corp-blueprints' %} class="active" aria-current="page"{% endif %}>Blueprints</a>
+        </div>
+      </div>
     </nav>
     <footer class="sidebar-footer">
       <a href="/auth/logout">Log out</a>
