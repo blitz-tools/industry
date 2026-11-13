@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}industry — characters{% endblock %}
+{% block content %}
+<h1>Characters</h1>
+<div class="grid">
+  {% for card in cards %}
+  <div class="card">
+    <img class="portrait" src="{{ card.portrait }}" alt="{{ card.character.name }} portrait" width="256" height="256">
+    <div class="card-body">
+      <h2>{{ card.character.name }}</h2>
+      {% if card.needs_reauth %}
+      <p class="warn"><a href="/auth/eve/login">Re-authorize</a></p>
+      {% else %}
+      <p class="wallet">{{ "{:,.2f}".format(card.wallet) }} ISK</p>
+      {% endif %}
+      <form method="post" action="/characters/{{ card.character.character_id }}/forget">
+        <button class="danger" type="submit">Forget</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+  <a class="add-tile" href="/auth/eve/login">
+    <span class="plus" aria-hidden="true">+</span>
+    Add character
+  </a>
+</div>
+{% endblock %}
