@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     # NoDecode: env/dotenv values are space-separated, not JSON — the
     # validator below does the splitting.
     esi_scopes: Annotated[list[str], NoDecode] = ["publicData"]
+    # ESI best practices: identify the app so CCP can make contact. Set this
+    # in .env to include a real contact address for production use.
+    esi_user_agent: str = "industry/0.1 (+https://github.com/blitz-tools/industry)"
     base_url: str = "http://localhost:8000"
     secret_key: str
     database_url: str = "sqlite+aiosqlite:///./industry.db"

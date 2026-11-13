@@ -34,7 +34,11 @@ def get_esi_client(
     request: Request, db: Annotated[AsyncSession, Depends(get_db)]
 ) -> ESIClient:
     settings = request.app.state.settings
-    return ESIClient(request.app.state.http, settings, db)
+    # Tests may inject a FakeClock-backed clock/limiter via app.state; None
+    # falls through to the real defaults.
+    clock = getattr(request.app.state, "esi_clock", None)
+    limiter = getattr(request.app.state, "esi_limiter", None)
+    return ESIClient(request.app.state.http, settings, db, clock=clock, limiter=limiter)
 
 
 def is_authenticated(request: Request) -> bool:
