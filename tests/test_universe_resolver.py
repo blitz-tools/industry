@@ -15,7 +15,13 @@ from sqlalchemy import select, update
 from app.db import utc_now
 from app.esi.client import ESIClient
 from app.esi.universe import UniverseResolver
-from app.models import Character, UniverseLocation, UniverseRegion
+from app.models import (
+    Character,
+    UniverseCategory,
+    UniverseGroup,
+    UniverseLocation,
+    UniverseRegion,
+)
 from tests.conftest import TEST_SETTINGS
 
 STATION_URL = "https://esi.test/latest/universe/stations/60003743/"
@@ -24,6 +30,8 @@ SYSTEM_URL = "https://esi.test/latest/universe/systems/30000142/"
 CONSTELLATION_URL = "https://esi.test/latest/universe/constellations/20000020/"
 REGION_URL = "https://esi.test/latest/universe/regions/10000016/"
 TYPE_URL = "https://esi.test/latest/universe/types/1230/"
+GROUP_URL = "https://esi.test/latest/universe/groups/18/"
+CATEGORY_URL = "https://esi.test/latest/universe/categories/4/"
 
 
 def _make_resolver(app, db_session) -> UniverseResolver:
@@ -198,6 +206,42 @@ async def test_types_resolve_and_skip_stored(app, db_session):
     assert stored is not None
     assert stored.name == "Veldspar"
     assert stored.volume == 0.1
+
+
+@respx.mock
+async def test_groups_resolve_with_categories_and_skip_stored(app, db_session):
+    resolver = _make_resolver(app, db_session)
+    group_route = respx.get(GROUP_URL).respond(
+        json={"name": "Mineral", "category_id": 4}
+    )
+    category_route = respx.get(CATEGORY_URL).respond(json={"name": "Material"})
+
+    await resolver.ensure_groups([18, None, 18])
+    await resolver.ensure_groups([18])
+
+    assert group_route.call_count == 1
+    assert category_route.call_count == 1
+    group = await db_session.get(UniverseGroup, 18)
+    assert group.name == "Mineral" and group.category_id == 4
+    category = await db_session.get(UniverseCategory, 4)
+    assert category.name == "Material"
+
+
+@respx.mock
+async def test_group_with_unresolvable_category_is_retried(app, db_session):
+    """A group whose category fetch fails is not stored, so the next sync
+    pass retries it instead of parking a category-less row forever."""
+    resolver = _make_resolver(app, db_session)
+    respx.get(GROUP_URL).respond(json={"name": "Mineral", "category_id": 4})
+    respx.get(CATEGORY_URL).respond(status_code=404, json="no such category")
+
+    await resolver.ensure_groups([18])
+    assert await db_session.get(UniverseGroup, 18) is None
+
+    respx.get(CATEGORY_URL).respond(json={"name": "Material"})
+    await resolver.ensure_groups([18])
+    group = await db_session.get(UniverseGroup, 18)
+    assert group is not None and group.category_id == 4
 
 
 @respx.mock

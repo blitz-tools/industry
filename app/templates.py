@@ -13,9 +13,12 @@ def portrait_url(character_id: int, size: int = 64) -> str:
     return f"https://images.evetech.net/characters/{character_id}/portrait?size={size}"
 
 
-def type_icon_url(type_id: int, size: int = 32) -> str:
-    """Public type category icon — no API call required."""
-    return f"https://images.evetech.net/types/{type_id}/icon?size={size}"
+def type_icon_url(type_id: int, size: int = 32, kind: str = "icon") -> str:
+    """Public type icon — no API call required. `kind` is the imageserver
+    path segment: "icon" for regular types, but blueprints need their
+    dedicated renders ("bp" originals, "bpc" copies) — the plain icon
+    endpoint 400s on blueprint types."""
+    return f"https://images.evetech.net/types/{type_id}/{kind}?size={size}"
 
 
 # Image render URLs are usable directly from templates.

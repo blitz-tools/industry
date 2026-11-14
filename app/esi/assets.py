@@ -23,7 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ..config import Settings
 from ..db import utc_now
-from ..models import Asset, AssetSync, Character
+from ..models import Asset, AssetSync, Character, UniverseType
 from .client import ESIClient, ESIError, ReauthorizationRequired
 from .universe import UniverseResolver
 
@@ -190,6 +190,22 @@ async def _resolve_universe(
         (await db.execute(select(Character).order_by(Character.name))).scalars().all()
     )
     await resolver.ensure_types(type_ids)
+    # Groups/categories power the asset type filter. Collected from the
+    # stored types (including previously-synced ones), so a filter shipped
+    # after types were already resolved backfills on the next sync pass.
+    if type_ids:
+        group_ids = {
+            group_id
+            for group_id in (
+                await db.execute(
+                    select(UniverseType.group_id).where(
+                        UniverseType.type_id.in_(type_ids)
+                    )
+                )
+            ).scalars()
+            if group_id is not None
+        }
+        await resolver.ensure_groups(group_ids)
     infos = await resolver.resolve_locations(wanted, characters=all_characters)
     system_ids = {info.system_id for info in infos.values() if info.system_id}
     await resolver.ensure_systems(system_ids)
