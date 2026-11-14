@@ -18,11 +18,18 @@
       <option value="{{ region.region_id }}"{% if region.region_id == selected_region %} selected{% endif %}>{{ region.name }}</option>
       {% endfor %}
     </select>
+    <select name="category" aria-label="Filter by asset type">
+      <option value="">All types</option>
+      {% for bucket in view.categories %}
+      <option value="{{ bucket.key }}"{% if bucket.key == selected_category %} selected{% endif %}>{{ bucket.label }}</option>
+      {% endfor %}
+    </select>
     <noscript><button type="submit" class="button">Apply</button></noscript>
   </form>
   <form method="post" action="/assets/sync" class="sync-form">
     <input type="hidden" name="chars" value="{{ selected | join(',') if selected else '' }}">
     <input type="hidden" name="region" value="{{ selected_region if selected_region else '' }}">
+    <input type="hidden" name="category" value="{{ selected_category if selected_category else '' }}">
     <button type="submit">Sync now</button>
     <span class="last-sync">{{ last_sync_text }}</span>
   </form>
@@ -46,7 +53,7 @@
 {% if not view.groups %}
   {% if last_sync_text == 'Data not synced yet' %}
   <p class="stat-note">No assets synced yet — use Sync now or wait for the background sync.</p>
-  {% elif selected or selected_region %}
+  {% elif selected or selected_region or selected_category %}
   <p class="stat-note">No assets match the current filters.</p>
   {% else %}
   <p class="stat-note">No assets.</p>

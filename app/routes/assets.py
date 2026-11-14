@@ -13,11 +13,18 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import select
 
 from ..assets import (
+    BUCKETS_BY_KEY,
+    CategoryOption,
     RegionOption,
+    carry_query,
     character_sync_status,
     humanize_sync_age,
+    parse_category,
     parse_chars,
+    parse_direction,
     parse_region,
+    parse_sort,
+    sort_headers,
     structure_page,
     system_groups,
 )
@@ -50,7 +57,8 @@ async def assets_page(request: Request, db: DbDep):
 
     characters = await _load_characters(db)
     selected = parse_chars(request.query_params.getlist("chars"), characters)
-    view = await system_groups(db, owner_ids=selected)
+    selected_category = parse_category(request.query_params.get("category"))
+    view = await system_groups(db, owner_ids=selected, category=selected_category)
 
     # Region filter: validated against known regions, then applied to the
     # resolved system list (a structure's region is fixed, so fragments
@@ -71,6 +79,15 @@ async def assets_page(request: Request, db: DbDep):
         ]
         view.total_items = sum(len(group.structures) for group in view.groups)
 
+    # Category options are dynamic (buckets with assets under the owner
+    # filter). A selected bucket that matched nothing stays visible in the
+    # dropdown, so the URL state keeps a matching control.
+    if selected_category is not None and selected_category not in {
+        option.key for option in view.categories
+    }:
+        bucket = BUCKETS_BY_KEY[selected_category]
+        view.categories.append(CategoryOption(bucket.key, bucket.label))
+
     sync_statuses, last_sync = await character_sync_status(db, characters)
     return templates.TemplateResponse(
         request,
@@ -82,6 +99,7 @@ async def assets_page(request: Request, db: DbDep):
             "selected": selected,
             "view": view,
             "selected_region": selected_region,
+            "selected_category": selected_category,
             "sync_statuses": sync_statuses,
             "last_sync_text": humanize_sync_age(last_sync),
             "page_size": request.app.state.settings.assets_page_size,
@@ -103,9 +121,19 @@ async def structure_fragment(
 
     characters = await _load_characters(db)
     selected = parse_chars(request.query_params.getlist("chars"), characters)
+    category = parse_category(request.query_params.get("category"))
+    sort = parse_sort(request.query_params.get("sort"))
+    direction = parse_direction(request.query_params.get("dir"))
     page_size = request.app.state.settings.assets_page_size
     rows, total, used_page = await structure_page(
-        db, location_id, page=page, page_size=page_size, owner_ids=selected
+        db,
+        location_id,
+        page=page,
+        page_size=page_size,
+        owner_ids=selected,
+        category=category,
+        sort=sort,
+        direction=direction,
     )
     pages = max(1, -(-total // page_size))
     return templates.TemplateResponse(
@@ -118,6 +146,22 @@ async def structure_fragment(
             "pages": pages,
             "total": total,
             "selected": selected,
+            "selected_category": category,
+            "sort": sort,
+            "direction": direction,
+            "sort_headers": sort_headers(
+                location_id,
+                current_sort=sort,
+                current_dir=direction,
+                chars=selected,
+                category=category,
+            ),
+            "carry_qs": carry_query(
+                chars=selected,
+                category=category,
+                sort=sort,
+                direction=direction,
+            ),
         },
     )
 
@@ -137,7 +181,11 @@ async def sync_assets(request: Request, db: DbDep, esi: EsiDep):
     form = await request.form()
     params = [
         (name, value)
-        for name, value in (("chars", form.get("chars")), ("region", form.get("region")))
+        for name, value in (
+            ("chars", form.get("chars")),
+            ("region", form.get("region")),
+            ("category", form.get("category")),
+        )
         if value
     ]
     target = "/assets"

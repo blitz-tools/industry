@@ -1,22 +1,26 @@
-"""Assets page tests: grouping, per-type aggregation, filters, fragments,
-corp stubs, and the no-ESI-on-render purity guarantee.
+"""Assets page tests: grouping, per-type aggregation, filters (character,
+region, category), fragment sorting, corp stubs, and the no-ESI-on-render
+purity guarantee.
 
 All data is seeded directly in the DB — page renders must never touch ESI
 (respx routes stay at call_count 0, and respx raises on unmatched calls).
 """
 
+import re
 from datetime import timedelta
 from urllib.parse import parse_qs, urlparse
 
 import respx
 from sqlalchemy import select
 
-from app.assets import humanize_sync_age, parse_chars, parse_region
+from app.assets import humanize_sync_age, parse_category, parse_chars, parse_region
 from app.db import utc_now
 from app.models import (
     Asset,
     AssetSync,
     Character,
+    UniverseCategory,
+    UniverseGroup,
     UniverseLocation,
     UniverseRegion,
     UniverseType,
@@ -39,6 +43,19 @@ REGION_DOMAIN = 1002
 TYPE_VELDSPAR = 1230
 TYPE_ITERON = 1231
 TYPE_BLUEPRINT = 9999
+
+GROUP_MINERAL = 18
+GROUP_INDUSTRIAL = 26
+GROUP_BLUEPRINT = 1900
+GROUP_SKIN = 1942
+CATEGORY_MATERIAL = 4
+CATEGORY_SHIP = 6
+CATEGORY_BLUEPRINT = 9
+CATEGORY_SKINS = 91
+
+TYPE_SKIN = 58891
+
+JITA_STATION_NAME = "Jita IV - Moon 4 - Caldari Navy Assembly Plant"
 
 ALPHA = 1234  # created via the SSO login flow
 BRAVO = 5678
@@ -95,12 +112,37 @@ def _asset(
 
 async def _seed_world(db_session) -> None:
     """Two systems in different regions, a shared station, an exclusive
-    station, and a restricted structure — plus types and regions."""
+    station, and a restricted structure — plus types (with their groups
+    and categories), and regions."""
     db_session.add_all(
         [
-            UniverseType(type_id=TYPE_VELDSPAR, name="Veldspar", volume=0.1),
-            UniverseType(type_id=TYPE_ITERON, name="Iteron Mark V", volume=24500.0),
-            UniverseType(type_id=TYPE_BLUEPRINT, name="Cruiser Blueprint", volume=0.01),
+            UniverseType(
+                type_id=TYPE_VELDSPAR, name="Veldspar", volume=0.1,
+                group_id=GROUP_MINERAL,
+            ),
+            UniverseType(
+                type_id=TYPE_ITERON, name="Iteron Mark V", volume=24500.0,
+                group_id=GROUP_INDUSTRIAL,
+            ),
+            UniverseType(
+                type_id=TYPE_BLUEPRINT, name="Cruiser Blueprint", volume=0.01,
+                group_id=GROUP_BLUEPRINT,
+            ),
+            UniverseGroup(
+                group_id=GROUP_MINERAL, name="Mineral",
+                category_id=CATEGORY_MATERIAL,
+            ),
+            UniverseGroup(
+                group_id=GROUP_INDUSTRIAL, name="Industrial",
+                category_id=CATEGORY_SHIP,
+            ),
+            UniverseGroup(
+                group_id=GROUP_BLUEPRINT, name="Blueprints",
+                category_id=CATEGORY_BLUEPRINT,
+            ),
+            UniverseCategory(category_id=CATEGORY_MATERIAL, name="Material"),
+            UniverseCategory(category_id=CATEGORY_SHIP, name="Ship"),
+            UniverseCategory(category_id=CATEGORY_BLUEPRINT, name="Blueprint"),
             UniverseLocation(
                 location_id=STATION_JITA,
                 kind="station",
@@ -248,6 +290,89 @@ async def test_region_filter_hides_systems(client, db_session):
     assert "Jita" in unknown.text and "Amarr" in unknown.text
 
 
+def _structure_count(text: str, name: str) -> int | None:
+    """Item count shown on a structure's summary line, or None if the
+    structure is absent from the page."""
+    match = re.search(
+        re.escape(name) + r'</span>\s*<span class="count">(\d+) items?', text
+    )
+    return int(match.group(1)) if match else None
+
+
+# --- Category filter -------------------------------------------------------------
+
+
+@respx.mock
+async def test_category_filter_buckets_structures(client, db_session):
+    await _login(client)
+    await _seed_bravo(db_session)
+    await _seed_world(db_session)
+    # An asset whose type never resolved: lands in the "Other" bucket.
+    db_session.add(_asset(ALPHA, 9, 777, 1, STATION_JITA))
+    await db_session.commit()
+
+    # Materials: the Veldspar stacks only (Jita holds Alpha's two + Bravo's
+    # one; Amarr holds Alpha's one; the Iteron-only restricted structure
+    # drops out entirely).
+    materials = await client.get("/assets", params={"category": "materials"})
+    assert _structure_count(materials.text, JITA_STATION_NAME) == 3
+    assert _structure_count(materials.text, "Emperor Family Academy") == 1
+    assert f"Structure #{RESTRICTED}" not in materials.text
+    # The selected bucket stays selected in the dropdown.
+    assert '<option value="materials" selected' in materials.text
+    # Options are dynamic: buckets with no assets in this view (the seeded
+    # world has no skills, modules, or drones) are not offered.
+    for absent in ("skills", "modules", "drones"):
+        assert f'<option value="{absent}"' not in materials.text
+    # Buckets that do have assets are offered.
+    for present in ("materials", "ships", "blueprints", "other"):
+        assert f'<option value="{present}"' in materials.text
+
+    # Ships: only the Iterons.
+    ships = await client.get("/assets", params={"category": "ships"})
+    assert _structure_count(ships.text, JITA_STATION_NAME) == 1
+    assert _structure_count(ships.text, f"Structure #{RESTRICTED}") == 1
+    assert "Emperor Family Academy" not in ships.text
+
+    # Blueprints: the BPC and BPO rows.
+    blueprints = await client.get("/assets", params={"category": "blueprints"})
+    assert _structure_count(blueprints.text, JITA_STATION_NAME) == 2
+    assert "Emperor Family Academy" not in blueprints.text
+
+    # Other: the unresolvable type.
+    other = await client.get("/assets", params={"category": "other"})
+    assert _structure_count(other.text, JITA_STATION_NAME) == 1
+
+    # Composes with the character filter: Bravo owns no ships. (A sync
+    # record is needed for the "matches" wording rather than "not synced".)
+    db_session.add(
+        AssetSync(
+            owner_type="character",
+            owner_id=ALPHA,
+            status="ok",
+            synced_at=utc_now() - timedelta(minutes=5),
+        )
+    )
+    await db_session.commit()
+    # Bravo's own assets are materials only, so that is the only option
+    # the character-filtered dropdown offers.
+    bravo = await client.get("/assets", params={"chars": str(BRAVO)})
+    assert '<option value="materials"' in bravo.text
+    for absent in ("ships", "blueprints", "other"):
+        assert f'<option value="{absent}"' not in bravo.text
+
+    bravo_ships = await client.get(
+        "/assets", params={"category": "ships", "chars": str(BRAVO)}
+    )
+    assert "No assets match the current filters" in bravo_ships.text
+    # The selected-but-empty bucket stays visible, like regions do.
+    assert '<option value="ships" selected' in bravo_ships.text
+
+    # Unknown bucket keys fall back to all types.
+    unknown = await client.get("/assets", params={"category": "nope"})
+    assert _structure_count(unknown.text, JITA_STATION_NAME) == 7
+
+
 # --- Fragments: aggregation and pagination ------------------------------------
 
 
@@ -274,6 +399,138 @@ async def test_fragment_aggregates_per_type(client, db_session):
     # Bravo's row follows Alpha's.
     assert text.index("Bravo Pilot") > text.index("Alpha Pilot")
     assert "types" in text  # total row count
+    # Blueprint rows use the imageserver's dedicated renders (the plain
+    # icon endpoint 400s on blueprint types); regular types use "icon".
+    assert f"types/{TYPE_BLUEPRINT}/bpc?size=32" in text
+    assert f"types/{TYPE_BLUEPRINT}/bp?size=32" in text
+    assert f"types/{TYPE_VELDSPAR}/icon?size=32" in text
+    assert f"types/{TYPE_BLUEPRINT}/icon?size=32" not in text
+
+
+@respx.mock
+async def test_fragment_iconless_types_render_placeholder(client, db_session):
+    """SKINs (and Ancient Relics) have no imageserver variations at all —
+    those rows get a placeholder instead of a broken image."""
+    await _login(client)
+    await _seed_bravo(db_session)
+    await _seed_world(db_session)
+    db_session.add_all(
+        [
+            UniverseType(
+                type_id=TYPE_SKIN, name="Talos Federation Navy SKIN",
+                group_id=GROUP_SKIN,
+            ),
+            UniverseGroup(
+                group_id=GROUP_SKIN, name="SKINs", category_id=CATEGORY_SKINS
+            ),
+            UniverseCategory(category_id=CATEGORY_SKINS, name="SKINs"),
+            _asset(ALPHA, 10, TYPE_SKIN, 1, STATION_JITA),
+        ]
+    )
+    await db_session.commit()
+
+    response = await client.get(f"/assets/structure/{STATION_JITA}")
+    text = response.text
+    # No imageserver URL for the SKIN, and a placeholder keeps the cell.
+    assert f"types/{TYPE_SKIN}/" not in text
+    assert "type-icon-empty" in text
+    # Regular rows are unaffected.
+    assert f"types/{TYPE_VELDSPAR}/icon?size=32" in text
+
+
+@respx.mock
+async def test_fragment_category_filter(client, db_session):
+    await _login(client)
+    await _seed_bravo(db_session)
+    await _seed_world(db_session)
+    # An unresolvable type lands in "Other".
+    db_session.add(_asset(ALPHA, 9, 777, 1, STATION_JITA))
+    await db_session.commit()
+
+    materials = await client.get(
+        f"/assets/structure/{STATION_JITA}", params={"category": "materials"}
+    )
+    text = materials.text
+    assert "Veldspar" in text  # Alpha's merged row + Bravo's
+    assert "Iteron Mark V" not in text
+    assert "Cruiser Blueprint" not in text
+    assert "Unknown type #777" not in text
+    assert "2 types" in text  # two rows: Alpha's and Bravo's Veldspar
+    # The filter carries into pagination hrefs.
+    assert "category=materials" in text
+
+    other = await client.get(
+        f"/assets/structure/{STATION_JITA}", params={"category": "other"}
+    )
+    assert "Unknown type #777" in other.text
+    assert "Veldspar" not in other.text
+
+
+@respx.mock
+async def test_fragment_sorts_columns(client, db_session):
+    await _login(client)
+    await _seed_bravo(db_session)
+    await _seed_world(db_session)
+
+    # Quantity, descending: Alpha's 150 Veldspar, Bravo's 10, Iteron (2),
+    # then the blueprint rows (1 each). Bravo before Iteron proves the
+    # numeric order overrode the owner-then-type default.
+    by_qty = await client.get(
+        f"/assets/structure/{STATION_JITA}",
+        params={"sort": "quantity", "dir": "desc"},
+    )
+    text = by_qty.text
+    assert text.index("Bravo Pilot") < text.index("Iteron Mark V")
+    assert text.index("Iteron Mark V") < text.index("Cruiser Blueprint")
+    assert 'aria-sort="descending"' in text
+
+    # Type, ascending: blueprints, Iteron, then both Veldspar rows — so
+    # Bravo's row lands last, opposite of the quantity sort.
+    by_type = await client.get(
+        f"/assets/structure/{STATION_JITA}", params={"sort": "type"}
+    )
+    text = by_type.text
+    assert text.index("Bravo Pilot") > text.index("Iteron Mark V")
+    assert 'aria-sort="ascending"' in text
+
+    # Volume, descending: the 49,000 m³ Iteron outranks everything.
+    by_volume = await client.get(
+        f"/assets/structure/{STATION_JITA}",
+        params={"sort": "volume", "dir": "desc"},
+    )
+    text = by_volume.text
+    assert text.index("Iteron Mark V") < text.index("Cruiser Blueprint")
+
+    # Garbage sort/direction values fall back to the default order
+    # (owner, then type: all of Alpha's rows, then Bravo's).
+    fallback = await client.get(
+        f"/assets/structure/{STATION_JITA}",
+        params={"sort": "junk", "dir": "sideways"},
+    )
+    text = fallback.text
+    assert text.index("Bravo Pilot") > text.index("Iteron Mark V")
+    assert 'aria-sort=' not in text
+
+
+@respx.mock
+async def test_fragment_links_carry_sort_and_filters(client, db_session):
+    await _login(client)
+    await _seed_bravo(db_session)
+    await _seed_world(db_session)
+
+    response = await client.get(
+        f"/assets/structure/{STATION_JITA}",
+        params={"sort": "quantity", "dir": "desc", "chars": str(ALPHA),
+                "category": "materials"},
+    )
+    text = response.text
+
+    # The active header's link toggles back to ascending, keeping filters.
+    toggle = 'href="/assets/structure/6001?sort=quantity&amp;dir=asc'
+    assert toggle + '&amp;chars=1234&amp;category=materials"' in text
+    # Inactive headers start ascending, keeping filters.
+    inactive = 'href="/assets/structure/6001?sort=type&amp;dir=asc'
+    assert inactive + '&amp;chars=1234&amp;category=materials"' in text
 
 
 @respx.mock
@@ -315,6 +572,14 @@ async def test_fragment_paginates_and_carries_filter(client, db_session):
     )
     assert "chars=1234" in filtered.text
 
+    # So does the active sort: pagination links re-apply it.
+    sorted_filtered = await client.get(
+        f"/assets/structure/{STATION_AMARR}",
+        params={"chars": str(ALPHA), "sort": "quantity", "dir": "desc"},
+    )
+    assert "chars=1234" in sorted_filtered.text
+    assert "sort=quantity&amp;dir=desc" in sorted_filtered.text
+
 
 @respx.mock
 async def test_fragment_requires_auth(client, db_session):
@@ -355,7 +620,13 @@ async def test_manual_sync_forces_and_preserves_filters(client, db_session):
     ).respond(json={"name": "The Forge"})
     respx.get(
         f"https://esi.test/latest/universe/types/{TYPE_VELDSPAR}/"
-    ).respond(json={"name": "Veldspar", "volume": 0.1})
+    ).respond(json={"name": "Veldspar", "volume": 0.1, "group_id": 18})
+    respx.get("https://esi.test/latest/universe/groups/18/").respond(
+        json={"name": "Mineral", "category_id": 4}
+    )
+    respx.get("https://esi.test/latest/universe/categories/4/").respond(
+        json={"name": "Material"}
+    )
     assets = respx.get(ASSETS_URL).respond(
         json=[{
             "item_id": 1,
@@ -370,12 +641,18 @@ async def test_manual_sync_forces_and_preserves_filters(client, db_session):
 
     response = await client.post(
         "/assets/sync",
-        data={"chars": str(ALPHA), "region": str(REGION_FORGE)},
+        data={
+            "chars": str(ALPHA),
+            "region": str(REGION_FORGE),
+            "category": "materials",
+        },
         follow_redirects=False,
     )
 
     assert response.status_code == 303
-    assert response.headers["location"] == f"/assets?chars={ALPHA}&region={REGION_FORGE}"
+    assert response.headers["location"] == (
+        f"/assets?chars={ALPHA}&region={REGION_FORGE}&category=materials"
+    )
     assert assets.call_count == 1
     assert station.call_count == 1  # universe resolution ran
 
@@ -444,6 +721,9 @@ def test_parse_chars_forms():
     assert parse_region(None) is None
     assert parse_region("1002") == 1002
     assert parse_region("junk") is None
+    assert parse_category(None) is None
+    assert parse_category("ships") == "ships"
+    assert parse_category("nope") is None
 
 
 # --- Corporation stubs and nav -------------------------------------------------
