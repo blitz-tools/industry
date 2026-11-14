@@ -562,6 +562,25 @@ button.danger:hover {
   text-align: left;
 }
 
+.asset-table th a.sort-link {
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.asset-table th a.sort-link:hover {
+  color: var(--cyan);
+}
+
+.asset-table th a.sort-link.active {
+  color: var(--cyan);
+}
+
+.asset-table th .sort-arrow {
+  margin-left: 0.15rem;
+  font-size: 0.65rem;
+}
+
 .asset-table td {
   padding: 0.35rem 0.5rem;
   border-bottom: 1px solid var(--line);
@@ -589,6 +608,16 @@ button.danger:hover {
   margin-right: 0.4rem;
   border-radius: 50%;
   vertical-align: -0.45rem;
+}
+
+/* Placeholder for types the imageserver has no images for (SKINs,
+   Ancient Relics) — keeps the icon column's shape without a broken img. */
+.type-icon-empty {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  border: 1px dashed var(--line);
+  border-radius: 4px;
 }
 
 .badge.bpc {

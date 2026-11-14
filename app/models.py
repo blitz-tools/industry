@@ -123,6 +123,26 @@ class UniverseType(Base, TimestampMixin):
     group_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
 
 
+class UniverseGroup(Base, TimestampMixin):
+    """Resolved /universe/groups/{id}/ data: the group's name and the
+    category it belongs to. Category names drive the asset type filter."""
+
+    __tablename__ = "universe_groups"
+
+    group_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    category_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+
+
+class UniverseCategory(Base, TimestampMixin):
+    """Resolved /universe/categories/{id}/ data; effectively write-once."""
+
+    __tablename__ = "universe_categories"
+
+    category_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+
+
 class UniverseLocation(Base, TimestampMixin):
     """Resolved stations, structures, and solar systems.
 

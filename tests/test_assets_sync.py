@@ -17,6 +17,8 @@ from app.models import (
     Asset,
     AssetSync,
     Character,
+    UniverseCategory,
+    UniverseGroup,
     UniverseLocation,
     UniverseRegion,
     UniverseType,
@@ -30,6 +32,10 @@ CONSTELLATION_URL = "https://esi.test/latest/universe/constellations/20000020/"
 REGION_URL = "https://esi.test/latest/universe/regions/10000016/"
 TYPE_1230_URL = "https://esi.test/latest/universe/types/1230/"
 TYPE_1231_URL = "https://esi.test/latest/universe/types/1231/"
+GROUP_18_URL = "https://esi.test/latest/universe/groups/18/"
+GROUP_26_URL = "https://esi.test/latest/universe/groups/26/"
+CATEGORY_4_URL = "https://esi.test/latest/universe/categories/4/"
+CATEGORY_6_URL = "https://esi.test/latest/universe/categories/6/"
 
 PAST_EXPIRES = "Thu, 01 Jan 2026 00:00:00 GMT"
 FUTURE_EXPIRES = "Wed, 31 Dec 2031 00:00:00 GMT"
@@ -108,6 +114,14 @@ def _mock_universe() -> None:
     respx.get(TYPE_1231_URL).respond(
         json={"name": "Iteron Mark V", "volume": 24500.0, "group_id": 26}
     )
+    respx.get(GROUP_18_URL).respond(
+        json={"name": "Mineral", "category_id": 4}
+    )
+    respx.get(GROUP_26_URL).respond(
+        json={"name": "Industrial", "category_id": 6}
+    )
+    respx.get(CATEGORY_4_URL).respond(json={"name": "Material"})
+    respx.get(CATEGORY_6_URL).respond(json={"name": "Ship"})
 
 
 def _hangar_item(item_id: int, type_id: int, quantity: int = 1) -> dict:
@@ -164,9 +178,36 @@ async def test_sync_pulls_pages_resolves_parents_and_universe(app, db_session):
     station = await db_session.get(UniverseLocation, STATION_ID)
     assert station.system_id == 30000142
     assert (await db_session.get(UniverseRegion, 10000016)).name == "The Forge"
+    # Groups and their categories resolve too (they drive the type filter).
+    assert (await db_session.get(UniverseGroup, 18)).name == "Mineral"
+    assert (await db_session.get(UniverseCategory, 4)).name == "Material"
+    assert (await db_session.get(UniverseCategory, 6)).name == "Ship"
 
     sync_row = await db_session.get(AssetSync, ("character", character.character_id))
     assert sync_row.status == "ok"
+
+
+@respx.mock
+async def test_sync_backfills_groups_for_stored_types(app, db_session):
+    """Types resolved before groups existed still get their category: the
+    group ids are read from stored UniverseType rows, not just fresh
+    fetches."""
+    character = await _seed_character(db_session)
+    esi = _make_esi(app, db_session)
+    resolver = _make_resolver(db_session, esi)
+    db_session.add(
+        UniverseType(type_id=1230, name="Veldspar", volume=0.1, group_id=18)
+    )
+    await db_session.commit()
+    _mock_assets(character.character_id, [[_hangar_item(1, 1230, 500)]])
+    _mock_universe()  # type fetch skipped (stored); group still fetched
+
+    outcomes = await sync_all_characters(db_session, esi, [character], resolver=resolver)
+
+    assert outcomes[0].status == "synced"
+    group = await db_session.get(UniverseGroup, 18)
+    assert group.name == "Mineral" and group.category_id == 4
+    assert (await db_session.get(UniverseCategory, 4)).name == "Material"
 
 
 @respx.mock

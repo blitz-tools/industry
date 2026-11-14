@@ -3,17 +3,24 @@
   <thead>
     <tr>
       <th class="sr-only">Icon</th>
-      <th>Type</th>
-      <th>Character</th>
-      <th class="num">Qty</th>
-      <th class="num">Volume</th>
-      <th>Flag</th>
+      {% for header in sort_headers %}
+      <th{% if header.key in ('quantity', 'volume') %} class="num"{% endif %}{% if header.active %} aria-sort="{{ 'descending' if header.descending else 'ascending' }}"{% endif %}>
+        <a class="sort-link{% if header.active %} active{% endif %}" href="{{ header.url }}"
+           title="Sort by {{ header.label | lower }}">{{ header.label }}<span class="sort-arrow" aria-hidden="true">{% if header.active %}{{ '▼' if header.descending else '▲' }}{% endif %}</span></a>
+      </th>
+      {% endfor %}
     </tr>
   </thead>
   <tbody>
     {% for row in rows %}
     <tr>
-      <td><img class="type-icon" loading="lazy" src="{{ type_icon_url(row.type_id) }}" alt="" width="32" height="32"></td>
+      <td>
+        {% if row.icon_kind %}
+        <img class="type-icon" loading="lazy" src="{{ type_icon_url(row.type_id, 32, row.icon_kind) }}" alt="" width="32" height="32">
+        {% else %}
+        <span class="type-icon-empty" aria-hidden="true"></span>
+        {% endif %}
+      </td>
       <td class="type-name">
         {{ row.type_name or 'Unknown type #' ~ row.type_id }}
         {% if row.is_blueprint_copy %}<span class="badge bpc">Copy</span>{% endif %}
@@ -37,7 +44,7 @@
   {% if pages > 1 %}
     {% for p in range(1, pages + 1) %}
     <a class="page{% if p == page %} current{% endif %}" data-page="{{ p }}"
-       href="/assets/structure/{{ location_id }}?page={{ p }}{% if selected %}&chars={{ selected | join(',') }}{% endif %}">{{ p }}</a>
+       href="/assets/structure/{{ location_id }}?page={{ p }}{% if carry_qs %}&{{ carry_qs }}{% endif %}">{{ p }}</a>
     {% endfor %}
   {% endif %}
   <span class="total">{{ total }} type{{ '' if total == 1 else 's' }}</span>
