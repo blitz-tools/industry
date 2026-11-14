@@ -19,7 +19,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import Settings
 from ..db import utc_now
-from ..models import Character, UniverseLocation, UniverseRegion, UniverseType
+from ..models import (
+    Character,
+    UniverseCategory,
+    UniverseGroup,
+    UniverseLocation,
+    UniverseRegion,
+    UniverseType,
+)
 from .client import ESIClient, ESIError, ESIStatusError
 
 LOCATION_STATION = "station"
@@ -90,6 +97,51 @@ class UniverseResolver:
 
     async def get_type(self, type_id: int) -> UniverseType | None:
         return await self._db.get(UniverseType, type_id)
+
+    async def ensure_groups(self, group_ids: Iterable[int | None]) -> None:
+        """Fetch /universe/groups/ data (and each group's category) for ids
+        not yet stored; category names drive the assets page type filter. A
+        group whose category fails to resolve is not stored, so the next
+        sync pass retries it."""
+        wanted = {group_id for group_id in group_ids if group_id is not None}
+        if not wanted:
+            return
+        existing = set(
+            (
+                await self._db.execute(
+                    select(UniverseGroup.group_id).where(
+                        UniverseGroup.group_id.in_(wanted)
+                    )
+                )
+            ).scalars()
+        )
+        for group_id in sorted(wanted - existing):
+            try:
+                body = await self._esi.get_public(f"/universe/groups/{group_id}/")
+            except ESIError:
+                continue  # deleted/unreachable; assets land in "Other"
+            category_id = body.get("category_id")
+            if category_id is None or await self._ensure_category(category_id):
+                self._db.add(
+                    UniverseGroup(
+                        group_id=group_id,
+                        name=body["name"],
+                        category_id=category_id,
+                    )
+                )
+        await self._db.commit()
+
+    async def _ensure_category(self, category_id: int) -> UniverseCategory | None:
+        category = await self._db.get(UniverseCategory, category_id)
+        if category is not None:
+            return category
+        try:
+            body = await self._esi.get_public(f"/universe/categories/{category_id}/")
+        except ESIError:
+            return None
+        category = UniverseCategory(category_id=category_id, name=body["name"])
+        self._db.add(category)
+        return category
 
     async def resolve_locations(
         self,

@@ -59,13 +59,9 @@
   const structures = document.querySelectorAll("details.structure");
   if (!structures.length) return;
 
-  const load = async (details, page) => {
+  const load = async (details, params) => {
     const body = details.querySelector(".structure-body");
     body.textContent = "Loading…";
-    const params = new URLSearchParams();
-    params.set("page", String(page));
-    const chars = new URLSearchParams(window.location.search).get("chars");
-    if (chars) params.set("chars", chars);
     try {
       const response = await fetch(
         `/assets/structure/${details.dataset.locationId}?${params}`
@@ -77,20 +73,35 @@
     }
   };
 
+  // First expansion: page 1, carrying the page-level character and
+  // category filters.
+  const initialParams = () => {
+    const params = new URLSearchParams();
+    params.set("page", "1");
+    const pageQuery = new URLSearchParams(window.location.search);
+    for (const key of ["chars", "category"]) {
+      const value = pageQuery.get(key);
+      if (value) params.set(key, value);
+    }
+    return params;
+  };
+
   structures.forEach((details) => {
     // First expansion fetches page 1; later expansions are instant.
     details.addEventListener("toggle", () => {
       if (details.open && !details.dataset.loaded) {
         details.dataset.loaded = "1";
-        load(details, 1);
+        load(details, initialParams());
       }
     });
-    // Pagination links inside the panel fetch and swap in place.
+    // Pagination and column-sort links inside the panel fetch and swap in
+    // place; their hrefs already carry every param (page, chars, category,
+    // sort, dir), so the link's own query is the fetch's query.
     details.addEventListener("click", (event) => {
-      const link = event.target.closest(".pagination a");
+      const link = event.target.closest(".pagination a, thead a.sort-link");
       if (!link) return;
       event.preventDefault();
-      load(details, link.dataset.page || 1);
+      load(details, new URLSearchParams(new URL(link.href).search));
     });
   });
 })();
@@ -107,8 +118,10 @@
     if (checked.length && checked.length < boxes.length) {
       params.set("chars", checked.join(","));
     }
-    const region = form.querySelector('select[name="region"]').value;
-    if (region) params.set("region", region);
+    for (const name of ["region", "category"]) {
+      const value = form.querySelector(`select[name="${name}"]`).value;
+      if (value) params.set(name, value);
+    }
     const query = params.toString();
     window.location.assign("/assets" + (query ? `?${query}` : ""));
   });

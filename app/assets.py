@@ -9,8 +9,9 @@ character multi-selector (and, later, corporation views) compose freely.
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from urllib.parse import urlencode
 
-from sqlalchemy import String, case, cast, func, select
+from sqlalchemy import String, case, cast, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .db import utc_now
@@ -19,12 +20,73 @@ from .models import (
     Asset,
     AssetSync,
     Character,
+    UniverseCategory,
+    UniverseGroup,
     UniverseLocation,
     UniverseRegion,
     UniverseType,
 )
 
 UNKNOWN_SYSTEM = "Unknown system"
+
+
+@dataclass(frozen=True)
+class CategoryBucket:
+    """One asset type filter option: a friendly label over a set of EVE
+    universe category names (as ESI reports them). An empty category set is
+    the catch-all bucket matching everything no named bucket claims."""
+
+    key: str  # URL parameter value
+    label: str
+    categories: tuple[str, ...]
+
+
+# ESI's name for the blueprint category; blueprint icons need the
+# imageserver's dedicated bp/bpc renders (see AssetRow.icon_kind).
+BLUEPRINT_CATEGORY = "Blueprint"
+
+# Categories the imageserver has no images for at all (probed 2026-11:
+# every type variation 404s). Rows here render a placeholder instead of a
+# broken image. Page renders can't probe the imageserver themselves — the
+# no-ESI purity rule — so this list is the record of what it serves.
+ICONLESS_CATEGORIES = frozenset({"SKINs", "Ancient Relics"})
+
+
+CATEGORY_BUCKETS: tuple[CategoryBucket, ...] = (
+    CategoryBucket(
+        "materials",
+        "Materials",
+        (
+            "Material",  # minerals, ice products, moon materials, fuel
+            "Asteroid",  # ore
+            "Commodity",
+            "Planetary Industry",
+            "Planetary Resources",
+            "Planetary Commodities",
+        ),
+    ),
+    CategoryBucket("reactions", "Reactions", ("Reaction",)),
+    CategoryBucket("blueprints", "Blueprints", (BLUEPRINT_CATEGORY,)),
+    CategoryBucket("ships", "Ships", ("Ship",)),
+    CategoryBucket("modules", "Modules", ("Module", "Charge", "Subsystem")),
+    CategoryBucket("drones", "Drones & Fighters", ("Drone", "Fighter")),
+    CategoryBucket("skills", "Skills", ("Skill",)),
+    CategoryBucket("implants", "Implants", ("Implant",)),
+    CategoryBucket(
+        "structures",
+        "Structures",
+        ("Structure", "Structure Module", "Starbase", "Deployable"),
+    ),
+    CategoryBucket("other", "Other", ()),
+)
+
+BUCKETS_BY_KEY = {bucket.key: bucket for bucket in CATEGORY_BUCKETS}
+# Category name → the bucket that claims it; unclaimed names (and
+# unresolved types) belong to "Other".
+BUCKET_BY_CATEGORY = {
+    name: bucket.key for bucket in CATEGORY_BUCKETS for name in bucket.categories
+}
+CLAIMED_CATEGORIES = frozenset(BUCKET_BY_CATEGORY)
 
 
 @dataclass
@@ -52,11 +114,20 @@ class RegionOption:
 
 
 @dataclass
+class CategoryOption:
+    key: str  # bucket key (URL parameter value)
+    label: str
+
+
+@dataclass
 class AssetView:
     groups: list[SystemGroup]
     # Region options from the character-filtered (but region-unfiltered)
     # data, so the dropdown stays stable under its own filter.
     regions: list[RegionOption]
+    # Category options from the character-filtered (but category-unfiltered)
+    # data — buckets that actually have assets, same stability rule.
+    categories: list[CategoryOption]
     total_items: int
 
 
@@ -70,6 +141,10 @@ class AssetRow:
     volume_total: float | None  # unit volume × summed quantity
     location_flag: str
     is_blueprint_copy: bool
+    # Imageserver path segment ("icon", "bp", "bpc"), or None when the
+    # type's category has no images at all: blueprints 400 on the plain
+    # icon endpoint, and SKINs/Ancient Relics have no variations.
+    icon_kind: str | None = "icon"
 
 
 @dataclass
@@ -133,6 +208,163 @@ def parse_region(raw: str | None) -> int | None:
         return None
 
 
+def parse_category(raw: str | None) -> str | None:
+    """Parse ?category= to a bucket key; None for absent or unknown."""
+    if raw is None:
+        return None
+    return raw if raw in BUCKETS_BY_KEY else None
+
+
+def parse_sort(raw: str | None) -> str | None:
+    """Parse ?sort= to a sortable column key; None for absent or unknown."""
+    if raw is None:
+        return None
+    return raw if raw in SORT_KEYS else None
+
+
+def parse_direction(raw: str | None) -> str | None:
+    """Parse ?dir=; only "asc" and "desc" are meaningful."""
+    return raw if raw in ("asc", "desc") else None
+
+
+# Sortable asset-table columns: URL key and header label.
+SORTABLE_COLUMNS: tuple[tuple[str, str], ...] = (
+    ("type", "Type"),
+    ("character", "Character"),
+    ("quantity", "Qty"),
+    ("volume", "Volume"),
+    ("flag", "Flag"),
+)
+SORT_KEYS = frozenset(key for key, _ in SORTABLE_COLUMNS)
+
+
+@dataclass(frozen=True)
+class SortHeader:
+    """One clickable table header: `url` applies this sort (the opposite
+    direction when the column is already active)."""
+
+    key: str
+    label: str
+    url: str
+    active: bool
+    descending: bool  # current direction, when active
+
+
+def sort_headers(
+    location_id: int,
+    *,
+    current_sort: str | None,
+    current_dir: str | None,
+    chars: list[int] | None,
+    category: str | None,
+) -> list[SortHeader]:
+    headers = []
+    for key, label in SORTABLE_COLUMNS:
+        active = key == current_sort
+        # Active columns toggle direction; inactive ones start ascending.
+        next_dir = ("desc" if current_dir == "asc" else "asc") if active else "asc"
+        params = [("sort", key), ("dir", next_dir)]
+        if chars:
+            params.append(("chars", ",".join(str(c) for c in chars)))
+        if category:
+            params.append(("category", category))
+        headers.append(
+            SortHeader(
+                key=key,
+                label=label,
+                url=f"/assets/structure/{location_id}?{urlencode(params)}",
+                active=active,
+                descending=current_dir == "desc",
+            )
+        )
+    return headers
+
+
+def carry_query(
+    *,
+    chars: list[int] | None,
+    category: str | None,
+    sort: str | None,
+    direction: str | None,
+) -> str:
+    """Query string of fragment params pagination links re-apply (i.e.
+    everything except the page they themselves set)."""
+    params = []
+    if chars:
+        params.append(("chars", ",".join(str(c) for c in chars)))
+    if category:
+        params.append(("category", category))
+    if sort:
+        params.append(("sort", sort))
+        params.append(("dir", direction or "asc"))
+    return urlencode(params)
+
+
+def _category_filter_joins(query, *, with_type: bool):
+    """Outer-join the type → group → category chain category filters walk.
+    Cardinality is 1:1 at every hop (PK lookups), so the joins never
+    multiply rows; unresolved links read as NULL."""
+    if with_type:
+        query = query.outerjoin(UniverseType, UniverseType.type_id == Asset.type_id)
+    return (
+        query.outerjoin(UniverseGroup, UniverseGroup.group_id == UniverseType.group_id)
+        .outerjoin(
+            UniverseCategory, UniverseCategory.category_id == UniverseGroup.category_id
+        )
+    )
+
+
+def category_condition(bucket: CategoryBucket):
+    """SQL condition on Asset rows for one bucket."""
+    if bucket.categories:
+        return UniverseCategory.name.in_(bucket.categories)
+    # "Other": anything a named bucket does not claim, or that could not be
+    # resolved at all. The explicit NULL checks keep SQL's three-valued
+    # logic from silently dropping unresolved rows.
+    return or_(
+        UniverseType.type_id.is_(None),
+        UniverseGroup.group_id.is_(None),
+        UniverseGroup.category_id.is_(None),
+        UniverseCategory.category_id.is_(None),
+        UniverseCategory.name.is_(None),
+        ~UniverseCategory.name.in_(CLAIMED_CATEGORIES),
+    )
+
+
+def _icon_kind(category_name: str | None, is_blueprint_copy: bool) -> str | None:
+    """Imageserver path segment for a row's type icon, or None when the
+    type's category has no images at all (see ICONLESS_CATEGORIES)."""
+    if category_name in ICONLESS_CATEGORIES:
+        return None
+    if is_blueprint_copy:
+        return "bpc"
+    if category_name == BLUEPRINT_CATEGORY:
+        return "bp"
+    return "icon"
+
+
+def _order_keys(sort: str | None, direction: str | None) -> list:
+    """ORDER BY keys for structure rows: the requested column (when `sort`
+    names one) followed by the default owner-then-type order, so ties and
+    unsorted pages paginate deterministically."""
+    type_name = func.coalesce(UniverseType.name, "#" + cast(Asset.type_id, String))
+    primary = {
+        "type": type_name,
+        "character": Character.name,
+        "quantity": func.sum(Asset.quantity),
+        "volume": func.sum(Asset.quantity) * UniverseType.volume,
+        "flag": func.max(Asset.location_flag),
+    }.get(sort)
+    keys = []
+    if primary is not None:
+        key = primary.desc() if direction == "desc" else primary.asc()
+        if sort == "volume":
+            key = key.nulls_last()  # unknown volumes sink, either direction
+        keys.append(key)
+    keys.extend([Character.name, type_name])
+    return keys
+
+
 def humanize_sync_age(synced_at: datetime | None, *, now: datetime | None = None) -> str:
     """Coarse last-sync wording: never minutes — under an hour reads as
     'less than an hour ago', then hours, then days."""
@@ -148,30 +380,62 @@ def humanize_sync_age(synced_at: datetime | None, *, now: datetime | None = None
     return f"Data sync'd {days} day{'s' if days != 1 else ''} ago"
 
 
-async def system_groups(db: AsyncSession, *, owner_ids: list[int] | None) -> AssetView:
+async def system_groups(
+    db: AsyncSession,
+    *,
+    owner_ids: list[int] | None,
+    category: str | None = None,
+) -> AssetView:
     """System → structure view of the character asset snapshot, filtered to
-    the selected owners (None = all)."""
+    the selected owners (None = all) and category bucket (None = all)."""
     conditions = [Asset.owner_type == OWNER_CHARACTER]
     if owner_ids is not None:
         conditions.append(Asset.owner_id.in_(owner_ids))
-    counts = (
+
+    # Category options: asset counts per resolved category name over the
+    # owner-filtered (but category-unfiltered) data, so the dropdown only
+    # offers buckets that actually have assets and stays stable under its
+    # own filter — the same rule as the region options.
+    name_expr = func.coalesce(UniverseCategory.name, "")
+    rows_by_name = (
         await db.execute(
-            select(
-                Asset.parent_location_id,
-                func.count(),
-                # Each top-level location has at least one direct
-                # (non-container) child row that names its kind.
-                func.max(
-                    case((Asset.location_type != "item", Asset.location_type))
-                ),
+            _category_filter_joins(
+                select(name_expr, func.count()).select_from(Asset),
+                with_type=True,
             )
             .where(*conditions)
-            .group_by(Asset.parent_location_id)
+            .group_by(name_expr)
         )
+    ).all()
+    present = {BUCKET_BY_CATEGORY.get(name, "other") for name, _ in rows_by_name}
+    category_options = [
+        CategoryOption(bucket.key, bucket.label)
+        for bucket in CATEGORY_BUCKETS
+        if bucket.key in present
+    ]
+
+    counts_conditions = list(conditions)
+    if category is not None:
+        counts_conditions.append(category_condition(BUCKETS_BY_KEY[category]))
+    counts_query = select(
+        Asset.parent_location_id,
+        func.count(),
+        # Each top-level location has at least one direct
+        # (non-container) child row that names its kind.
+        func.max(
+            case((Asset.location_type != "item", Asset.location_type))
+        ),
+    ).where(*counts_conditions)
+    if category is not None:
+        counts_query = _category_filter_joins(counts_query, with_type=True)
+    counts = (
+        await db.execute(counts_query.group_by(Asset.parent_location_id))
     ).all()
 
     if not counts:
-        return AssetView(groups=[], regions=[], total_items=0)
+        return AssetView(
+            groups=[], regions=[], categories=category_options, total_items=0
+        )
 
     location_rows = (
         (
@@ -292,6 +556,7 @@ async def system_groups(db: AsyncSession, *, owner_ids: list[int] | None) -> Ass
     return AssetView(
         groups=ordered,
         regions=sorted(region_options.values(), key=lambda r: r.name.lower()),
+        categories=category_options,
         total_items=sum(len(g.structures) for g in ordered),
     )
 
@@ -303,10 +568,15 @@ async def structure_page(
     page: int,
     page_size: int,
     owner_ids: list[int] | None,
+    category: str | None = None,
+    sort: str | None = None,
+    direction: str | None = None,
 ) -> tuple[list[AssetRow], int, int]:
     """One page of per-type aggregated rows for a structure's panel. The
     same asset type from one owner merges into a single row with summed
-    quantity (blueprint originals and copies stay separate rows). Returns
+    quantity (blueprint originals and copies stay separate rows). Filters
+    by owner ids and category bucket (None = all); `sort` names a column
+    to order by (None = the default owner-then-type order). Returns
     (rows, total groups, page used) — the page is clamped to range."""
     conditions = [
         Asset.owner_type == OWNER_CHARACTER,
@@ -314,15 +584,17 @@ async def structure_page(
     ]
     if owner_ids is not None:
         conditions.append(Asset.owner_id.in_(owner_ids))
+    if category is not None:
+        conditions.append(category_condition(BUCKETS_BY_KEY[category]))
 
     group_by = [Asset.owner_id, Asset.type_id, Asset.is_blueprint_copy]
+    total_query = select(*group_by).where(*conditions)
+    if category is not None:
+        total_query = _category_filter_joins(total_query, with_type=True)
     total_groups = (
         await db.execute(
             select(func.count()).select_from(
-                select(*group_by)
-                .where(*conditions)
-                .group_by(*group_by)
-                .subquery()
+                total_query.group_by(*group_by).subquery()
             )
         )
     ).scalar_one()
@@ -330,37 +602,37 @@ async def structure_page(
     pages = max(1, -(-total_groups // page_size))
     page = min(max(1, page), pages)
 
+    rows_query = _category_filter_joins(
+        select(
+            Asset.owner_id,
+            Character.name,
+            Asset.type_id,
+            UniverseType.name,
+            UniverseType.volume,
+            func.sum(Asset.quantity),
+            func.max(
+                Asset.location_flag
+            ),
+            Asset.is_blueprint_copy,
+            UniverseCategory.name,
+        )
+        .join(Character, Character.character_id == Asset.owner_id)
+        .outerjoin(UniverseType, UniverseType.type_id == Asset.type_id)
+        .where(*conditions),
+        with_type=False,
+    )
     rows_raw = (
         await db.execute(
-            select(
-                Asset.owner_id,
-                Character.name,
-                Asset.type_id,
-                UniverseType.name,
-                UniverseType.volume,
-                func.sum(Asset.quantity),
-                func.max(
-                    Asset.location_flag
-                ),
-                Asset.is_blueprint_copy,
-            )
-            .join(Character, Character.character_id == Asset.owner_id)
-            .outerjoin(UniverseType, UniverseType.type_id == Asset.type_id)
-            .where(*conditions)
-            .group_by(
+            rows_query.group_by(
                 Asset.owner_id,
                 Asset.type_id,
                 Asset.is_blueprint_copy,
                 Character.name,
                 UniverseType.name,
                 UniverseType.volume,
+                UniverseCategory.name,
             )
-            .order_by(
-                Character.name,
-                func.coalesce(
-                    UniverseType.name, "#" + cast(Asset.type_id, String)
-                ),
-            )
+            .order_by(*_order_keys(sort, direction))
             .limit(page_size)
             .offset((page - 1) * page_size)
         )
@@ -376,6 +648,7 @@ async def structure_page(
             volume_total=volume * quantity if volume is not None else None,
             location_flag=flag or "",
             is_blueprint_copy=is_copy,
+            icon_kind=_icon_kind(category_name, is_copy),
         )
         for (
             owner_id,
@@ -386,6 +659,7 @@ async def structure_page(
             quantity,
             flag,
             is_copy,
+            category_name,
         ) in rows_raw
     ]
     return asset_rows, total_groups, page
