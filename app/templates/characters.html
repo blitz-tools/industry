@@ -4,7 +4,7 @@
 {% block content %}
 <h1>Character Roster</h1>
 <div class="roster-actions">
-  <a class="button" href="/auth/eve/login">Add character</a>
+  <a class="button" href="/auth/eve/login?next=/characters">Add character</a>
 </div>
 <div class="grid">
   {% for card in cards %}
@@ -30,7 +30,7 @@
         </div>
         {% endif %}
         <div class="card-actions">
-          <a class="button" href="/auth/eve/login">Re-Auth</a>
+          <a class="button" href="/auth/eve/login?next=/characters">Re-Auth</a>
           <form method="post" action="/characters/{{ card.character.character_id }}/forget">
             <button class="danger" type="submit">Forget</button>
           </form>

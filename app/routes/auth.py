@@ -26,6 +26,10 @@ from ..templates import templates
 router = APIRouter()
 
 STATE_SESSION_KEY = "sso_state"
+NEXT_SESSION_KEY = "sso_next"
+# Post-login destinations the app itself offers — the whitelist guards
+# against open redirects through the ?next= parameter.
+VALID_NEXT = frozenset({"/dashboard", "/characters"})
 
 
 def sso_from(request: Request, http) -> SSOClient:
@@ -61,11 +65,15 @@ async def upsert_character(
 
 
 @router.get("/auth/eve/login")
-async def login(request: Request, http: HttpDep):
+async def login(request: Request, http: HttpDep, next: str = "/dashboard"):
     """Start the OAuth flow. Also used as "Add character" — EVE's SSO screen
-    lets the user pick a different character (or account) each time."""
+    lets the user pick a different character (or account) each time. `next`
+    is where the callback returns afterwards: the roster's Re-Auth and
+    Add-character buttons pass /characters so the flow lands where it
+    started; a plain sign-in keeps the dashboard."""
     state = secrets.token_urlsafe(24)
     request.session[STATE_SESSION_KEY] = state
+    request.session[NEXT_SESSION_KEY] = next if next in VALID_NEXT else "/dashboard"
     return RedirectResponse(sso_from(request, http).authorize_url(state), status_code=302)
 
 
@@ -78,6 +86,7 @@ async def callback(
     state: str | None = None,
 ):
     expected = request.session.pop(STATE_SESSION_KEY, None)  # one-shot
+    destination = request.session.pop(NEXT_SESSION_KEY, None) or "/dashboard"
     if code is None or state is None or expected is None:
         return templates.TemplateResponse(
             request,
@@ -113,7 +122,7 @@ async def callback(
 
     await upsert_character(db, claims, tokens)
     request.session["authenticated"] = True
-    return RedirectResponse("/dashboard", status_code=302)
+    return RedirectResponse(destination, status_code=302)
 
 
 @router.get("/auth/logout")
@@ -147,4 +156,5 @@ async def forget(character_id: int, request: Request, http: HttpDep, db: DbDep):
             )
         )
         await db.commit()
-    return RedirectResponse("/dashboard", status_code=303)
+    # Forget lives on the roster; stay there.
+    return RedirectResponse("/characters", status_code=303)
