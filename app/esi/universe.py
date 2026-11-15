@@ -34,6 +34,12 @@ LOCATION_STATION = "station"
 LOCATION_STRUCTURE = "structure"
 LOCATION_SYSTEM = "solar_system"
 
+# Scope /universe/structures/{id}/ demands. Registered on the portal
+# 2026-11-15; grants older than that don't hold it — only characters with
+# the scope are tried (a 401 from a scopeless character is not a docking
+# refusal and would never park, burning the error budget every pass).
+STRUCTURES_SCOPE = "esi-universe.read_structures.v1"
+
 
 async def corporation_name(
     db: AsyncSession, esi: ESIClient, corporation_id: int | None
@@ -297,15 +303,23 @@ class UniverseResolver:
             return self._info_from_row(target)
 
         if kind == LOCATION_STRUCTURE:
-            # Structures need a character token with docking access; try
-            # each character in turn. All-refused parks the structure.
-            for character in sorted(characters, key=lambda c: c.name):
+            # Structures need a character token with the structures scope
+            # and docking access; try each scoped character in turn.
+            # All-refused (or the id 404ing everywhere — a dead or virtual
+            # structure) parks it for the retry window instead of burning
+            # the error budget every pass.
+            scoped = [
+                character
+                for character in characters
+                if STRUCTURES_SCOPE in character.scopes.split()
+            ]
+            for character in sorted(scoped, key=lambda c: c.name):
                 try:
                     body = await self._esi.get(
                         character, f"/universe/structures/{location_id}/"
                     )
                 except ESIStatusError as exc:
-                    if exc.status_code == 403:
+                    if exc.status_code in (403, 404):
                         continue
                     return LocationInfo(location_id, kind, None, None, False)
                 except ESIError:
