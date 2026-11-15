@@ -89,7 +89,7 @@ async def test_invalid_grant_renders_reauth_not_failure(client, db_session):
     assert characters.status_code == 200
     assert "Needs re-authorization" in characters.text
     assert 'class="card has-issue"' in characters.text  # error-severity issue
-    assert ">Re-Auth</a>" in characters.text
+    assert 'aria-label="Re-Auth"' in characters.text
     assert "Federal Freight" in characters.text
     dashboard = await client.get("/dashboard")
     assert dashboard.status_code == 200

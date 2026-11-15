@@ -37,6 +37,7 @@
           Corporation
         </button>
         <div class="nav-group-items" id="nav-corp"{% if not corp_active %} hidden{% endif %}>
+          <a href="/corp"{% if active == 'corp' %} class="active" aria-current="page"{% endif %}>Overview</a>
           <a href="/corp/assets"{% if active == 'corp-assets' %} class="active" aria-current="page"{% endif %}>Assets</a>
           <a href="/corp/jobs"{% if active == 'corp-jobs' %} class="active" aria-current="page"{% endif %}>Jobs</a>
           <a href="/corp/wallets"{% if active == 'corp-wallets' %} class="active" aria-current="page"{% endif %}>Wallets</a>

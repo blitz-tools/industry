@@ -23,7 +23,10 @@ Groundwork that already exists and applies broadly:
 - **UI patterns to reuse**: collapsible rows/cards with sync-state rings
   (assets toolbar), notification boxes (`CardIssue`), in-place content
   swaps (`swapAssetsPage` in `app/static/app.js`), remembered open/closed
-  state via localStorage (`corp-rows.js`).
+  state via localStorage (`corp-rows.js`), compact icon buttons for
+  row/card-level actions (`.icon-button` in `app/static/style.css` —
+  preferred over boxed text buttons for repeated item-level actions;
+  page-level actions keep the boxed style).
 
 ---
 
@@ -167,3 +170,12 @@ Prerequisite work for anything multi-user:
   started.
 - **Paused skill queues on the roster** read "Paused"; an entirely empty
   queue still reads "—" — revisit wording if it confuses.
+- **Corporation filter on the Character Roster** — show the corporations
+  (with corp icons) as a selector across the top of the roster; selecting
+  one or more filters the character cards to those corps. Possibly also
+  group the cards into per-corporation sections instead of filtering —
+  the two approaches could be combined (sections + a filter that hides
+  whole sections). Approach TBD; investigate later. Corp data is already
+  in place (`characters.corporation_id`, `universe_corporations` for
+  names, and the assets page's corp-row picker in `corp-rows.js` is a
+  UI precedent worth reusing).

@@ -1,5 +1,5 @@
-"""Asset page routes: the structure browser, per-structure fragments, the
-manual sync trigger, and corporation section stubs.
+"""Asset page routes: the structure browser, per-structure fragments, and
+the manual sync trigger.
 
 The page and fragment handlers are pure DB reads — all ESI traffic belongs
 to the background sync (see app/esi/assets.py). Only POST /assets/sync
@@ -37,13 +37,6 @@ from ..models import Character, UniverseRegion
 from ..templates import templates
 
 router = APIRouter()
-
-CORP_PAGES = {
-    "assets": "Assets",
-    "jobs": "Jobs",
-    "wallets": "Wallets",
-    "blueprints": "Blueprints",
-}
 
 
 async def _load_characters(db) -> list[Character]:
@@ -216,24 +209,3 @@ async def sync_assets(request: Request, db: DbDep, esi: EsiDep):
     if params:
         target += "?" + urlencode(params)
     return RedirectResponse(target, status_code=303)
-
-
-@router.get("/corp/{page}")
-async def corp_page(request: Request, page: str):
-    """Stub pages for the Corporation section; real implementations land
-    with the corporation asset work."""
-    if not is_authenticated(request):
-        return RedirectResponse("/", status_code=302)
-    title = CORP_PAGES.get(page)
-    if title is None:
-        return templates.TemplateResponse(
-            request,
-            "error.html",
-            {"authenticated": True, "message": f"No such page: /corp/{page}"},
-            status_code=404,
-        )
-    return templates.TemplateResponse(
-        request,
-        "corp_stub.html",
-        {"authenticated": True, "active": f"corp-{page}", "title": title},
-    )
