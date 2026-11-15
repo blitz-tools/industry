@@ -40,22 +40,29 @@ from ..assets import (
     system_groups,
 )
 from ..deps import DbDep, EsiDep, is_authenticated
-from ..esi.assets import OWNER_CORPORATION, sync_corporation
+from ..esi.assets import (
+    KIND_CORP_BLUEPRINTS,
+    KIND_CORP_JOBS,
+    OWNER_CORPORATION,
+    sync_corporation,
+)
 from ..esi.client import ESIError
 from ..esi.roles import CorpAccess, check_corp_access
 from ..esi.universe import UniverseResolver, corporation_name
-from ..models import Character
+from ..industry import corporation_blueprints, corporation_jobs
+from ..models import Character, DataSync
 from ..templates import templates
 
 router = APIRouter()
 
 CORP_PAGES = {
-    "jobs": "Jobs",
     "wallets": "Wallets",
-    "blueprints": "Blueprints",
 }
 
 CORP_ASSETS_FRAGMENT_BASE = "/corp/assets/structure"
+
+# Pages the shared sync button may return to.
+SYNC_BACK_TARGETS = frozenset({"/corp/assets", "/corp/blueprints", "/corp/jobs"})
 
 
 async def _load_main(db) -> Character | None:
@@ -266,6 +273,106 @@ async def sync_corp_assets(request: Request, db: DbDep, esi: EsiDep):
     if params:
         target += "?" + urlencode(params)
     return RedirectResponse(target, status_code=303)
+
+
+@router.post("/corp/sync")
+async def sync_corp_data(request: Request, db: DbDep, esi: EsiDep):
+    """The blueprints/jobs pages' Sync now: same corporation sync, back to
+    the page that asked (whitelisted)."""
+    if not is_authenticated(request):
+        return RedirectResponse("/", status_code=303)
+
+    settings = request.app.state.settings
+    resolver = UniverseResolver(db, esi, settings=settings)
+    await sync_corporation(db, esi, resolver=resolver)
+
+    form = await request.form()
+    back = form.get("back") or "/corp/assets"
+    if back not in SYNC_BACK_TARGETS:
+        back = "/corp/assets"
+    return RedirectResponse(back, status_code=303)
+
+
+async def _data_sync(db, kind: str, corporation_id: int | None):
+    if corporation_id is None:
+        return None
+    return await db.get(DataSync, (kind, OWNER_CORPORATION, corporation_id))
+
+
+@router.get("/corp/blueprints")
+async def corp_blueprints_page(request: Request, db: DbDep, esi: EsiDep, page: int = 1):
+    """The corporation's blueprints: type, ME/TE, runs (originals vs
+    copies), location. Pure DB reads apart from the render-time role
+    gate; locations label from the universe cache the asset syncs fill."""
+    if not is_authenticated(request):
+        return RedirectResponse("/", status_code=302)
+
+    main = await _load_main(db)
+    if main is None or (await check_corp_access(esi, main)).status != "ok":
+        return RedirectResponse("/corp", status_code=302)
+    corporation_id = await _resolve_corporation_id(db, esi, main)
+
+    rows, total, used_page = await corporation_blueprints(
+        db,
+        corporation_id or 0,
+        page=page,
+        page_size=request.app.state.settings.assets_page_size,
+    )
+    sync = await _data_sync(db, KIND_CORP_BLUEPRINTS, corporation_id)
+    return templates.TemplateResponse(
+        request,
+        "corp_blueprints.html",
+        {
+            "authenticated": True,
+            "active": "corp-blueprints",
+            "rows": rows,
+            "total": total,
+            "page": used_page,
+            "pages": max(1, -(-total // request.app.state.settings.assets_page_size)),
+            "sync_note": corp_sync_note(sync),
+            "last_sync_text": humanize_sync_age(sync.synced_at if sync else None),
+        },
+    )
+
+
+@router.get("/corp/jobs")
+async def corp_jobs_page(
+    request: Request, db: DbDep, esi: EsiDep, page: int = 1, all: bool = False
+):
+    """The corporation's industry jobs: active ones by default, the full
+    history (delivered/cancelled/reverted) behind the toggle. Installer
+    names resolve through the tracked characters."""
+    if not is_authenticated(request):
+        return RedirectResponse("/", status_code=302)
+
+    main = await _load_main(db)
+    if main is None or (await check_corp_access(esi, main)).status != "ok":
+        return RedirectResponse("/corp", status_code=302)
+    corporation_id = await _resolve_corporation_id(db, esi, main)
+
+    rows, total, used_page = await corporation_jobs(
+        db,
+        corporation_id or 0,
+        include_completed=all,
+        page=page,
+        page_size=request.app.state.settings.assets_page_size,
+    )
+    sync = await _data_sync(db, KIND_CORP_JOBS, corporation_id)
+    return templates.TemplateResponse(
+        request,
+        "corp_jobs.html",
+        {
+            "authenticated": True,
+            "active": "corp-jobs",
+            "rows": rows,
+            "total": total,
+            "page": used_page,
+            "pages": max(1, -(-total // request.app.state.settings.assets_page_size)),
+            "show_all": all,
+            "sync_note": corp_sync_note(sync),
+            "last_sync_text": humanize_sync_age(sync.synced_at if sync else None),
+        },
+    )
 
 
 @router.get("/corp/{page}")

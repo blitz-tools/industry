@@ -118,6 +118,67 @@ class AssetSync(Base, TimestampMixin):
     )
 
 
+class Blueprint(Base, TimestampMixin):
+    """A blueprint owned by a character or corporation, synced from ESI's
+    blueprints endpoints and replaced wholesale per owner. `runs` is -1
+    for originals (unlimited); copies carry their remaining runs. ME/TE
+    are ESI's integers (10 reads as 10%)."""
+
+    __tablename__ = "blueprints"
+
+    owner_type: Mapped[str] = mapped_column(String(16), primary_key=True)
+    owner_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    item_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    type_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    location_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    location_flag: Mapped[str] = mapped_column(String(64), nullable=False)
+    quantity: Mapped[int] = mapped_column(nullable=False)
+    runs: Mapped[int | None] = mapped_column(nullable=True)
+    material_efficiency: Mapped[int] = mapped_column(nullable=False)
+    time_efficiency: Mapped[int] = mapped_column(nullable=False)
+
+
+class IndustryJob(Base, TimestampMixin):
+    """An industry job installed by a member of the owning character or
+    corporation, synced from ESI's industry jobs endpoints. The activity
+    and blueprint ids are what the planner will join against the SDE
+    (M2); the statuses come back from ESI's include_completed view."""
+
+    __tablename__ = "industry_jobs"
+
+    owner_type: Mapped[str] = mapped_column(String(16), primary_key=True)
+    owner_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    job_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    installer_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    activity_id: Mapped[int] = mapped_column(nullable=False)
+    blueprint_type_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    runs: Mapped[int] = mapped_column(nullable=False)
+    successful_runs: Mapped[int | None] = mapped_column(nullable=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    start_date: Mapped[datetime | None] = mapped_column(DateTime(), nullable=True)
+    end_date: Mapped[datetime | None] = mapped_column(DateTime(), nullable=True)
+    completed_date: Mapped[datetime | None] = mapped_column(DateTime(), nullable=True)
+    station_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+
+
+class DataSync(Base, TimestampMixin):
+    """Last sync outcome per data kind per owner, for kinds beyond assets
+    (which have their own asset_syncs table): corporation blueprints,
+    industry jobs, and future kinds (skills, prices, …)."""
+
+    __tablename__ = "data_syncs"
+
+    kind: Mapped[str] = mapped_column(String(32), primary_key=True)
+    owner_type: Mapped[str] = mapped_column(String(16), primary_key=True)
+    owner_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    # "ok" | "no-scope" | "no-roles" | "reauth" | "error"
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    detail: Mapped[str | None] = mapped_column(Text, nullable=True)
+    synced_at: Mapped[datetime] = mapped_column(
+        DateTime(), nullable=False, default=utc_now
+    )
+
+
 class UniverseType(Base, TimestampMixin):
     """Resolved /universe/types/{id}/ data; effectively write-once."""
 
