@@ -18,6 +18,7 @@ from .routes import assets, auth, web
 _package_dir = Path(__file__).parent
 
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings: Settings = app.state.settings

@@ -7,7 +7,7 @@ import respx
 from sqlalchemy import select
 
 from app.models import Character
-from tests.conftest import token_response
+from tests.conftest import make_access_token, mock_roster_metadata, token_response
 
 SSO_TOKEN_URL = "https://sso.test/v2/oauth/token"
 WALLET_URL = "https://esi.test/latest/characters/1234/wallet/"
@@ -27,6 +27,7 @@ async def _start_login(client) -> str:
 async def test_callback_happy_path(client, db_session):
     respx.post(SSO_TOKEN_URL).respond(json=token_response())
     respx.get(WALLET_URL).respond(json=4321.5)
+    mock_roster_metadata()
     state = await _start_login(client)
 
     response = await client.get(
@@ -51,6 +52,75 @@ async def test_callback_happy_path(client, db_session):
     assert "Test Pilot" in characters.text
     assert "4,321.50" in characters.text
     assert "Add character" in characters.text
+    # Card metadata: corporation shown bare, the rest labeled.
+    assert "Federal Freight" in characters.text
+    assert "Alliance: Eve University" in characters.text
+    assert "Location: Jita" in characters.text
+    assert "Training: Hull Upgrades V" in characters.text
+    assert "Corporation:" not in characters.text
+    assert ">Re-Auth</a>" in characters.text  # per-card re-auth button
+    # Authorized against the current scope list: no issues, so no
+    # notification box and no issue tint.
+    assert "Scopes out of sync" not in characters.text
+    assert 'class="notify"' not in characters.text
+    assert "has-issue" not in characters.text
+
+
+@respx.mock
+async def test_roster_degrades_when_scope_missing(client, db_session):
+    """Location/skill-queue 403 (a character authorized before those scopes
+    were registered) renders em-dashes, not a page failure."""
+    respx.post(SSO_TOKEN_URL).respond(json=token_response())
+    respx.get(WALLET_URL).respond(json=10.0)
+    mock_roster_metadata()
+    respx.get("https://esi.test/latest/characters/1234/location/").respond(
+        status_code=403, json="forbidden"
+    )
+    respx.get("https://esi.test/latest/characters/1234/skillqueue/").respond(
+        status_code=403, json="forbidden"
+    )
+    state = await _start_login(client)
+    await client.get("/auth/eve/callback", params={"code": "abc", "state": state})
+
+    response = await client.get("/characters")
+
+    assert response.status_code == 200
+    assert "Location: —" in response.text
+    assert "Training: —" in response.text
+    assert "Federal Freight" in response.text  # public data is unaffected
+
+
+@respx.mock
+async def test_roster_skips_calls_without_scope(client, db_session):
+    """Location/skill-queue endpoints are not called when the stored grant
+    lacks those scopes — a scopeless call is a guaranteed 403 and burns
+    ESI's error-limit budget."""
+    respx.post(SSO_TOKEN_URL).respond(
+        json=token_response(
+            access_token=make_access_token(
+                scopes=["publicData", "esi-wallet.read_character_wallet.v1"]
+            )
+        )
+    )
+    respx.get(WALLET_URL).respond(json=10.0)
+    routes = mock_roster_metadata()
+    state = await _start_login(client)
+    await client.get("/auth/eve/callback", params={"code": "abc", "state": state})
+
+    response = await client.get("/characters")
+
+    assert response.status_code == 200
+    assert routes["location"].call_count == 0
+    assert routes["skillqueue"].call_count == 0
+    assert "Location: —" in response.text
+    assert "Training: —" in response.text
+    # The card is issue-tinted, and its notification box flags the grant
+    # as predating the current scope list — the whole box carries the
+    # missing-scope tooltip.
+    assert 'class="card has-issue"' in response.text
+    assert 'class="notify"' in response.text
+    assert "Scopes out of sync (3)" in response.text
+    assert 'title="Missing: esi-assets.read_assets.v1' in response.text
 
 
 @respx.mock
@@ -127,6 +197,7 @@ async def test_reauth_with_changed_owner_hash_overwrites_tokens(client, db_sessi
 async def test_pages_require_login(client, db_session):
     respx.post(SSO_TOKEN_URL).respond(json=token_response())
     respx.get(WALLET_URL).respond(json=0.0)
+    mock_roster_metadata()
 
     for path in ("/dashboard", "/characters"):
         unauthenticated = await client.get(path)
