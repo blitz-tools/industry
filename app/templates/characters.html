@@ -1,27 +1,43 @@
 {% extends "base.html" %}
-{% block title %}industry — characters{% endblock %}
+{% block title %}industry — character roster{% endblock %}
+{% block main_class %} wide{% endblock %}
 {% block content %}
-<h1>Characters</h1>
+<h1>Character Roster</h1>
+<div class="roster-actions">
+  <a class="button" href="/auth/eve/login">Add character</a>
+</div>
 <div class="grid">
   {% for card in cards %}
-  <div class="card">
+  <div class="card{% if card.issues %} has-issue{% endif %}">
     <img class="portrait" src="{{ card.portrait }}" alt="{{ card.character.name }} portrait" width="256" height="256">
     <div class="card-body">
       <h2>{{ card.character.name }}</h2>
-      {% if card.needs_reauth %}
-      <p class="warn"><a href="/auth/eve/login">Re-authorize</a></p>
-      {% else %}
-      <p class="wallet">{{ "{:,.2f}".format(card.wallet) }} ISK</p>
-      {% endif %}
-      <form method="post" action="/characters/{{ card.character.character_id }}/forget">
-        <button class="danger" type="submit">Forget</button>
-      </form>
+      <div class="meta-list">
+        <p class="corporation-name">{{ card.corporation_name or 'Unknown corporation' }}</p>
+        {% if card.alliance_name %}<p class="meta">Alliance: {{ card.alliance_name }}</p>{% endif %}
+        <p class="meta">Location: {{ card.location_name or '—' }}</p>
+        <p class="meta">Training: {{ card.training or '—' }}</p>
+      </div>
+      <div class="card-footer">
+        {% if not card.needs_reauth %}
+        <p class="wallet">{{ "{:,.2f}".format(card.wallet) }} ISK</p>
+        {% endif %}
+        {% if card.issues %}
+        <div class="notify"{% if card.issue_tooltip %} title="{{ card.issue_tooltip }}"{% endif %}>
+          {% for issue in card.issues %}
+          <p class="{{ issue.severity }}">{{ issue.message }}</p>
+          {% endfor %}
+        </div>
+        {% endif %}
+        <div class="card-actions">
+          <a class="button" href="/auth/eve/login">Re-Auth</a>
+          <form method="post" action="/characters/{{ card.character.character_id }}/forget">
+            <button class="danger" type="submit">Forget</button>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
   {% endfor %}
-  <a class="add-tile" href="/auth/eve/login">
-    <span class="plus" aria-hidden="true">+</span>
-    Add character
-  </a>
 </div>
 {% endblock %}

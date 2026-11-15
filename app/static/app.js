@@ -21,37 +21,41 @@
   });
 })();
 
-// --- Corporation nav group --------------------------------------------------
+// --- Collapsible nav groups (Character, Corporation) ------------------------
 (function () {
-  const group = document.querySelector("#nav-corp-group");
-  if (!group) return;
-  const toggle = group.querySelector(".nav-group-toggle");
-  const items = group.querySelector(".nav-group-items");
-  if (!toggle || !items) return;
+  document.querySelectorAll(".nav-group").forEach((group) => {
+    const toggle = group.querySelector(".nav-group-toggle");
+    const items = group.querySelector(".nav-group-items");
+    if (!toggle || !items) return;
 
-  const setOpen = (open) => {
-    items.hidden = !open;
-    toggle.setAttribute("aria-expanded", String(open));
-    try {
-      localStorage.setItem("nav-corp-open", String(open));
-    } catch (error) {
-      /* private browsing mode */
+    // Storage key derives from the group id: #nav-corp-group keeps its
+    // existing nav-corp-open key; #nav-character-group gets its own.
+    const storageKey = `nav-${group.id.replace(/-group$/, "")}-open`;
+
+    const setOpen = (open) => {
+      items.hidden = !open;
+      toggle.setAttribute("aria-expanded", String(open));
+      try {
+        localStorage.setItem(storageKey, String(open));
+      } catch (error) {
+        /* private browsing mode */
+      }
+    };
+
+    toggle.addEventListener("click", () => setOpen(items.hidden));
+
+    // The server already expanded the group when it holds the active
+    // link; otherwise apply the remembered state.
+    if (!items.querySelector("a.active")) {
+      let saved = null;
+      try {
+        saved = localStorage.getItem(storageKey);
+      } catch (error) {
+        /* private browsing mode */
+      }
+      if (saved !== null) setOpen(saved === "true");
     }
-  };
-
-  toggle.addEventListener("click", () => setOpen(items.hidden));
-
-  // The server already expanded the group on corporation pages; otherwise
-  // apply the remembered state.
-  if (!items.querySelector("a.active")) {
-    let saved = null;
-    try {
-      saved = localStorage.getItem("nav-corp-open");
-    } catch (error) {
-      /* private browsing mode */
-    }
-    if (saved !== null) setOpen(saved === "true");
-  }
+  });
 })();
 
 // --- Asset structure panels -------------------------------------------------

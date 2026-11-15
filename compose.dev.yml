@@ -20,6 +20,9 @@ services:
       # Reuse the developer database at the repo root — the same one the
       # pre-container workflow used, so authorized characters carry over.
       DATABASE_URL: sqlite+aiosqlite:////app/industry.db
+      # Dev-only: open browsers auto-refresh when site files change
+      # (see app/static/dev-reload.js). Never enable in production.
+      DEV_AUTO_RELOAD: "1"
     volumes:
       - .:/app
     security_opt:
