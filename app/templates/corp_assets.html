@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}industry — corporation assets{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Corporation Assets</h1>
+  <form method="post" action="/corp/assets/sync" class="sync-form">
+    <input type="hidden" name="region" value="{{ selected_region if selected_region else '' }}">
+    <input type="hidden" name="category" value="{{ selected_category if selected_category else '' }}">
+    <button type="submit">Sync now</button>
+    <span class="last-sync">{{ last_sync_text }}</span>
+  </form>
+</div>
+
+{% if sync_note %}
+<div class="notify">
+  <p class="{{ sync_note[0] }}">{{ sync_note[1] }}</p>
+</div>
+{% endif %}
+
+{% if offices %}
+<section class="office-summary">
+  <h2>Offices</h2>
+  <p class="stat-note">Rented offices are the shared corporate inventory pool —
+  each appears under its location below as an expandable Office entry.</p>
+</section>
+{% endif %}
+
+<div class="assets-toolbar">
+  <form class="corp-filter" method="get" action="/corp/assets" id="asset-filter"
+        data-fragment-base="/corp/assets/structure">
+    <div class="filter-selects">
+      <select name="category" aria-label="Filter by asset type">
+        <option value="">All types</option>
+        {% for bucket in view.categories %}
+        <option value="{{ bucket.key }}"{% if bucket.key == selected_category %} selected{% endif %}>{{ bucket.label }}</option>
+        {% endfor %}
+      </select>
+      <select name="region" aria-label="Filter by region">
+        <option value="">All regions</option>
+        {% for region in view.regions %}
+        <option value="{{ region.region_id }}"{% if region.region_id == selected_region %} selected{% endif %}>{{ region.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <noscript><button type="submit" class="button">Apply</button></noscript>
+  </form>
+</div>
+
+{% if not view.groups %}
+  {% if last_sync_text == 'Data not synced yet' %}
+  <p class="stat-note">No corporation assets synced yet — use Sync now or wait for the background sync.</p>
+  {% elif selected_region or selected_category %}
+  <p class="stat-note">No corporation assets match the current filters.</p>
+  {% else %}
+  <p class="stat-note">No corporation assets.</p>
+  {% endif %}
+{% else %}
+{% for group in view.groups %}
+<section class="asset-system">
+  <h2>{{ group.name }}{% if group.region_name %} <span class="region-name">· {{ group.region_name }}</span>{% endif %}</h2>
+  <ul class="structure-list">
+    {% for structure in group.structures %}
+    <li>
+      <details class="structure{% if structure.restricted %} restricted{% endif %}{% if structure.is_office %} office{% endif %}" data-location-id="{{ structure.location_id }}">
+        <summary>
+          <span class="structure-name">{{ structure.name }}</span>
+          <span class="count">{{ structure.item_count }} item{{ '' if structure.item_count == 1 else 's' }}</span>
+        </summary>
+        <div class="structure-body" aria-live="polite"></div>
+      </details>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endfor %}
+{% endif %}
+{% endblock %}

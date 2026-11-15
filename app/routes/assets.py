@@ -14,13 +14,12 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import select
 
 from ..assets import (
-    BUCKETS_BY_KEY,
-    CategoryOption,
-    RegionOption,
+    apply_region_filter,
     carry_query,
     character_filter_groups,
     character_sync_status,
     humanize_sync_age,
+    keep_selected_category,
     parse_category,
     parse_chars,
     parse_direction,
@@ -33,7 +32,7 @@ from ..assets import (
 from ..deps import DbDep, EsiDep, is_authenticated
 from ..esi.assets import sync_all_characters
 from ..esi.universe import UniverseResolver
-from ..models import Character, UniverseRegion
+from ..models import Character
 from ..templates import templates
 
 router = APIRouter()
@@ -71,30 +70,12 @@ async def assets_page(request: Request, db: DbDep):
     # Region filter: validated against known regions, then applied to the
     # resolved system list (a structure's region is fixed, so fragments
     # never need to re-check it).
-    selected_region = parse_region(request.query_params.get("region"))
-    if selected_region is not None:
-        known = {option.region_id for option in view.regions}
-        if selected_region not in known:
-            row = await db.get(UniverseRegion, selected_region)
-            if row is None:
-                selected_region = None  # unknown id: treat as All
-            else:
-                view.regions.append(RegionOption(row.region_id, row.name))
-                view.regions.sort(key=lambda option: option.name.lower())
-    if selected_region is not None:
-        view.groups = [
-            group for group in view.groups if group.region_id == selected_region
-        ]
-        view.total_items = sum(len(group.structures) for group in view.groups)
-
+    selected_region = await apply_region_filter(
+        db, view, parse_region(request.query_params.get("region"))
+    )
     # Category options are dynamic (buckets with assets under the owner
-    # filter). A selected bucket that matched nothing stays visible in the
-    # dropdown, so the URL state keeps a matching control.
-    if selected_category is not None and selected_category not in {
-        option.key for option in view.categories
-    }:
-        bucket = BUCKETS_BY_KEY[selected_category]
-        view.categories.append(CategoryOption(bucket.key, bucket.label))
+    # filter); a selected-but-empty bucket stays visible.
+    keep_selected_category(view, selected_category)
 
     sync_statuses, last_sync = await character_sync_status(db, characters)
     # "Fresh" means synced within two sync intervals; older reads as stale.
@@ -179,6 +160,9 @@ async def structure_fragment(
                 sort=sort,
                 direction=direction,
             ),
+            "fragment_base": "/assets/structure",
+            "show_owner": True,
+            "is_office": False,
         },
     )
 
