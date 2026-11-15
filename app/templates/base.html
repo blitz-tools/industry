@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}industry{% endblock %}</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css?v={{ static_version }}">
 </head>
 <body>
 {% if authenticated %}
@@ -52,6 +52,9 @@
   <main class="{{ 'content' if authenticated else 'bare' }}{% block main_class %}{% endblock %}">
     {% block content %}{% endblock %}
   </main>
-  <script src="/static/app.js"></script>
+  <script src="/static/app.js?v={{ static_version }}"></script>
+  {% if request.app.state.settings.dev_auto_reload %}
+  <script src="/static/dev-reload.js?v={{ static_version }}"></script>
+  {% endif %}
 </body>
 </html>

@@ -60,6 +60,8 @@ TEST_SETTINGS = Settings(
     # Point SSO/ESI at hosts respx mocks.
     sso_base_url="https://sso.test",
     esi_base_url="https://esi.test/latest",
+    # The dev container sets DEV_AUTO_RELOAD=1; tests must stay hermetic.
+    dev_auto_reload=False,
 )
 
 
