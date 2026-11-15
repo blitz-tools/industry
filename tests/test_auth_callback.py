@@ -41,7 +41,7 @@ async def test_callback_happy_path(client, db_session):
         "/auth/eve/callback", params={"code": "abc", "state": state}
     )
     assert response.status_code == 302
-    assert response.headers["location"] == "/dashboard"
+    assert response.headers["location"] == "/dashboard"  # plain sign-in
 
     character = await db_session.get(Character, 1234)
     assert character is not None
@@ -66,11 +66,42 @@ async def test_callback_happy_path(client, db_session):
     assert "Training: Hull Upgrades V" in characters.text
     assert "Corporation:" not in characters.text
     assert ">Re-Auth</a>" in characters.text  # per-card re-auth button
+    # Roster auth buttons return to the roster after the SSO round trip.
+    assert characters.text.count('href="/auth/eve/login?next=/characters"') == 2
     # Authorized against the current scope list: no issues, so no
     # notification box and no issue tint.
     assert "Scopes out of sync" not in characters.text
     assert 'class="notify"' not in characters.text
     assert "has-issue" not in characters.text
+
+
+@respx.mock
+async def test_login_next_returns_to_roster(client, db_session):
+    """?next=/characters (the roster's Re-Auth / Add-character buttons)
+    lands back on the roster; a plain sign-in keeps the dashboard, and
+    unknown destinations fall back rather than redirecting off-site."""
+    respx.post(SSO_TOKEN_URL).respond(json=token_response())
+
+    response = await client.get(
+        "/auth/eve/login", params={"next": "/characters"}, follow_redirects=False
+    )
+    state = _extract_state(response.headers["location"])
+    response = await client.get(
+        "/auth/eve/callback", params={"code": "abc", "state": state}
+    )
+    assert response.status_code == 302
+    assert response.headers["location"] == "/characters"
+
+    # Open-redirect guard: anything not whitelisted falls back.
+    response = await client.get(
+        "/auth/eve/login", params={"next": "https://evil.example"}, follow_redirects=False
+    )
+    state = _extract_state(response.headers["location"])
+    response = await client.get(
+        "/auth/eve/callback", params={"code": "abc", "state": state}
+    )
+    assert response.status_code == 302
+    assert response.headers["location"] == "/dashboard"
 
 
 @respx.mock
@@ -268,6 +299,7 @@ async def test_forget_removes_character(client, db_session):
 
     response = await client.post("/characters/1234/forget")
     assert response.status_code == 303
+    assert response.headers["location"] == "/characters"  # stay on the roster
     assert await db_session.get(Character, 1234) is None
     assert revoke.called
 
@@ -281,6 +313,7 @@ async def test_forget_tolerates_revoke_failure(client, db_session):
 
     response = await client.post("/characters/1234/forget")
     assert response.status_code == 303
+    assert response.headers["location"] == "/characters"
     assert await db_session.get(Character, 1234) is None
 
 
