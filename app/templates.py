@@ -25,3 +25,13 @@ def type_icon_url(type_id: int, size: int = 32, kind: str = "icon") -> str:
 templates.env.globals["portrait_url"] = portrait_url
 templates.env.globals["type_icon_url"] = type_icon_url
 
+
+def _static_version() -> str:
+    """Cache-buster for /static assets: the newest file mtime, so edited
+    stylesheets and scripts reload instead of serving from browser cache."""
+    static_dir = _package_dir / "static"
+    newest = max(path.stat().st_mtime for path in static_dir.iterdir() if path.is_file())
+    return str(int(newest))
+
+
+templates.env.globals["static_version"] = _static_version()

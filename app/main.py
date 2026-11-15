@@ -2,11 +2,13 @@
 
 import asyncio
 import contextlib
+import hashlib
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 import httpx
 from fastapi import FastAPI
+from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -17,6 +19,19 @@ from .routes import assets, auth, web
 
 _package_dir = Path(__file__).parent
 
+
+def _dev_site_version() -> str:
+    """Change token over the code, template, and static trees — dev-only
+    auto refresh polls it (see DEV_AUTO_RELOAD / static/dev-reload.js)."""
+    entries = []
+    for path in sorted(_package_dir.rglob("*")):
+        if not path.is_file() or "__pycache__" in path.parts:
+            continue
+        try:
+            entries.append((str(path), path.stat().st_mtime_ns))
+        except OSError:
+            continue  # file vanished mid-walk
+    return hashlib.sha1(repr(entries).encode()).hexdigest()[:16]
 
 
 @asynccontextmanager
@@ -56,6 +71,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(auth.router)
     app.include_router(web.router)
     app.include_router(assets.router)
+    if settings.dev_auto_reload:
+        # Dev-only change token that open browsers poll to auto-refresh.
+        # Registered only when enabled, so production never serves it.
+
+        @app.get("/__dev/version", include_in_schema=False)
+        async def dev_version() -> PlainTextResponse:
+            return PlainTextResponse(_dev_site_version())
+
     app.mount("/static", StaticFiles(directory=_package_dir / "static"), name="static")
     return app
 

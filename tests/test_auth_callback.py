@@ -4,10 +4,17 @@ from urllib.parse import parse_qs, urlparse
 
 import httpx
 import respx
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy import select
 
+from app.main import create_app
 from app.models import Character
-from tests.conftest import make_access_token, mock_roster_metadata, token_response
+from tests.conftest import (
+    TEST_SETTINGS,
+    make_access_token,
+    mock_roster_metadata,
+    token_response,
+)
 
 SSO_TOKEN_URL = "https://sso.test/v2/oauth/token"
 WALLET_URL = "https://esi.test/latest/characters/1234/wallet/"
@@ -275,3 +282,21 @@ async def test_forget_tolerates_revoke_failure(client, db_session):
     response = await client.post("/characters/1234/forget")
     assert response.status_code == 303
     assert await db_session.get(Character, 1234) is None
+
+
+async def test_dev_auto_reload_gated_by_flag(app, client):
+    """The dev-version endpoint and refresh script exist only when
+    DEV_AUTO_RELOAD is set; production never serves either."""
+    # Default app (TEST_SETTINGS): neither endpoint nor script.
+    assert (await client.get("/__dev/version")).status_code == 404
+    assert "dev-reload.js" not in (await client.get("/")).text
+
+    dev_app = create_app(TEST_SETTINGS.model_copy(update={"dev_auto_reload": True}))
+    async with AsyncClient(
+        transport=ASGITransport(app=dev_app), base_url="http://testserver"
+    ) as dev_client:
+        first = await dev_client.get("/__dev/version")
+        second = await dev_client.get("/__dev/version")
+        assert first.status_code == 200
+        assert first.text == second.text  # stable until files change
+        assert "dev-reload.js" in (await dev_client.get("/")).text
