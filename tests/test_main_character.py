@@ -243,8 +243,12 @@ async def test_corp_subpages_gated(client, db_session):
     assert response.status_code == 200
     assert "Corporation Assets" in response.text
 
-    # The remaining sub-pages are still stubs.
+    # The remaining sub-pages: jobs is real now, wallets is still a stub.
     response = await client.get("/corp/jobs")
+    assert response.status_code == 200
+    assert "Corporation Jobs" in response.text
+
+    response = await client.get("/corp/wallets")
     assert response.status_code == 200
     assert "Not built yet" in response.text
 

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}industry — corporation blueprints{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Corporation Blueprints</h1>
+  <form method="post" action="/corp/sync" class="sync-form">
+    <input type="hidden" name="back" value="/corp/blueprints">
+    <button type="submit">Sync now</button>
+    <span class="last-sync">{{ last_sync_text }}</span>
+  </form>
+</div>
+
+{% if sync_note %}
+<div class="notify">
+  <p class="{{ sync_note[0] }}">{{ sync_note[1] }}</p>
+</div>
+{% endif %}
+
+{% if not rows %}
+  {% if last_sync_text == 'Data not synced yet' %}
+  <p class="stat-note">No blueprints synced yet — use Sync now or wait for the background sync.</p>
+  {% else %}
+  <p class="stat-note">No blueprints.</p>
+  {% endif %}
+{% else %}
+<table class="asset-table corp-data-table">
+  <thead>
+    <tr>
+      <th class="sr-only">Icon</th>
+      <th>Type</th>
+      <th class="num">ME</th>
+      <th class="num">TE</th>
+      <th class="num">Runs</th>
+      <th>Location</th>
+      <th>Flag</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+    <tr>
+      <td>
+        <img class="type-icon" loading="lazy" src="{{ type_icon_url(row.type_id, 32, row.icon_kind) }}" alt="" width="32" height="32">
+      </td>
+      <td class="type-name">
+        {{ row.type_name }}
+        {% if row.is_original %}<span class="badge bpo">Original</span>{% else %}<span class="badge bpc">Copy</span>{% endif %}
+      </td>
+      <td class="num">{{ row.material_efficiency }}%</td>
+      <td class="num">{{ row.time_efficiency }}%</td>
+      <td class="num">{% if row.is_original %}—{% else %}{{ '{:,}'.format(row.runs) }}{% endif %}</td>
+      <td>{{ row.location_name }}</td>
+      <td class="flag">{{ row.location_flag }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<nav class="pagination" aria-label="Blueprint pages">
+  {% if pages > 1 %}
+  {% for p in range(1, pages + 1) %}
+  <a class="page{% if p == page %} current{% endif %}" href="/corp/blueprints?page={{ p }}">{{ p }}</a>
+  {% endfor %}
+  {% endif %}
+  <span class="total">{{ total }} blueprint{{ '' if total == 1 else 's' }}</span>
+</nav>
+{% endif %}
+{% endblock %}

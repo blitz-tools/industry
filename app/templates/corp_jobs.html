@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}industry — corporation jobs{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Corporation Jobs</h1>
+  <form method="post" action="/corp/sync" class="sync-form">
+    <input type="hidden" name="back" value="/corp/jobs">
+    <button type="submit">Sync now</button>
+    <span class="last-sync">{{ last_sync_text }}</span>
+  </form>
+</div>
+
+{% if sync_note %}
+<div class="notify">
+  <p class="{{ sync_note[0] }}">{{ sync_note[1] }}</p>
+</div>
+{% endif %}
+
+<div class="assets-toolbar">
+  <a class="button" href="/corp/jobs{% if not show_all %}?all=1{% endif %}">
+    {{ 'Show active only' if show_all else 'Show full history' }}
+  </a>
+</div>
+
+{% if not rows %}
+  {% if last_sync_text == 'Data not synced yet' %}
+  <p class="stat-note">No jobs synced yet — use Sync now or wait for the background sync.</p>
+  {% elif show_all %}
+  <p class="stat-note">No jobs.</p>
+  {% else %}
+  <p class="stat-note">No active jobs — the full history may hold more.</p>
+  {% endif %}
+{% else %}
+<table class="asset-table corp-data-table">
+  <thead>
+    <tr>
+      <th>Activity</th>
+      <th>Blueprint</th>
+      <th>Installer</th>
+      <th class="num">Runs</th>
+      <th>Status</th>
+      <th>Started</th>
+      <th>Ends</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+    <tr>
+      <td>{{ row.activity }}</td>
+      <td class="type-name">{{ row.blueprint_type_name }}</td>
+      <td>{{ row.installer_name or '#' ~ row.installer_id }}</td>
+      <td class="num">
+        {{ '{:,}'.format(row.runs) }}{% if row.successful_runs is not none %} ({{ '{:,}'.format(row.successful_runs) }} ok){% endif %}
+      </td>
+      <td><span class="job-status {{ row.status_class }}">{{ row.status }}</span></td>
+      <td>{{ row.start_date.strftime('%Y-%m-%d %H:%M') if row.start_date else '—' }}</td>
+      <td>{{ row.end_date.strftime('%Y-%m-%d %H:%M') if row.end_date else '—' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<nav class="pagination" aria-label="Job pages">
+  {% if pages > 1 %}
+  {% for p in range(1, pages + 1) %}
+  <a class="page{% if p == page %} current{% endif %}"
+     href="/corp/jobs?page={{ p }}{% if show_all %}&all=1{% endif %}">{{ p }}</a>
+  {% endfor %}
+  {% endif %}
+  <span class="total">{{ total }} job{{ '' if total == 1 else 's' }}</span>
+</nav>
+{% endif %}
+{% endblock %}

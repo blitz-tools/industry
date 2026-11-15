@@ -991,6 +991,33 @@ button.danger:hover {
   vertical-align: middle;
 }
 
+/* Blueprint original/copy markers — same shape as the bpc badge. */
+.badge.bpo {
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.3rem;
+  border: 1px solid var(--green);
+  border-radius: 4px;
+  color: var(--green);
+  font-size: 0.7rem;
+}
+
+/* Industry job status colors on the corporation jobs table. */
+.job-status.ok {
+  color: var(--green);
+}
+
+.job-status.warn {
+  color: var(--yellow);
+}
+
+.job-status.done {
+  color: var(--muted);
+}
+
+.job-status.failed {
+  color: var(--pink);
+}
+
 /* Corporation overview: logo beside the main character's corp summary. */
 .corp-overview {
   display: flex;
