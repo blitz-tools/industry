@@ -66,7 +66,7 @@ async def test_callback_happy_path(client, db_session):
     assert "Location: Jita" in characters.text
     assert "Training: Hull Upgrades V" in characters.text
     assert "Corporation:" not in characters.text
-    assert ">Re-Auth</a>" in characters.text  # per-card re-auth button
+    assert 'aria-label="Re-Auth"' in characters.text  # per-card re-auth button
     # Roster auth buttons return to the roster after the SSO round trip.
     assert characters.text.count('href="/auth/eve/login?next=/characters"') == 2
     # Authorized against the current scope list: no issues, so no

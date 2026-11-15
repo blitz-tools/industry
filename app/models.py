@@ -38,6 +38,10 @@ class Character(Base, TimestampMixin):
     # Current corporation (public data, refreshed on roster renders) —
     # lets the assets page group by corporation without touching ESI.
     corporation_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    # The single main character (single-user app): defines which
+    # corporation the Corporation section targets. The main's tokens
+    # authorize the corp-scoped ESI calls.
+    is_main: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
 
 class EsiCache(Base, TimestampMixin):

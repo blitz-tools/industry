@@ -22,6 +22,7 @@ from ..db import utc_now
 from ..models import (
     Character,
     UniverseCategory,
+    UniverseCorporation,
     UniverseGroup,
     UniverseLocation,
     UniverseRegion,
@@ -32,6 +33,29 @@ from .client import ESIClient, ESIError, ESIStatusError
 LOCATION_STATION = "station"
 LOCATION_STRUCTURE = "structure"
 LOCATION_SYSTEM = "solar_system"
+
+
+async def corporation_name(
+    db: AsyncSession, esi: ESIClient, corporation_id: int | None
+) -> str | None:
+    """Live corporation name, cached into universe_corporations so ESI-free
+    pages (the assets toolbar's grouping) can label it. Shared by the roster
+    cards and the Corporation section. Best-effort: None when unknown."""
+    if not corporation_id:
+        return None
+    try:
+        name = (await esi.get_public(f"/corporations/{corporation_id}/")).get("name")
+    except ESIError:
+        return None
+    if name:
+        row = await db.get(UniverseCorporation, corporation_id)
+        if row is None:
+            db.add(UniverseCorporation(corporation_id=corporation_id, name=name))
+            await db.commit()
+        elif row.name != name:
+            row.name = name
+            await db.commit()
+    return name
 
 
 @dataclass

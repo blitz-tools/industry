@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}industry — corporation{% endblock %}
+{% block content %}
+<h1>Corporation</h1>
+
+{% if main is none %}
+<p class="stat-note">No main character selected. The main character defines which
+corporation this section manages — pick one on the
+<a href="/characters">roster</a> ("Set as main"). The main must hold a Director
+or CEO role in their corporation, and their tokens authorize the corporation
+data this section syncs.</p>
+
+{% else %}
+<div class="corp-overview">
+  {% if corporation_id %}
+  <img class="corp-logo" src="{{ corporation_logo_url(corporation_id, 128) }}"
+       alt="{{ corporation_name or 'Corporation' }} logo" width="128" height="128">
+  {% endif %}
+  <div class="corp-overview-body">
+    <h2>{{ corporation_name or 'Unknown corporation' }}</h2>
+    <p class="meta">Main character: {{ main.name }}</p>
+
+    {% if access.status == 'ok' %}
+    <div class="notify">
+      <p class="info">{% if 'Director' in access.roles %}Director{% else %}CEO{% endif %}
+      role confirmed — corporation data is authorized for this main.</p>
+    </div>
+
+    {% elif access.status == 'no-scope' %}
+    <div class="notify" title="The roles scope was registered 2026-11-15; grants older than that predate it.">
+      <p class="error">{{ main.name }}'s grant is missing the roles scope
+      (esi-characters.read_corporation_roles.v1).</p>
+      <p class="info">Re-auth the main character to pick it up:</p>
+    </div>
+    <div class="corp-overview-actions">
+      <a class="button" href="/auth/eve/login?next=/corp">Re-Auth {{ main.name }}</a>
+    </div>
+
+    {% elif access.status == 'reauth' %}
+    <div class="notify">
+      <p class="error">{{ main.name }} needs re-authorization before their roles
+      can be checked.</p>
+    </div>
+    <div class="corp-overview-actions">
+      <a class="button" href="/auth/eve/login?next=/corp">Re-Auth {{ main.name }}</a>
+    </div>
+
+    {% elif access.status == 'insufficient' %}
+    <div class="notify" title="{{ 'Roles: ' + ', '.join(access.roles) if access.roles else 'No roles' }}">
+      <p class="info">{{ main.name }} holds no Director or CEO role in
+      {{ corporation_name or 'their corporation' }} — corporation data can't be
+      synced through them. Set a Director or CEO as the main on the
+      <a href="/characters">roster</a>.</p>
+    </div>
+
+    {% else %}
+    <div class="notify">
+      <p class="error">Couldn't check {{ main.name }}'s roles
+      ({{ access.detail or 'ESI error' }}).</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+<p class="stat-note">Corporation sub-pages (assets, jobs, wallets, blueprints)
+unlock once the role check passes.</p>
+{% endif %}
+{% endblock %}
