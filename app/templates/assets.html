@@ -1,33 +1,10 @@
 {% extends "base.html" %}
 {% block title %}industry — character assets{% endblock %}
 {% block content %}
-<h1>Character Assets</h1>
-
-<div class="assets-toolbar">
-  <form class="char-filter" method="get" action="/assets" id="asset-filter">
-    {% for character in characters %}
-    <label>
-      <input type="checkbox" name="chars" value="{{ character.character_id }}"
-             {% if selected is none or character.character_id in selected %}checked{% endif %}>
-      {{ character.name }}
-    </label>
-    {% endfor %}
-    <select name="region" aria-label="Filter by region">
-      <option value="">All regions</option>
-      {% for region in view.regions %}
-      <option value="{{ region.region_id }}"{% if region.region_id == selected_region %} selected{% endif %}>{{ region.name }}</option>
-      {% endfor %}
-    </select>
-    <select name="category" aria-label="Filter by asset type">
-      <option value="">All types</option>
-      {% for bucket in view.categories %}
-      <option value="{{ bucket.key }}"{% if bucket.key == selected_category %} selected{% endif %}>{{ bucket.label }}</option>
-      {% endfor %}
-    </select>
-    <noscript><button type="submit" class="button">Apply</button></noscript>
-  </form>
+<div class="page-header">
+  <h1>Character Assets</h1>
   <form method="post" action="/assets/sync" class="sync-form">
-    <input type="hidden" name="chars" value="{{ selected | join(',') if selected else '' }}">
+    <input type="hidden" name="chars" value="{{ 'all' if selected is none else (selected | join(',') if selected else 'none') }}">
     <input type="hidden" name="region" value="{{ selected_region if selected_region else '' }}">
     <input type="hidden" name="category" value="{{ selected_category if selected_category else '' }}">
     <button type="submit">Sync now</button>
@@ -35,22 +12,60 @@
   </form>
 </div>
 
-{% if sync_statuses %}
-<ul class="sync-statuses">
-  {% for status in sync_statuses %}
-  <li>
-    {%- if status.status == 'ok' %}✓ {{ status.name }}
-    {%- elif status.status == 'reauth' %}{{ status.name }} needs re-authorization — <a href="/auth/eve/login">re-authorize</a>
-    {%- elif status.status == 'no-scope' %}{{ status.name }} is missing the assets scope — <a href="/auth/eve/login">re-authorize</a>
-    {%- elif status.status == 'error' %}{{ status.name }}: sync error ({{ status.detail }})
-    {%- else %}{{ status.name }}: not synced yet
-    {%- endif %}
-  </li>
-  {% endfor %}
-</ul>
-{% endif %}
+<div class="assets-toolbar">
+  <form class="char-filter" method="get" action="/assets" id="asset-filter">
+    <div class="char-picker" data-chars="{{ 'all' if selected is none else selected | join(',') }}">
+      <div class="picker-top-row">
+        <div class="char-picker-actions">
+          <button type="button" class="chip-button" data-select="all">All</button>
+          <button type="button" class="chip-button" data-select="none">None</button>
+        </div>
+        <div class="filter-selects">
+          <select name="category" aria-label="Filter by asset type">
+            <option value="">All types</option>
+            {% for bucket in view.categories %}
+            <option value="{{ bucket.key }}"{% if bucket.key == selected_category %} selected{% endif %}>{{ bucket.label }}</option>
+            {% endfor %}
+          </select>
+          <select name="region" aria-label="Filter by region">
+            <option value="">All regions</option>
+            {% for region in view.regions %}
+            <option value="{{ region.region_id }}"{% if region.region_id == selected_region %} selected{% endif %}>{{ region.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      {% for group in character_groups %}
+      <details class="corp-row"{% if group.partial %} open{% endif %}>
+        <summary>
+          {% if group.corporation_id %}
+          <img class="corp-logo" loading="lazy" src="{{ corporation_logo_url(group.corporation_id, 64) }}" alt="" width="20" height="20">
+          {% endif %}
+          <span class="corp-name">{{ group.name }}</span>
+          <span class="corp-count">{{ group.selected_count }}/{{ group.chips | length }}</span>
+          <button type="button" class="corp-toggle{% if group.all_selected %} selected{% endif %}"
+                  title="Toggle every character in {{ group.name }}">{{ 'Deselect' if group.all_selected else 'Select' }}</button>
+        </summary>
+        <div class="char-cards">
+          {% for chip in group.chips %}
+          <label class="char-card sync-{{ chip.sync_class }}" title="{{ chip.sync_text }}">
+            <input type="checkbox" name="chars" value="{{ chip.character_id }}"{% if chip.checked %} checked{% endif %} class="sr-only">
+            <img class="char-bubble" loading="lazy" src="{{ portrait_url(chip.character_id, 64) }}" alt="" width="40" height="40">
+            <span class="char-name">{{ chip.name }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </details>
+      {% endfor %}
+    </div>
+    <noscript><button type="submit" class="button">Apply</button></noscript>
+  </form>
+  <script src="/static/corp-rows.js?v={{ static_version }}"></script>
+</div>
 
-{% if not view.groups %}
+{% if selected is not none and not selected %}
+<p class="stat-note">No assets shown — no characters are selected. Select a character to see assets.</p>
+{% elif not view.groups %}
   {% if last_sync_text == 'Data not synced yet' %}
   <p class="stat-note">No assets synced yet — use Sync now or wait for the background sync.</p>
   {% elif selected or selected_region or selected_category %}

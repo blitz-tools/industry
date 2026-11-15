@@ -21,6 +21,7 @@ from .models import (
     AssetSync,
     Character,
     UniverseCategory,
+    UniverseCorporation,
     UniverseGroup,
     UniverseLocation,
     UniverseRegion,
@@ -153,6 +154,108 @@ class CharacterSyncStatus:
     name: str
     status: str | None  # None = never synced
     detail: str | None
+    synced_at: datetime | None
+
+
+@dataclass
+class CharacterChip:
+    """One character in the assets toolbar: checkbox + portrait bubble
+    ringed by their asset-sync state."""
+
+    character_id: int
+    name: str
+    checked: bool
+    sync_class: str  # ok | stale | never | error
+    sync_text: str  # tooltip
+
+
+@dataclass
+class CorporationGroup:
+    name: str
+    chips: list[CharacterChip]
+    selected_count: int
+    all_selected: bool  # every member checked — fills the corp button
+    # Some-but-not-all members selected — the row renders expanded.
+    partial: bool
+    corporation_id: int | None  # None: unresolved membership, no logo
+
+
+def sync_badge(
+    status: str | None,
+    synced_at: datetime | None,
+    *,
+    detail: str | None,
+    fresh_after: timedelta,
+    now: datetime | None = None,
+) -> tuple[str, str]:
+    """(css class, tooltip text) for a character's asset-sync state:
+    fresh, stale, never synced, or a problem."""
+    if status is None:
+        return "never", "Never synced"
+    if status == "ok":
+        fresh = synced_at is not None and synced_at >= (now or utc_now()) - fresh_after
+        return ("ok" if fresh else "stale"), humanize_sync_age(synced_at, now=now)
+    if status == "reauth":
+        return "error", "Needs re-authorization — use Re-Auth on the roster"
+    if status == "no-scope":
+        return "error", "Missing the assets scope — re-authorize"
+    return "error", f"Sync error: {detail or 'unknown'}"
+
+
+async def character_filter_groups(
+    db: AsyncSession,
+    characters: Sequence[Character],
+    sync_statuses: Sequence[CharacterSyncStatus],
+    *,
+    selected: list[int] | None,
+    fresh_after: timedelta,
+) -> list[CorporationGroup]:
+    """Toolbar chips grouped by corporation (members name-ordered), each
+    carrying its sync state as the bubble outline color + tooltip."""
+    corp_names = {
+        row.corporation_id: row.name
+        for row in (await db.execute(select(UniverseCorporation))).scalars()
+    }
+    by_id = {status.character_id: status for status in sync_statuses}
+    # Keyed by corporation id (None = unresolved membership) so same-named
+    # corporations stay distinct and each group can render its logo.
+    grouped: dict[int | None, list[CharacterChip]] = {}
+    for character in characters:
+        status = by_id.get(character.character_id)
+        sync_class, sync_text = sync_badge(
+            status.status if status else None,
+            status.synced_at if status else None,
+            detail=status.detail if status else None,
+            fresh_after=fresh_after,
+        )
+        grouped.setdefault(character.corporation_id, []).append(
+            CharacterChip(
+                character_id=character.character_id,
+                name=character.name,
+                checked=selected is None or character.character_id in selected,
+                sync_class=sync_class,
+                sync_text=sync_text,
+            )
+        )
+    groups = []
+    for corporation_id, chips in grouped.items():
+        selected_count = sum(chip.checked for chip in chips)
+        groups.append(
+            CorporationGroup(
+                name=(corp_names.get(corporation_id) if corporation_id else None)
+                or "Unknown corporation",
+                chips=chips,
+                selected_count=selected_count,
+                all_selected=selected_count == len(chips),
+                partial=0 < selected_count < len(chips),
+                corporation_id=corporation_id,
+            )
+        )
+    # Alphabetical by corporation; unresolved membership sorts last.
+    return sorted(
+        groups,
+        key=lambda group: (group.name == "Unknown corporation", group.name.lower()),
+    )
 
 
 async def character_sync_status(
@@ -177,6 +280,9 @@ async def character_sync_status(
             detail=syncs[character.character_id].detail
             if character.character_id in syncs
             else None,
+            synced_at=syncs[character.character_id].synced_at
+            if character.character_id in syncs
+            else None,
         )
         for character in characters
     ]
@@ -186,7 +292,11 @@ async def character_sync_status(
 
 def parse_chars(raw: list[str], valid: Sequence[Character]) -> list[int] | None:
     """Parse ?chars= — accepts comma-joined and repeated-key forms. None
-    means "all characters" (absent, empty, or nothing valid)."""
+    means "all characters" (parameter absent, or its "all" sentinel); an
+    empty list is an explicit empty selection (nothing chosen, nothing
+    shown)."""
+    if not raw or any(chunk.strip() == "all" for chunk in raw):
+        return None
     valid_ids = {character.character_id for character in valid}
     selected: set[int] = set()
     for chunk in raw:
@@ -195,7 +305,7 @@ def parse_chars(raw: list[str], valid: Sequence[Character]) -> list[int] | None:
             if token.lstrip("-").isdigit():
                 selected.add(int(token))
     selected &= valid_ids
-    return sorted(selected) or None
+    return sorted(selected)  # possibly empty: an explicit "none"
 
 
 def parse_region(raw: str | None) -> int | None:
@@ -345,8 +455,8 @@ def _icon_kind(category_name: str | None, is_blueprint_copy: bool) -> str | None
 
 def _order_keys(sort: str | None, direction: str | None) -> list:
     """ORDER BY keys for structure rows: the requested column (when `sort`
-    names one) followed by the default owner-then-type order, so ties and
-    unsorted pages paginate deterministically."""
+    names one), defaulting to quantity descending, followed by the
+    owner-then-type order so ties paginate deterministically."""
     type_name = func.coalesce(UniverseType.name, "#" + cast(Asset.type_id, String))
     primary = {
         "type": type_name,
@@ -361,6 +471,9 @@ def _order_keys(sort: str | None, direction: str | None) -> list:
         if sort == "volume":
             key = key.nulls_last()  # unknown volumes sink, either direction
         keys.append(key)
+    else:
+        # Default order: biggest stacks first.
+        keys.append(func.sum(Asset.quantity).desc())
     keys.extend([Character.name, type_name])
     return keys
 
