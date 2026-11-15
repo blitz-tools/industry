@@ -119,7 +119,9 @@ async def _location_name(esi: ESIClient, character: Character) -> str | None:
 
 
 async def _training_summary(esi: ESIClient, character: Character) -> str | None:
-    """The skill in progress (name + target level), or None. Needs the
+    """The skill in progress (name + target level), "Paused" when the queue
+    holds skills but none are training (an Omega-lapsed character's queue:
+    entries with no finish date), or None when unknown or empty. Needs the
     skill-queue scope; same degradation as the location."""
     try:
         queue = await esi.get(character, "/characters/{character_id}/skillqueue/")
@@ -127,7 +129,7 @@ async def _training_summary(esi: ESIClient, character: Character) -> str | None:
         return None
     entry = _current_queue_entry(queue)
     if entry is None:
-        return None
+        return "Paused" if queue else None
     level = _SKILL_LEVELS.get(entry.get("finished_level"))
     try:
         name = (await esi.get_public(f"/universe/types/{entry['skill_id']}/")).get(
