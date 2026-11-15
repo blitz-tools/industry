@@ -2,7 +2,6 @@
 
 import asyncio
 import contextlib
-import hashlib
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -16,22 +15,14 @@ from .config import Settings, get_settings
 from .db import make_engine, make_session_factory
 from .esi.assets import asset_sync_loop
 from .routes import assets, auth, web
+from .templates import dev_site_version
 
 _package_dir = Path(__file__).parent
 
-
-def _dev_site_version() -> str:
-    """Change token over the code, template, and static trees — dev-only
-    auto refresh polls it (see DEV_AUTO_RELOAD / static/dev-reload.js)."""
-    entries = []
-    for path in sorted(_package_dir.rglob("*")):
-        if not path.is_file() or "__pycache__" in path.parts:
-            continue
-        try:
-            entries.append((str(path), path.stat().st_mtime_ns))
-        except OSError:
-            continue  # file vanished mid-walk
-    return hashlib.sha1(repr(entries).encode()).hexdigest()[:16]
+# While this marker exists, the dev version endpoint tells browsers to hold
+# their reloads — mid-development reloads are disruptive to anyone watching.
+# Pause: touch the file; resume: remove it (the next poll reloads).
+DEV_PAUSE_MARKER = _package_dir.parent / ".dev-reload-paused"
 
 
 @asynccontextmanager
@@ -77,7 +68,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
         @app.get("/__dev/version", include_in_schema=False)
         async def dev_version() -> PlainTextResponse:
-            return PlainTextResponse(_dev_site_version())
+            if DEV_PAUSE_MARKER.exists():
+                return PlainTextResponse("paused")
+            return PlainTextResponse(dev_site_version())
 
     app.mount("/static", StaticFiles(directory=_package_dir / "static"), name="static")
     return app
