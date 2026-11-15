@@ -1,5 +1,6 @@
 """Callback flow tests: happy path, state handling, upsert semantics."""
 
+from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 import httpx
@@ -328,11 +329,39 @@ async def test_dev_auto_reload_gated_by_flag(app, client):
     async with AsyncClient(
         transport=ASGITransport(app=dev_app), base_url="http://testserver"
     ) as dev_client:
+        from app.main import DEV_PAUSE_MARKER
+
+        marker = Path(DEV_PAUSE_MARKER)
+        # The developer may be holding reloads right now (the repo is the
+        # dev container's bind mount) — save and restore that state.
+        was_paused = marker.exists()
+        if was_paused:
+            marker.unlink()
+
         first = await dev_client.get("/__dev/version")
         second = await dev_client.get("/__dev/version")
         assert first.status_code == 200
         assert first.text == second.text  # stable until files change
-        assert "dev-reload.js" in (await dev_client.get("/")).text
+        index = await dev_client.get("/")
+        assert "dev-reload.js" in index.text
+        # Pages embed their render-time token, so the poller's baseline is
+        # always correct — even for a page loaded while reloads are paused.
+        assert f'data-dev-version="{first.text}"' in index.text
+
+        # The pause marker holds browsers' reloads during development;
+        # removing it lets the real token through again.
+        marker.touch()
+        try:
+            assert (await dev_client.get("/__dev/version")).text == "paused"
+            if not was_paused:
+                marker.unlink()
+                resumed = await dev_client.get("/__dev/version")
+                assert resumed.text not in ("paused", "")
+        finally:
+            if was_paused:
+                marker.touch()
+            else:
+                marker.unlink(missing_ok=True)
 
 
 @respx.mock

@@ -1,5 +1,6 @@
 """Jinja2 template rendering."""
 
+import hashlib
 from pathlib import Path
 
 from fastapi.templating import Jinja2Templates
@@ -11,6 +12,7 @@ templates = Jinja2Templates(directory=str(_package_dir / "templates"))
 def portrait_url(character_id: int, size: int = 64) -> str:
     """Public character portrait — no API call required."""
     return f"https://images.evetech.net/characters/{character_id}/portrait?size={size}"
+
 
 
 def type_icon_url(type_id: int, size: int = 32, kind: str = "icon") -> str:
@@ -35,3 +37,22 @@ def _static_version() -> str:
 
 
 templates.env.globals["static_version"] = _static_version()
+
+
+def dev_site_version() -> str:
+    """Change token over the code, template, and static trees — the dev
+    auto-refresh poller compares it (see DEV_AUTO_RELOAD and
+    static/dev-reload.js). Called per render so template-only edits (no
+    process restart) still change it."""
+    entries = []
+    for path in sorted(_package_dir.rglob("*")):
+        if not path.is_file() or "__pycache__" in path.parts:
+            continue
+        try:
+            entries.append((str(path), path.stat().st_mtime_ns))
+        except OSError:
+            continue  # file vanished mid-walk
+    return hashlib.sha1(repr(entries).encode()).hexdigest()[:16]
+
+
+templates.env.globals["dev_site_version"] = dev_site_version

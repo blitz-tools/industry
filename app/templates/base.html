@@ -6,7 +6,7 @@
   <title>{% block title %}industry{% endblock %}</title>
   <link rel="stylesheet" href="/static/style.css?v={{ static_version }}">
 </head>
-<body>
+<body{% if request.app.state.settings.dev_auto_reload %} data-dev-version="{{ dev_site_version() }}"{% endif %}>
 {% if authenticated %}
   <button class="menu-toggle" aria-controls="sidebar" aria-expanded="false">
     <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true">
