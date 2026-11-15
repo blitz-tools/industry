@@ -32,30 +32,28 @@ Groundwork that already exists and applies broadly:
 
 ## In queue
 
-### Main character selector (prerequisite for the Corporation section)
+### Documentation site (mkdocs + GitHub Pages)
 
-A selectable "main" character determines which corporation the Corporation
-section manages. The main must hold Director or CEO in that corp; their
-tokens authorize the corp-scoped ESI calls. All characters can be added,
-but they are not necessarily in the same corporation — the Corporation
-section targets exactly one corp (the main's).
+A documentation site published via GitHub Pages, sourced from a `/docs`
+folder in the repo. README.md stays a clean, concise overview that links
+to the site.
 
-- `Character.is_main` (single-user app today, one flag suffices) with a
-  "Set as main" action on the roster cards and a "Main" badge.
-- Corp resolution from the main's public `/characters/{id}/` data
-  (`corporation_id` — already fetched and persisted on roster renders).
-- Role enforcement: check `/characters/{main_id}/roles/` before syncing
-  corp endpoints. **Prerequisite: register the
-  `esi-characters.read_corporation_roles.v1` scope on the portal** — it is
-  not in the current set. Director/CEO → proceed; otherwise show an
-  explanatory state instead of burning the error budget on 403s (same
-  philosophy as restricted-structure parking).
-- Switching mains switches the targeted corp snapshot; old corp data can
-  stay in the DB, just untargeted.
-
-Follow-on (same track): **corporation assets** — corp assets/jobs/wallets/
-blueprints endpoints return the same shapes as their character
-counterparts; the sync and view layers are already owner-agnostic.
+- **Tooling**: mkdocs (material theme if it earns its weight), a GitHub
+  Actions workflow deploying on pushes to `main` via
+  `actions/deploy-pages` — same review flow as code changes.
+- **Sections**:
+  - *Installation & setup* — clone, `.env`, EVE SSO application
+    registration (callback URL, scope list), container startup, first
+    login, SDE import (`python -m app.sde import`).
+  - *Development process* — the containerized workflow: podman compose,
+    tests/lint/migrations in-container, the `.dev-reload-paused` marker,
+    branch → PR → CI → merge with product-owner review.
+  - *User guide* — characters and re-auth, roster, asset browsing
+    (filters, structure panels), the Corporation section (main
+    character, role gate, assets/blueprints/jobs pages), and the
+    planner as it lands (M4+).
+- Keep pages near the code they document and update them alongside
+  milestone work so they drift slowly.
 
 ---
 
