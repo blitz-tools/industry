@@ -93,15 +93,19 @@ window.addEventListener("popstate", () => {
 
 // --- Assets page behaviors (re-bound after every swap) ------------------------
 window.initAssetsPage = () => {
-  // Asset structure panels.
+  // Asset structure panels. The fragment route is page-specific (character
+  // vs corporation browser) and travels on the filter form.
   const structures = document.querySelectorAll("details.structure");
   if (structures.length) {
+    const fragmentBase =
+      document.querySelector("#asset-filter")?.dataset.fragmentBase ||
+      "/assets/structure";
     const load = async (details, params) => {
       const body = details.querySelector(".structure-body");
       body.textContent = "Loading…";
       try {
         const response = await fetch(
-          `/assets/structure/${details.dataset.locationId}?${params}`
+          `${fragmentBase}/${details.dataset.locationId}?${params}`
         );
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         body.innerHTML = await response.text();
@@ -150,26 +154,31 @@ window.initAssetsPage = () => {
     });
   }
 
-  // Assets filter form: submit on change via in-place swap.
+  // Assets filter form: submit on change via in-place swap. The form's
+  // action is the page it belongs to (character or corporation browser);
+  // the character selection only exists on the character page.
   const form = document.querySelector("#asset-filter");
   if (form) {
     const apply = () => {
       const params = new URLSearchParams();
       const boxes = [...form.querySelectorAll('input[name="chars"]')];
-      const checked = boxes.filter((box) => box.checked).map((box) => box.value);
-      // Always carry the selection: "all" when every box is checked (so
-      // the session remembers All, not a stale partial list), the joined
-      // ids otherwise — empty for none.
-      params.set(
-        "chars",
-        checked.length === boxes.length ? "all" : checked.join(",")
-      );
+      if (boxes.length) {
+        const checked = boxes.filter((box) => box.checked).map((box) => box.value);
+        // Always carry the selection: "all" when every box is checked (so
+        // the session remembers All, not a stale partial list), the joined
+        // ids otherwise — empty for none.
+        params.set(
+          "chars",
+          checked.length === boxes.length ? "all" : checked.join(",")
+        );
+      }
       for (const name of ["region", "category"]) {
         const value = form.querySelector(`select[name="${name}"]`).value;
         if (value) params.set(name, value);
       }
       const query = params.toString();
-      swapAssetsPage("/assets" + (query ? `?${query}` : ""));
+      const action = form.getAttribute("action") || "/assets";
+      swapAssetsPage(action + (query ? `?${query}` : ""));
     };
 
     form.addEventListener("change", apply);

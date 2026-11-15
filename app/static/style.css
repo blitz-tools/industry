@@ -567,6 +567,69 @@ button.danger:hover {
   flex: 1 1 auto;
 }
 
+/* Corporation assets toolbar: just the type/region dropdowns (single
+   owner, no character picker). */
+.corp-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+  accent-color: var(--cyan);
+  flex: 1 1 auto;
+}
+
+/* Office summary: the corporation's rented stations, above the structure
+   browser — the shared inventory pool corporate build plans draw from. */
+.office-summary {
+  margin: 0 0 1.25rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.office-summary h2 {
+  margin: 0 0 0.15rem;
+  font-size: 0.95rem;
+}
+
+.office-summary .stat-note {
+  margin: 0;
+}
+
+/* Nested "Office" expander inside an office location's panel body. */
+.office-folder {
+  margin: 0.25rem 0.5rem 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+.office-folder > summary {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.15rem 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  list-style: revert;
+}
+
+.office-folder > summary:hover {
+  background: var(--hover);
+}
+
+.office-folder .office-label {
+  color: var(--cyan);
+}
+
+.office-folder .count {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
 /* Character picker: collapsible corporation rows expanding to a grid of
    character cards. Fixed width so expanding rows (and their card grids)
    never shift the toolbar layout around. */

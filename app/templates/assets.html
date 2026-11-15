@@ -13,7 +13,7 @@
 </div>
 
 <div class="assets-toolbar">
-  <form class="char-filter" method="get" action="/assets" id="asset-filter">
+  <form class="char-filter" method="get" action="/assets" id="asset-filter" data-fragment-base="/assets/structure">
     <div class="char-picker" data-chars="{{ 'all' if selected is none else selected | join(',') }}">
       <div class="picker-top-row">
         <div class="char-picker-actions">
