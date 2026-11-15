@@ -35,6 +35,9 @@ class Character(Base, TimestampMixin):
         DateTime(), nullable=False, default=utc_now
     )
     refresh_token: Mapped[str] = mapped_column(Text, nullable=False)
+    # Current corporation (public data, refreshed on roster renders) —
+    # lets the assets page group by corporation without touching ESI.
+    corporation_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
 
 
 class EsiCache(Base, TimestampMixin):
@@ -121,6 +124,16 @@ class UniverseType(Base, TimestampMixin):
     volume: Mapped[float | None] = mapped_column(Float, nullable=True)
     packaged_volume: Mapped[float | None] = mapped_column(Float, nullable=True)
     group_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+
+
+class UniverseCorporation(Base, TimestampMixin):
+    """Resolved /corporations/{id}/ names; refreshed by roster renders so
+    ESI-free pages (assets) can label corporation groups."""
+
+    __tablename__ = "universe_corporations"
+
+    corporation_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
 
 
 class UniverseGroup(Base, TimestampMixin):

@@ -487,6 +487,20 @@ button.danger:hover {
 
 /* --- Assets page --------------------------------------------------------- */
 
+/* Page title with the sync action on the same row, right-aligned. */
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.page-header h1 {
+  margin: 0;
+}
+
 .assets-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -501,18 +515,196 @@ button.danger:hover {
 .char-filter {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem 1rem;
-  align-items: center;
+  gap: 0.5rem 1rem;
+  align-items: flex-start;
   color: var(--muted);
   font-size: 0.9rem;
   accent-color: var(--cyan);
+  /* The only toolbar child (the sync form moved to the page header):
+     grow to full width so the picker and its rows have a stable width. */
+  flex: 1 1 auto;
 }
 
-.char-filter label {
-  display: inline-flex;
+/* Character picker: collapsible corporation rows expanding to a grid of
+   character cards. Fixed width so expanding rows (and their card grids)
+   never shift the toolbar layout around. */
+.char-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: min(62rem, 100%);
+}
+
+/* All/None chips share their row with the Types/Regions dropdowns,
+   regardless of how tall the corporation list gets. */
+.picker-top-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  align-items: center;
+  margin-bottom: 0.5rem; /* breathing room above the corporation rows */
+}
+
+.char-picker-actions {
+  display: flex;
   gap: 0.35rem;
+}
+
+/* Corporation pagination (only rendered when there are more than ten). */
+.corp-pagination {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.corp-pagination .chip-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+.corp-page-label {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.corp-row summary {
+  display: flex;
+  gap: 0.6rem;
   align-items: center;
   cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.corp-row summary::-webkit-details-marker {
+  display: none;
+}
+
+.corp-row summary::before {
+  content: "▸";
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+
+.corp-row[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.corp-row .corp-logo {
+  border-radius: 3px;
+  flex: none;
+}
+
+.corp-row .corp-name {
+  color: var(--text);
+}
+
+.corp-row .corp-count {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.corp-toggle,
+.chip-button {
+  padding: 0.05rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+/* Fixed pill width sized to the widest label ("Deselect") so the
+   Select/Deselect swap never shifts the row; the pill sits beside the
+   corporation name rather than pinned to the far right, so expanding
+   the row's card grid can't fling it across the screen. */
+.corp-row .corp-toggle {
+  min-width: 5.5rem;
+  text-align: center;
+}
+
+.corp-toggle:hover,
+.chip-button:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: transparent;
+}
+
+/* Filled while every member character is selected. */
+.corp-toggle.selected {
+  border-color: var(--green);
+  background: var(--green);
+  color: var(--bg);
+}
+
+.char-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: 0.5rem;
+  margin: 0.4rem 0 0.2rem 1.1rem;
+  max-width: 62rem;
+}
+
+/* Small character card: portrait ringed by sync state, name below. The
+   checkbox is screen-reader-only; the whole card toggles it. */
+.char-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-items: center;
+  padding: 0.6rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  cursor: pointer;
+  text-align: center;
+}
+
+.char-card:hover {
+  border-color: var(--cyan);
+}
+
+.char-card:has(input:checked) {
+  border-color: var(--green);
+  background: color-mix(in srgb, var(--green) 10%, var(--panel));
+}
+
+.char-card:has(input:focus-visible) {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+.char-card .char-name {
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+/* Portrait bubble ringed by the character's asset-sync state. */
+.char-bubble {
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--line);
+}
+
+.char-card.sync-ok .char-bubble {
+  box-shadow: 0 0 0 2px var(--green);
+}
+
+.char-card.sync-stale .char-bubble {
+  box-shadow: 0 0 0 2px var(--yellow);
+}
+
+.char-card.sync-never .char-bubble {
+  box-shadow: 0 0 0 2px var(--faint);
+}
+
+.char-card.sync-error .char-bubble {
+  box-shadow: 0 0 0 2px var(--pink);
 }
 
 .char-filter select {
@@ -525,6 +717,13 @@ button.danger:hover {
   font-size: 0.9rem;
 }
 
+/* Types and Regions dropdowns sit together on one row. */
+.filter-selects {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .sync-form {
   display: inline-flex;
   gap: 0.75rem;
@@ -532,17 +731,6 @@ button.danger:hover {
 }
 
 .last-sync {
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.sync-statuses {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 1.25rem;
-  margin: 0 0 1.25rem;
-  padding: 0;
-  list-style: none;
   color: var(--muted);
   font-size: 0.85rem;
 }

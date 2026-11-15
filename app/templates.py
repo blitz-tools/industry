@@ -14,6 +14,10 @@ def portrait_url(character_id: int, size: int = 64) -> str:
     return f"https://images.evetech.net/characters/{character_id}/portrait?size={size}"
 
 
+def corporation_logo_url(corporation_id: int, size: int = 64) -> str:
+    """Public corporation logo — no API call required."""
+    return f"https://images.evetech.net/corporations/{corporation_id}/logo?size={size}"
+
 
 def type_icon_url(type_id: int, size: int = 32, kind: str = "icon") -> str:
     """Public type icon — no API call required. `kind` is the imageserver
@@ -25,6 +29,7 @@ def type_icon_url(type_id: int, size: int = 32, kind: str = "icon") -> str:
 
 # Image render URLs are usable directly from templates.
 templates.env.globals["portrait_url"] = portrait_url
+templates.env.globals["corporation_logo_url"] = corporation_logo_url
 templates.env.globals["type_icon_url"] = type_icon_url
 
 

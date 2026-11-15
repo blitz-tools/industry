@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..db import utc_now
 from ..deps import DbDep, EsiDep, is_authenticated, make_esi_client
 from ..esi.client import ESIClient, ESIError, ReauthorizationRequired
-from ..models import Character
+from ..models import Character, UniverseCorporation
 from ..templates import portrait_url, templates
 
 router = APIRouter()
@@ -87,13 +87,26 @@ class CharacterCard:
         return "\n".join(details) or None
 
 
-async def _corporation_name(esi: ESIClient, corporation_id: int | None) -> str | None:
+async def _corporation_name(
+    esi: ESIClient, db, corporation_id: int | None
+) -> str | None:
+    """Live corporation name, cached into universe_corporations so ESI-free
+    pages (the assets toolbar's grouping) can label it."""
     if not corporation_id:
         return None
     try:
-        return (await esi.get_public(f"/corporations/{corporation_id}/")).get("name")
+        name = (await esi.get_public(f"/corporations/{corporation_id}/")).get("name")
     except ESIError:
         return None
+    if name:
+        row = await db.get(UniverseCorporation, corporation_id)
+        if row is None:
+            db.add(UniverseCorporation(corporation_id=corporation_id, name=name))
+            await db.commit()
+        elif row.name != name:
+            row.name = name
+            await db.commit()
+    return name
 
 
 async def _alliance_name(esi: ESIClient, alliance_id: int | None) -> str | None:
@@ -236,9 +249,13 @@ async def _build_card(request: Request, character_id: int) -> CharacterCard | No
         except ESIError:
             info = None
         if info:
-            card.corporation_name = await _corporation_name(
-                esi, info.get("corporation_id")
-            )
+            corporation_id = info.get("corporation_id")
+            if corporation_id and corporation_id != character.corporation_id:
+                # Persist membership (assets-page grouping reads it without
+                # touching ESI).
+                character.corporation_id = corporation_id
+                await session.commit()
+            card.corporation_name = await _corporation_name(esi, session, corporation_id)
             card.alliance_name = await _alliance_name(esi, info.get("alliance_id"))
         if not card.needs_reauth:
             if _has_scope(character, LOCATION_SCOPE):

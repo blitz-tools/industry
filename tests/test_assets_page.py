@@ -20,6 +20,7 @@ from app.models import (
     AssetSync,
     Character,
     UniverseCategory,
+    UniverseCorporation,
     UniverseGroup,
     UniverseLocation,
     UniverseRegion,
@@ -257,9 +258,9 @@ async def test_character_filter_narrows_groups_and_counts(client, db_session):
     assert "Emperor Family Academy" not in bravo_only.text
     assert "1 item" in bravo_only.text
 
-    # Garbage and unknown ids fall back to all; empty means all.
+    # Garbage and unknown ids are an explicit selection of no one.
     garbage = await client.get("/assets", params={"chars": "not-a-number,999999"})
-    assert "6 items" in garbage.text
+    assert "Select a character to see assets" in garbage.text
 
 
 @respx.mock
@@ -294,8 +295,11 @@ async def test_region_filter_hides_systems(client, db_session):
     # The selected-but-empty region stays visible in the dropdown.
     assert '<option value="1002" selected' in empty.text
 
-    # Unknown region id falls back to all regions.
-    unknown = await client.get("/assets", params={"region": "999999"})
+    # Unknown region id falls back to all regions (explicit "all": the
+    # session remembers the previous Bravo-only selection).
+    unknown = await client.get(
+        "/assets", params={"region": "999999", "chars": "all"}
+    )
     assert "Jita" in unknown.text and "Amarr" in unknown.text
 
 
@@ -377,9 +381,160 @@ async def test_category_filter_buckets_structures(client, db_session):
     # The selected-but-empty bucket stays visible, like regions do.
     assert '<option value="ships" selected' in bravo_ships.text
 
-    # Unknown bucket keys fall back to all types.
-    unknown = await client.get("/assets", params={"category": "nope"})
+    # Unknown bucket keys fall back to all types (explicit "all": the
+    # session remembers the previous selection).
+    unknown = await client.get("/assets", params={"category": "nope", "chars": "all"})
     assert _structure_count(unknown.text, JITA_STATION_NAME) == 7
+
+
+@respx.mock
+async def test_no_characters_selected_shows_note(client, db_session):
+    """An explicit empty selection (?chars=) shows a static note instead of
+    silently reverting to every character."""
+    await _login(client)
+    await _seed_bravo(db_session)
+    await _seed_world(db_session)
+
+    response = await client.get("/assets", params={"chars": ""})
+    text = response.text
+    assert "No assets shown — no characters are selected" in text
+    assert "Select a character to see assets" in text
+    assert "asset-system" not in text  # nothing rendered
+    # Every chip renders unchecked.
+    assert 'value="1234" checked' not in text
+    assert 'value="5678" checked' not in text
+    # The sync form carries the empty selection as its "none" sentinel.
+    assert 'name="chars" value="none"' in text
+
+
+@respx.mock
+async def test_assets_selection_remembered(client, db_session):
+    """The character selection is remembered in the session: leaving and
+    returning to a bare /assets keeps it. All and None are remembered too."""
+    await _login(client)
+    await _seed_bravo(db_session)
+    await _seed_world(db_session)
+
+    # A partial selection survives the round trip.
+    await client.get("/assets", params={"chars": str(BRAVO)})
+    returned = await client.get("/assets")
+    assert "Emperor Family Academy" not in returned.text  # still Bravo-only
+    assert "1 item" in returned.text
+    # The page carries its effective selection for fragment fetches.
+    assert 'data-chars="5678"' in returned.text
+
+    # All resets the memory.
+    await client.get("/assets", params={"chars": "all"})
+    returned = await client.get("/assets")
+    assert "6 items" in returned.text
+    assert 'name="chars" value="all"' in returned.text  # sync form sentinel
+
+    # None is remembered as well.
+    await client.get("/assets", params={"chars": ""})
+    returned = await client.get("/assets")
+    assert "Select a character to see assets" in returned.text
+
+
+# --- Character chips: corporation groups + sync bubbles -------------------------
+
+
+@respx.mock
+async def test_character_chips_grouped_with_sync_bubbles(client, db_session):
+    await _login(client)
+    bravo = await _seed_bravo(db_session)
+    await _seed_world(db_session)
+    # Charlie joins Alpha's corporation so a partial selection is possible.
+    charlie = Character(
+        character_id=9999,
+        name="Charlie Pilot",
+        owner_hash="owner-charlie",
+        scopes="publicData",
+        access_token="tok-charlie",
+        access_token_expires_at=utc_now() + timedelta(minutes=30),
+        refresh_token="R-charlie",
+    )
+    alpha = await db_session.get(Character, ALPHA)
+    alpha.corporation_id = 98000001
+    charlie.corporation_id = 98000001
+    bravo.corporation_id = 98000002
+    db_session.add_all(
+        [
+            charlie,
+            UniverseCorporation(
+                corporation_id=98000001, name="blitz and blitz holdings"
+            ),
+            UniverseCorporation(corporation_id=98000002, name="chlorokitties"),
+        ]
+    )
+    db_session.add(
+        AssetSync(
+            owner_type="character",
+            owner_id=ALPHA,
+            status="ok",
+            synced_at=utc_now() - timedelta(minutes=5),
+        )
+    )
+    await db_session.commit()
+
+    text = (await client.get("/assets")).text
+
+    # Cards grouped under collapsible corporation rows, alphabetical; each
+    # card carries a portrait bubble ringed by its sync state, and each
+    # resolved corporation renders its logo.
+    assert text.index("blitz and blitz holdings") < text.index("chlorokitties")
+    assert "characters/1234/portrait?size=64" in text
+    assert "corporations/98000001/logo?size=64" in text
+    assert 'class="char-card sync-ok"' in text  # Alpha synced 5 min ago
+    assert 'class="char-card sync-never"' in text  # Bravo has no sync row
+    assert "less than an hour ago" in text  # Alpha tooltip
+    assert "Never synced" in text  # Bravo tooltip
+    # The old per-character status lines are gone.
+    assert "sync-statuses" not in text
+    # Every corporation fully selected (default): filled Deselect buttons,
+    # rows collapsed.
+    assert text.count('class="corp-toggle selected"') == 2
+    assert text.count(">Deselect</button>") == 2
+    assert '<details class="corp-row" open' not in text
+
+    # A partial selection auto-expands that corporation's row (the better
+    # to adjust it); fully-unselected corporations stay collapsed.
+    partial = await client.get("/assets", params={"chars": str(ALPHA)})
+    assert partial.text.count('<details class="corp-row" open') == 1
+    assert partial.text.count('class="corp-toggle selected"') == 0
+    assert partial.text.count(">Select</button>") == 2
+    assert '1/2' in partial.text  # selected/total count in the summary
+
+
+@respx.mock
+async def test_character_sync_bubble_states(client, db_session):
+    await _login(client)
+    await _seed_bravo(db_session)
+    await _seed_world(db_session)
+    db_session.add_all(
+        [
+            # ok, but synced hours ago: stale.
+            AssetSync(
+                owner_type="character",
+                owner_id=ALPHA,
+                status="ok",
+                synced_at=utc_now() - timedelta(hours=3),
+            ),
+            # A problem syncing.
+            AssetSync(
+                owner_type="character",
+                owner_id=BRAVO,
+                status="error",
+                detail="ESI 500",
+                synced_at=utc_now(),
+            ),
+        ]
+    )
+    await db_session.commit()
+
+    text = (await client.get("/assets")).text
+    assert 'class="char-card sync-stale"' in text
+    assert 'class="char-card sync-error"' in text
+    assert "Sync error: ESI 500" in text  # error tooltip carries the detail
 
 
 # --- Fragments: aggregation and pagination ------------------------------------
@@ -402,11 +557,12 @@ async def test_fragment_aggregates_per_type(client, db_session):
     # BPC and BPO of the same type stay separate rows.
     assert text.count("Cruiser Blueprint") == 2
     assert "Copy" in text
-    # Ordering: owner name, then type name (Blueprint < Iteron < Veldspar).
-    assert text.index("Cruiser Blueprint") < text.index("Iteron Mark V")
-    assert text.index("Iteron Mark V") < text.index("Veldspar")
-    # Bravo's row follows Alpha's.
-    assert text.index("Bravo Pilot") > text.index("Alpha Pilot")
+    # Ordering: quantity descending by default (Alpha's 150 Veldspar,
+    # Bravo's 10 Veldspar, Iteron ×2, then the blueprint rows).
+    assert text.index("Veldspar") < text.index("Iteron Mark V")
+    assert text.index("Iteron Mark V") < text.index("Cruiser Blueprint")
+    # Bravo's 10 Veldspar outranks Alpha's Iteron ×2.
+    assert text.index("Bravo Pilot") < text.index("Iteron Mark V")
     assert "types" in text  # total row count
     # Blueprint rows use the imageserver's dedicated renders (the plain
     # icon endpoint 400s on blueprint types); regular types use "icon".
@@ -511,13 +667,13 @@ async def test_fragment_sorts_columns(client, db_session):
     assert text.index("Iteron Mark V") < text.index("Cruiser Blueprint")
 
     # Garbage sort/direction values fall back to the default order
-    # (owner, then type: all of Alpha's rows, then Bravo's).
+    # (quantity descending).
     fallback = await client.get(
         f"/assets/structure/{STATION_JITA}",
         params={"sort": "junk", "dir": "sideways"},
     )
     text = fallback.text
-    assert text.index("Bravo Pilot") > text.index("Iteron Mark V")
+    assert text.index("Bravo Pilot") < text.index("Iteron Mark V")
     assert 'aria-sort=' not in text
 
 
@@ -722,11 +878,16 @@ def test_parse_chars_forms():
         )
 
     valid = [character(1), character(2)]
-    assert parse_chars([], valid) is None
+    assert parse_chars([], valid) is None  # absent: all characters
+    assert parse_chars(["all"], valid) is None  # explicit all sentinel
     assert parse_chars(["1,2"], valid) == [1, 2]
     assert parse_chars(["1", "2"], valid) == [1, 2]
     assert parse_chars(["2,1,1"], valid) == [1, 2]  # dedup + sort
-    assert parse_chars(["garbage", "3"], valid) is None  # unknown ids dropped
+    # Present-but-empty (and the sync form's "none" sentinel, or nothing
+    # valid) is an explicit empty selection, not "all".
+    assert parse_chars([""], valid) == []
+    assert parse_chars(["none"], valid) == []
+    assert parse_chars(["garbage", "3"], valid) == []  # unknown ids dropped
     assert parse_region(None) is None
     assert parse_region("1002") == 1002
     assert parse_region("junk") is None
