@@ -6,13 +6,14 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, Request
 from fastapi.responses import RedirectResponse
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db import utc_now
 from ..deps import DbDep, EsiDep, is_authenticated, make_esi_client
 from ..esi.client import ESIClient, ESIError, ReauthorizationRequired
-from ..models import Character, UniverseCorporation
+from ..esi.universe import corporation_name
+from ..models import Character
 from ..templates import portrait_url, templates
 
 router = APIRouter()
@@ -90,23 +91,7 @@ class CharacterCard:
 async def _corporation_name(
     esi: ESIClient, db, corporation_id: int | None
 ) -> str | None:
-    """Live corporation name, cached into universe_corporations so ESI-free
-    pages (the assets toolbar's grouping) can label it."""
-    if not corporation_id:
-        return None
-    try:
-        name = (await esi.get_public(f"/corporations/{corporation_id}/")).get("name")
-    except ESIError:
-        return None
-    if name:
-        row = await db.get(UniverseCorporation, corporation_id)
-        if row is None:
-            db.add(UniverseCorporation(corporation_id=corporation_id, name=name))
-            await db.commit()
-        elif row.name != name:
-            row.name = name
-            await db.commit()
-    return name
+    return await corporation_name(db, esi, corporation_id)
 
 
 async def _alliance_name(esi: ESIClient, alliance_id: int | None) -> str | None:
@@ -277,3 +262,22 @@ async def _build_card(request: Request, character_id: int) -> CharacterCard | No
                 )
             )
         return card
+
+
+@router.post("/characters/{character_id}/main")
+async def set_main(character_id: int, request: Request, db: DbDep):
+    """Mark one character as the main; any previous main is demoted.
+    Single-user app: exactly one main defines which corporation the
+    Corporation section targets."""
+    if not is_authenticated(request):
+        return RedirectResponse("/", status_code=303)
+
+    character = await db.get(Character, character_id)
+    if character is not None:
+        await db.execute(
+            update(Character).where(Character.is_main).values(is_main=False)
+        )
+        character.is_main = True
+        await db.commit()
+    # Set-main lives on the roster; stay there.
+    return RedirectResponse("/characters", status_code=303)

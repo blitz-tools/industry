@@ -378,6 +378,48 @@ a:hover {
   padding: 0.4rem 0 0.15rem;
 }
 
+/* The last action (Forget) pins to the right edge, separating the
+   destructive action from the routine ones. */
+.card-actions > :last-child {
+  margin-left: auto;
+}
+
+/* Compact square icon buttons for card actions. Occasional actions
+   (re-auth, set-main, forget) don't need page-level button prominence;
+   names live in title/aria-label, icons inherit the button color. */
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--faint);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  border-color: var(--green);
+  background: transparent;
+  color: var(--green);
+  text-decoration: none;
+}
+
+.icon-button.danger {
+  border-color: var(--faint);
+  color: var(--muted);
+}
+
+.icon-button.danger:hover {
+  border-color: var(--pink);
+  background: transparent;
+  color: var(--pink);
+}
+
 /* --- Buttons ------------------------------------------------------------ */
 
 button,
@@ -872,6 +914,51 @@ button.danger:hover {
   border-radius: 4px;
   color: var(--purple);
   font-size: 0.7rem;
+}
+
+/* "Main" marker on roster cards — same shape as the BPC badge, green to
+   read as a positive/active state. */
+.badge.main-badge {
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.3rem;
+  border: 1px solid var(--green);
+  border-radius: 4px;
+  color: var(--green);
+  font-size: 0.7rem;
+  vertical-align: middle;
+}
+
+/* Corporation overview: logo beside the main character's corp summary. */
+.corp-overview {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+  margin: 1rem 0;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.corp-overview .corp-logo {
+  width: 128px;
+  height: 128px;
+  flex: none;
+}
+
+.corp-overview .corp-overview-body h2 {
+  margin: 0 0 0.25rem;
+}
+
+.corp-overview .meta {
+  margin: 0 0 0.75rem;
+  color: var(--muted);
+}
+
+.corp-overview-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 .pagination {

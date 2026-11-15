@@ -29,7 +29,7 @@ STATE_SESSION_KEY = "sso_state"
 NEXT_SESSION_KEY = "sso_next"
 # Post-login destinations the app itself offers — the whitelist guards
 # against open redirects through the ?next= parameter.
-VALID_NEXT = frozenset({"/dashboard", "/characters"})
+VALID_NEXT = frozenset({"/dashboard", "/characters", "/corp"})
 
 
 def sso_from(request: Request, http) -> SSOClient:

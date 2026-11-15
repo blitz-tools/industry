@@ -26,7 +26,7 @@ from app.models import (
     UniverseRegion,
     UniverseType,
 )
-from tests.conftest import token_response
+from tests.conftest import make_access_token, token_response
 
 SSO_TOKEN_URL = "https://sso.test/v2/oauth/token"
 WALLET_URL = "https://esi.test/latest/characters/1234/wallet/"
@@ -62,9 +62,12 @@ ALPHA = 1234  # created via the SSO login flow
 BRAVO = 5678
 
 
-async def _login(client):
+async def _login(client, *, scopes=None):
+    """Create ALPHA through the SSO flow; `scopes` overrides the grant's
+    scope set (e.g. the roles scope for the corporation gate tests)."""
+    access_token = make_access_token(scopes=scopes) if scopes is not None else None
     respx.post(SSO_TOKEN_URL).respond(
-        json=token_response(name="Alpha Pilot")
+        json=token_response(name="Alpha Pilot", access_token=access_token)
     )
     response = await client.get("/auth/eve/login", follow_redirects=False)
     state = parse_qs(urlparse(response.headers["location"]).query)["state"][0]
@@ -901,7 +904,20 @@ def test_parse_chars_forms():
 
 @respx.mock
 async def test_corp_stub_pages_and_nav_group(client):
+    # Sub-pages need a main whose grant covers the roles scope and whose
+    # role check passes — without one they redirect to the overview.
     await _login(client)
+    redirected = await client.get("/corp/assets", follow_redirects=False)
+    assert redirected.status_code == 302
+    assert redirected.headers["location"] == "/corp"
+
+    await _login(
+        client, scopes=["publicData", "esi-characters.read_corporation_roles.v1"]
+    )
+    respx.get(f"https://esi.test/latest/characters/{ALPHA}/roles/").respond(
+        json={"roles": ["Director"]}
+    )
+    await client.post(f"/characters/{ALPHA}/main")
 
     assets = await client.get("/corp/assets")
     assert assets.status_code == 200
