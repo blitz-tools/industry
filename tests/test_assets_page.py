@@ -903,7 +903,7 @@ def test_parse_chars_forms():
 
 
 @respx.mock
-async def test_corp_stub_pages_and_nav_group(client):
+async def test_corp_stub_pages_and_nav_group(client, db_session):
     # Sub-pages need a main whose grant covers the roles scope and whose
     # role check passes — without one they redirect to the overview.
     await _login(client)
@@ -918,10 +918,16 @@ async def test_corp_stub_pages_and_nav_group(client):
         json={"roles": ["Director"]}
     )
     await client.post(f"/characters/{ALPHA}/main")
+    # Stored membership keeps the assets page render off ESI (beyond the
+    # role gate).
+    alpha = await db_session.get(Character, ALPHA)
+    alpha.corporation_id = 98000001
+    await db_session.commit()
 
+    # /corp/assets is the real corporation browser (empty until synced).
     assets = await client.get("/corp/assets")
     assert assets.status_code == 200
-    assert "Not built yet" in assets.text
+    assert "Corporation Assets" in assets.text
     # The nav group is expanded and the right sub-item is active.
     assert 'aria-expanded="true"' in assets.text
     assert 'href="/corp/assets" class="active"' in assets.text

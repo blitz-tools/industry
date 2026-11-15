@@ -1,3 +1,13 @@
+{% if is_office %}
+{# A rented office: contents nest under an expandable "Office" item
+   inside the location panel. Already open when the user is browsing
+   pages or sorting (page > 1 / an active sort means they're inside). #}
+<details class="office-folder"{% if page > 1 or sort %} open{% endif %}>
+  <summary>
+    <span class="office-label">Office</span>
+    <span class="count">{{ total }} type{{ '' if total == 1 else 's' }}</span>
+  </summary>
+{% endif %}
 {% if rows %}
 <table class="asset-table">
   <thead>
@@ -25,10 +35,12 @@
         {{ row.type_name or 'Unknown type #' ~ row.type_id }}
         {% if row.is_blueprint_copy %}<span class="badge bpc">Copy</span>{% endif %}
       </td>
+      {% if show_owner %}
       <td class="owner-cell">
         <img class="owner-portrait" loading="lazy" src="{{ portrait_url(row.owner_id, 32) }}" alt="" width="24" height="24">
         {{ row.owner_name }}
       </td>
+      {% endif %}
       <td class="num qty">{{ '{:,}'.format(row.quantity) }}</td>
       <td class="num volume">{% if row.volume_total is not none %}{{ '{:,.1f}'.format(row.volume_total) }} m³{% else %}—{% endif %}</td>
       <td class="flag">{{ row.location_flag }}</td>
@@ -44,8 +56,11 @@
   {% if pages > 1 %}
     {% for p in range(1, pages + 1) %}
     <a class="page{% if p == page %} current{% endif %}" data-page="{{ p }}"
-       href="/assets/structure/{{ location_id }}?page={{ p }}{% if carry_qs %}&{{ carry_qs }}{% endif %}">{{ p }}</a>
+       href="{{ fragment_base }}/{{ location_id }}?page={{ p }}{% if carry_qs %}&{{ carry_qs }}{% endif %}">{{ p }}</a>
     {% endfor %}
   {% endif %}
   <span class="total">{{ total }} type{{ '' if total == 1 else 's' }}</span>
 </nav>
+{% if is_office %}
+</details>
+{% endif %}

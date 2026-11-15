@@ -15,7 +15,12 @@ from sqlalchemy import String, case, cast, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .db import utc_now
-from .esi.assets import OWNER_CHARACTER
+from .esi.assets import (
+    OFFICE_FLAGS,
+    OFFICE_TYPE_ID,
+    OWNER_CHARACTER,
+    OWNER_CORPORATION,
+)
 from .models import (
     Asset,
     AssetSync,
@@ -97,6 +102,10 @@ class StructurePanel:
     kind: str
     item_count: int
     restricted: bool
+    # The panel is a rented office (its rows sit under an Office marker's
+    # container): fragments render the contents inside a nested "Office"
+    # expander, and the panel shows even when only the marker is there.
+    is_office: bool = False
 
 
 @dataclass
@@ -155,6 +164,18 @@ class CharacterSyncStatus:
     status: str | None  # None = never synced
     detail: str | None
     synced_at: datetime | None
+
+
+@dataclass
+class OfficeLocation:
+    """One rented corporate office: the corp's asset row flagged "Office"
+    names the station; `item_count` is everything the corp has at that
+    station (the office's hangar divisions included). These stations are
+    the shared inventory pool corporate build plans draw from."""
+
+    location_id: int
+    name: str
+    item_count: int
 
 
 @dataclass
@@ -367,9 +388,16 @@ def sort_headers(
     current_dir: str | None,
     chars: list[int] | None,
     category: str | None,
+    base: str = "/assets/structure",
+    include_owner: bool = True,
 ) -> list[SortHeader]:
+    """Clickable column headers for a structure panel. `base` is the
+    fragment route the links target; `include_owner=False` drops the
+    owner column (corporation panels have a single owner)."""
     headers = []
     for key, label in SORTABLE_COLUMNS:
+        if key == "character" and not include_owner:
+            continue
         active = key == current_sort
         # Active columns toggle direction; inactive ones start ascending.
         next_dir = ("desc" if current_dir == "asc" else "asc") if active else "asc"
@@ -382,7 +410,7 @@ def sort_headers(
             SortHeader(
                 key=key,
                 label=label,
-                url=f"/assets/structure/{location_id}?{urlencode(params)}",
+                url=f"{base}/{location_id}?{urlencode(params)}",
                 active=active,
                 descending=current_dir == "desc",
             )
@@ -453,14 +481,15 @@ def _icon_kind(category_name: str | None, is_blueprint_copy: bool) -> str | None
     return "icon"
 
 
-def _order_keys(sort: str | None, direction: str | None) -> list:
+def _order_keys(sort: str | None, direction: str | None, owner_name) -> list:
     """ORDER BY keys for structure rows: the requested column (when `sort`
     names one), defaulting to quantity descending, followed by the
-    owner-then-type order so ties paginate deterministically."""
+    owner-then-type order so ties paginate deterministically. `owner_name`
+    is the owner label expression for the panel's owner type."""
     type_name = func.coalesce(UniverseType.name, "#" + cast(Asset.type_id, String))
     primary = {
         "type": type_name,
-        "character": Character.name,
+        "character": owner_name,
         "quantity": func.sum(Asset.quantity),
         "volume": func.sum(Asset.quantity) * UniverseType.volume,
         "flag": func.max(Asset.location_flag),
@@ -474,7 +503,7 @@ def _order_keys(sort: str | None, direction: str | None) -> list:
     else:
         # Default order: biggest stacks first.
         keys.append(func.sum(Asset.quantity).desc())
-    keys.extend([Character.name, type_name])
+    keys.extend([owner_name, type_name])
     return keys
 
 
@@ -498,10 +527,33 @@ async def system_groups(
     *,
     owner_ids: list[int] | None,
     category: str | None = None,
+    owner_type: str = OWNER_CHARACTER,
 ) -> AssetView:
-    """System → structure view of the character asset snapshot, filtered to
-    the selected owners (None = all) and category bucket (None = all)."""
-    conditions = [Asset.owner_type == OWNER_CHARACTER]
+    """System → structure view of an asset snapshot, filtered to the
+    selected owners (None = all) and category bucket (None = all). Works
+    for character or corporation snapshots. The corporation's office
+    marker items are excluded from counts; office containers stay listed
+    (even marker-only ones — the office is real) and carry `is_office`
+    for the nested-expander render."""
+    conditions = [Asset.owner_type == owner_type]
+    office_parents: set[int] = set()
+    if owner_type == OWNER_CORPORATION:
+        conditions.append(Asset.type_id != OFFICE_TYPE_ID)
+        office_conditions = [
+            Asset.owner_type == owner_type,
+            Asset.location_flag.in_(OFFICE_FLAGS),
+        ]
+        if owner_ids is not None:
+            office_conditions.append(Asset.owner_id.in_(owner_ids))
+        office_parents = set(
+            (
+                await db.execute(
+                    select(Asset.parent_location_id)
+                    .where(*office_conditions)
+                    .distinct()
+                )
+            ).scalars()
+        )
     if owner_ids is not None:
         conditions.append(Asset.owner_id.in_(owner_ids))
 
@@ -541,9 +593,15 @@ async def system_groups(
     ).where(*counts_conditions)
     if category is not None:
         counts_query = _category_filter_joins(counts_query, with_type=True)
-    counts = (
-        await db.execute(counts_query.group_by(Asset.parent_location_id))
-    ).all()
+    counts = list(
+        (
+            await db.execute(counts_query.group_by(Asset.parent_location_id))
+        ).all()
+    )
+    # Marker-only offices have no counted rows (the marker is excluded);
+    # keep them listed so the office is visible in the structure browser.
+    counted = {parent_id for parent_id, _, _ in counts}
+    counts.extend((parent_id, 0, None) for parent_id in office_parents - counted)
 
     if not counts:
         return AssetView(
@@ -646,6 +704,7 @@ async def system_groups(
                 kind=resolved_kind,
                 item_count=item_count,
                 restricted=restricted,
+                is_office=parent_id in office_parents,
             )
         )
 
@@ -684,17 +743,21 @@ async def structure_page(
     category: str | None = None,
     sort: str | None = None,
     direction: str | None = None,
+    owner_type: str = OWNER_CHARACTER,
 ) -> tuple[list[AssetRow], int, int]:
     """One page of per-type aggregated rows for a structure's panel. The
     same asset type from one owner merges into a single row with summed
     quantity (blueprint originals and copies stay separate rows). Filters
     by owner ids and category bucket (None = all); `sort` names a column
-    to order by (None = the default owner-then-type order). Returns
+    to order by (None = the default owner-then-type order). The
+    corporation's office marker items are excluded. Returns
     (rows, total groups, page used) — the page is clamped to range."""
     conditions = [
-        Asset.owner_type == OWNER_CHARACTER,
+        Asset.owner_type == owner_type,
         Asset.parent_location_id == location_id,
     ]
+    if owner_type == OWNER_CORPORATION:
+        conditions.append(Asset.type_id != OFFICE_TYPE_ID)
     if owner_ids is not None:
         conditions.append(Asset.owner_id.in_(owner_ids))
     if category is not None:
@@ -715,37 +778,65 @@ async def structure_page(
     pages = max(1, -(-total_groups // page_size))
     page = min(max(1, page), pages)
 
-    rows_query = _category_filter_joins(
-        select(
-            Asset.owner_id,
-            Character.name,
-            Asset.type_id,
-            UniverseType.name,
-            UniverseType.volume,
-            func.sum(Asset.quantity),
-            func.max(
-                Asset.location_flag
-            ),
-            Asset.is_blueprint_copy,
-            UniverseCategory.name,
+    # The owner label column joins the owners table for the snapshot's
+    # owner type: characters always resolve (assets only exist for stored
+    # characters); a corporation may not have its name cached yet, so its
+    # join is outer with an "#id" fallback.
+    if owner_type == OWNER_CHARACTER:
+        owner_name = Character.name
+        rows_query = _category_filter_joins(
+            select(
+                Asset.owner_id,
+                owner_name,
+                Asset.type_id,
+                UniverseType.name,
+                UniverseType.volume,
+                func.sum(Asset.quantity),
+                func.max(Asset.location_flag),
+                Asset.is_blueprint_copy,
+                UniverseCategory.name,
+            )
+            .join(Character, Character.character_id == Asset.owner_id)
+            .outerjoin(UniverseType, UniverseType.type_id == Asset.type_id)
+            .where(*conditions),
+            with_type=False,
         )
-        .join(Character, Character.character_id == Asset.owner_id)
-        .outerjoin(UniverseType, UniverseType.type_id == Asset.type_id)
-        .where(*conditions),
-        with_type=False,
-    )
+    else:
+        owner_name = func.coalesce(
+            UniverseCorporation.name, "#" + cast(Asset.owner_id, String)
+        )
+        rows_query = _category_filter_joins(
+            select(
+                Asset.owner_id,
+                owner_name,
+                Asset.type_id,
+                UniverseType.name,
+                UniverseType.volume,
+                func.sum(Asset.quantity),
+                func.max(Asset.location_flag),
+                Asset.is_blueprint_copy,
+                UniverseCategory.name,
+            )
+            .outerjoin(
+                UniverseCorporation,
+                UniverseCorporation.corporation_id == Asset.owner_id,
+            )
+            .outerjoin(UniverseType, UniverseType.type_id == Asset.type_id)
+            .where(*conditions),
+            with_type=False,
+        )
     rows_raw = (
         await db.execute(
             rows_query.group_by(
                 Asset.owner_id,
                 Asset.type_id,
                 Asset.is_blueprint_copy,
-                Character.name,
+                owner_name,
                 UniverseType.name,
                 UniverseType.volume,
                 UniverseCategory.name,
             )
-            .order_by(*_order_keys(sort, direction))
+            .order_by(*_order_keys(sort, direction, owner_name))
             .limit(page_size)
             .offset((page - 1) * page_size)
         )
@@ -776,3 +867,160 @@ async def structure_page(
         ) in rows_raw
     ]
     return asset_rows, total_groups, page
+
+
+async def apply_region_filter(
+    db: AsyncSession, view: AssetView, selected_region: int | None
+) -> int | None:
+    """Clamp the region selection to known regions and filter the view in
+    place; returns the effective region (None = all). A selected region
+    outside the current data still shows in the dropdown when its name
+    resolves, so the URL state keeps a matching control."""
+    if selected_region is None:
+        return None
+    if selected_region not in {option.region_id for option in view.regions}:
+        row = await db.get(UniverseRegion, selected_region)
+        if row is None:
+            return None  # unknown id: treat as All
+        view.regions.append(RegionOption(row.region_id, row.name))
+        view.regions.sort(key=lambda option: option.name.lower())
+    view.groups = [group for group in view.groups if group.region_id == selected_region]
+    view.total_items = sum(len(group.structures) for group in view.groups)
+    return selected_region
+
+
+def keep_selected_category(view: AssetView, selected_category: str | None) -> None:
+    """A selected bucket that matched nothing stays visible in the
+    dropdown, so the URL state keeps a matching control."""
+    if selected_category is None or selected_category in {
+        option.key for option in view.categories
+    }:
+        return
+    bucket = BUCKETS_BY_KEY[selected_category]
+    view.categories.append(CategoryOption(bucket.key, bucket.label))
+
+
+async def owner_sync_status(db: AsyncSession, owner_type: str, owner_id: int):
+    """The last sync outcome recorded for an owner, or None (never synced)."""
+    return await db.get(AssetSync, (owner_type, owner_id))
+
+
+async def is_office_location(
+    db: AsyncSession, owner_type: str, owner_id: int, location_id: int
+) -> bool:
+    """True when the location's rows sit under an Office marker — i.e. the
+    panel is a rented office and its fragment renders the contents inside
+    a nested "Office" expander."""
+    if owner_type != OWNER_CORPORATION:
+        return False
+    return bool(
+        await db.scalar(
+            select(func.count()).where(
+                Asset.owner_type == owner_type,
+                Asset.owner_id == owner_id,
+                Asset.parent_location_id == location_id,
+                Asset.location_flag.in_(OFFICE_FLAGS),
+            )
+        )
+    )
+
+
+def corp_sync_note(sync) -> tuple[str, str] | None:
+    """(severity, message) for the corporation assets page's notification
+    box; None when the last sync succeeded (or never ran — the page shows
+    its own empty-state note for that)."""
+    if sync is None or sync.status == "ok":
+        return None
+    if sync.status == "no-scope":
+        return (
+            "error",
+            "The main character's grant is missing a required scope — "
+            f"re-auth it. {sync.detail or ''}".strip(),
+        )
+    if sync.status == "no-roles":
+        return (
+            "info",
+            "Corporation data can't sync: the main character holds no "
+            "Director or CEO role.",
+        )
+    if sync.status == "reauth":
+        return ("error", "The main character needs re-authorization.")
+    return ("error", f"Last corporation sync failed: {sync.detail or 'unknown error'}")
+
+
+async def corporation_offices(
+    db: AsyncSession, corporation_id: int
+) -> list[OfficeLocation]:
+    """The corporation's rented offices. Each office is an Office marker
+    row (flag "OfficeFolder"/"Office"); the marker's parent group IS the
+    office — its hangar divisions sit under the same parent. Empty
+    offices still list (count 0); the marker itself is not inventory and
+    is excluded from the counts. The office's own name resolves when its
+    parent is a known location (NPC-station offices); structure offices
+    hang off container ids ESI never describes, so they label as
+    "Office #<id>"."""
+    marker_parents = (
+        select(Asset.parent_location_id)
+        .where(
+            Asset.owner_type == OWNER_CORPORATION,
+            Asset.owner_id == corporation_id,
+            Asset.location_flag.in_(OFFICE_FLAGS),
+        )
+        .scalar_subquery()
+    )
+    parents = list(
+        (
+            await db.execute(
+                select(Asset.parent_location_id)
+                .where(
+                    Asset.owner_type == OWNER_CORPORATION,
+                    Asset.owner_id == corporation_id,
+                    Asset.location_flag.in_(OFFICE_FLAGS),
+                )
+                .distinct()
+            )
+        )
+        .scalars()
+    )
+    if not parents:
+        return []
+    counts = dict(
+        (
+            await db.execute(
+                select(Asset.parent_location_id, func.count())
+                .where(
+                    Asset.owner_type == OWNER_CORPORATION,
+                    Asset.owner_id == corporation_id,
+                    Asset.parent_location_id.in_(marker_parents),
+                    Asset.type_id != OFFICE_TYPE_ID,
+                )
+                .group_by(Asset.parent_location_id)
+            )
+        ).all()
+    )
+    locations = {
+        row.location_id: row
+        for row in (
+            (
+                await db.execute(
+                    select(UniverseLocation).where(
+                        UniverseLocation.location_id.in_(parents)
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+    }
+    offices = [
+        OfficeLocation(
+            location_id=parent_id,
+            name=(
+                (locations[parent_id].name if parent_id in locations else None)
+                or f"Office #{parent_id}"
+            ),
+            item_count=counts.get(parent_id, 0),
+        )
+        for parent_id in parents
+    ]
+    return sorted(offices, key=lambda office: office.name.lower())

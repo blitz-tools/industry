@@ -234,7 +234,17 @@ async def test_corp_subpages_gated(client, db_session):
     # Re-respond on the same route (a second respx.get would never match:
     # routes are checked in registration order).
     roles_route.respond(json={"roles": ["Director"]})
+    # /corp/assets is the real corporation browser now; its corporation
+    # comes from stored membership (no ESI beyond the roles gate).
+    alpha = await db_session.get(Character, ALPHA)
+    alpha.corporation_id = CORP_ID
+    await db_session.commit()
     response = await client.get("/corp/assets")
+    assert response.status_code == 200
+    assert "Corporation Assets" in response.text
+
+    # The remaining sub-pages are still stubs.
+    response = await client.get("/corp/jobs")
     assert response.status_code == 200
     assert "Not built yet" in response.text
 

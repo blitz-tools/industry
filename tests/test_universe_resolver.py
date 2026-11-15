@@ -53,7 +53,13 @@ async def _seed_character(
         character_id=character_id,
         name=name,
         owner_hash=f"owner-{character_id}",
-        scopes="publicData esi-assets.read_assets.v1",
+        # Includes the structures scope: only characters holding it are
+        # tried for structure resolution (a scopeless 401 never parks
+        # and would burn the error budget every pass).
+        scopes=(
+            "publicData esi-assets.read_assets.v1 "
+            "esi-universe.read_structures.v1"
+        ),
         access_token=f"tok-{character_id}",
         access_token_expires_at=utc_now() + timedelta(minutes=30),
         refresh_token=f"R-{character_id}",

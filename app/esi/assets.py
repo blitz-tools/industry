@@ -1,6 +1,6 @@
-"""Character asset sync: pull every page of ESI's assets endpoint into the
-assets table, resolve the universe IDs the snapshot references, and record
-a per-owner outcome.
+"""Character and corporation asset sync: pull every page of ESI's assets
+endpoints into the assets table, resolve the universe IDs the snapshot
+references, and record a per-owner outcome.
 
 Page fetches go through the ETag cache (a fresh-window pass makes zero
 HTTP calls; an expired one revalidates with cheap 304s). The snapshot
@@ -8,8 +8,10 @@ replace (delete + insert) is deliberately the LAST write for an owner:
 ETagCache.store() commits the shared session mid-fetch, so a failure
 before the replace leaves the previous snapshot intact.
 
-Owner-agnostic by design: rows carry owner_type/owner_id so corporation
-assets can reuse this module unchanged.
+Owner-agnostic by design: rows carry owner_type/owner_id. The corporation
+sync targets the main character's corporation — their tokens stand in
+for the corp, so the Director/CEO role gate runs before anything touches
+a corp endpoint (a call we know will 403 burns ESI's error-limit budget).
 """
 
 import asyncio
@@ -25,11 +27,24 @@ from ..config import Settings
 from ..db import utc_now
 from ..models import Asset, AssetSync, Character, UniverseType
 from .client import ESIClient, ESIError, ReauthorizationRequired
+from .roles import check_corp_access
 from .universe import UniverseResolver
 
 logger = logging.getLogger(__name__)
 
 ASSETS_SCOPE = "esi-assets.read_assets.v1"
+CORP_ASSETS_SCOPE = "esi-assets.read_corporation_assets.v1"
+
+# ESI's marker item for a rented office (corporation assets only): each
+# office shows up as a type-27 "Office" row (flag "OfficeFolder" for
+# structure offices, "Office" for NPC stations) whose parent group holds
+# the office's hangar divisions. The marker itself is bookkeeping, not
+# inventory — corporation views exclude it from tables and counts. The
+# parent container id is reported with location_type "item" but is worth
+# resolving as a structure: characters with docking access there get a
+# real name and system for it.
+OFFICE_TYPE_ID = 27
+OFFICE_FLAGS = ("Office", "OfficeFolder")
 
 # Serializes sync passes (manual button vs background tick). Single-process,
 # like the per-character refresh locks in client.py.
@@ -39,19 +54,24 @@ _sync_lock = asyncio.Lock()
 MAX_CHAIN_DEPTH = 10
 
 OWNER_CHARACTER = "character"
+OWNER_CORPORATION = "corporation"
 
 
 @dataclass
 class SyncOutcome:
     owner_id: int
     name: str
-    status: str  # "synced" | "reauth" | "no-scope" | "error"
+    status: str  # "synced" | "reauth" | "no-scope" | "no-roles" | "error"
     item_count: int = 0
     detail: str | None = None
 
 
 def has_assets_scope(character: Character) -> bool:
     return ASSETS_SCOPE in character.scopes.split()
+
+
+def has_corp_assets_scope(character: Character) -> bool:
+    return CORP_ASSETS_SCOPE in character.scopes.split()
 
 
 async def sync_all_characters(
@@ -78,21 +98,23 @@ async def _sync_one_character(
     # Calling the endpoint without the scope is a guaranteed 403, and 403s
     # burn ESI's error-limit budget.
     if not has_assets_scope(character):
-        await _record_sync(db, character.character_id, "no-scope")
+        await _record_sync(db, OWNER_CHARACTER, character.character_id, "no-scope")
         return SyncOutcome(character.character_id, character.name, "no-scope")
 
     try:
         rows = await esi.get_paginated(character, "/characters/{character_id}/assets/")
     except ReauthorizationRequired:
-        await _record_sync(db, character.character_id, "reauth")
+        await _record_sync(db, OWNER_CHARACTER, character.character_id, "reauth")
         return SyncOutcome(character.character_id, character.name, "reauth")
     except ESIError as exc:
-        await _record_sync(db, character.character_id, "error", str(exc))
+        await _record_sync(
+            db, OWNER_CHARACTER, character.character_id, "error", str(exc)
+        )
         return SyncOutcome(
             character.character_id, character.name, "error", detail=str(exc)
         )
 
-    assets = _build_assets(character.character_id, rows)
+    assets = _build_assets(OWNER_CHARACTER, character.character_id, rows)
     # Snapshot replace: strictly after all page fetches (see module docstring).
     await db.execute(
         delete(Asset).where(
@@ -101,7 +123,9 @@ async def _sync_one_character(
     )
     if assets:
         await db.execute(insert(Asset), assets)
-    await _record_sync(db, character.character_id, "ok", item_count=len(rows))
+    await _record_sync(
+        db, OWNER_CHARACTER, character.character_id, "ok", item_count=len(rows)
+    )
 
     # Universe resolution is best-effort and outside the snapshot write:
     # a failing name lookup must not lose a good snapshot.
@@ -112,7 +136,9 @@ async def _sync_one_character(
     )
 
 
-def _build_assets(character_id: int, rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _build_assets(
+    owner_type: str, owner_id: int, rows: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
     """Dedupe by item_id (page boundaries can shift mid-sync) and resolve
     each row's top-level location (container chains collapse to their
     station/structure/system parent)."""
@@ -125,8 +151,8 @@ def _build_assets(character_id: int, rows: list[dict[str, Any]]) -> list[dict[st
     for item_id, row in by_item.items():
         assets.append(
             {
-                "owner_type": OWNER_CHARACTER,
-                "owner_id": character_id,
+                "owner_type": owner_type,
+                "owner_id": owner_id,
                 "item_id": item_id,
                 "type_id": row["type_id"],
                 "quantity": row["quantity"],
@@ -184,6 +210,16 @@ async def _resolve_universe(
         for row in rows
         if row["location_type"] != "item"
     }
+    # Office contents (and the marker) hang off container ids reported as
+    # "item" that are really the office's structure — resolving them names
+    # the office panels and places them in their system (needs a character
+    # with the structures scope and docking access; otherwise parks).
+    wanted |= {
+        (row["parent_location_id"], "structure")
+        for row in assets
+        if row["owner_type"] == OWNER_CORPORATION
+        and row["location_flag"] in OFFICE_FLAGS
+    }
     if not type_ids and not wanted:
         return
     all_characters = (
@@ -213,20 +249,110 @@ async def _resolve_universe(
 
 async def _record_sync(
     db: AsyncSession,
+    owner_type: str,
     owner_id: int,
     status: str,
     detail: str | None = None,
     *,
     item_count: int = 0,
 ) -> None:
-    sync = await db.get(AssetSync, (OWNER_CHARACTER, owner_id))
+    sync = await db.get(AssetSync, (owner_type, owner_id))
     if sync is None:
-        sync = AssetSync(owner_type=OWNER_CHARACTER, owner_id=owner_id)
+        sync = AssetSync(owner_type=owner_type, owner_id=owner_id)
         db.add(sync)
     sync.status = status
     sync.detail = detail
     sync.synced_at = utc_now()
     await db.commit()
+
+
+async def sync_corporation(
+    db: AsyncSession,
+    esi: ESIClient,
+    *,
+    resolver: UniverseResolver,
+) -> SyncOutcome | None:
+    """Sync the main character's corporation assets. None when no main is
+    selected (nothing to target); every gate failure records an
+    explanatory sync row instead of burning the error budget on a
+    guaranteed 403."""
+    async with _sync_lock:
+        return await _sync_corporation_locked(db, esi, resolver)
+
+
+async def _sync_corporation_locked(
+    db: AsyncSession,
+    esi: ESIClient,
+    resolver: UniverseResolver,
+) -> SyncOutcome | None:
+    main = (
+        await db.execute(select(Character).where(Character.is_main))
+    ).scalar_one_or_none()
+    if main is None:
+        return None
+
+    corp_id = main.corporation_id
+    if corp_id is None:
+        # Roster renders and the corp overview persist membership; resolve
+        # here too so the background tick converges without a page visit.
+        try:
+            corp_id = (
+                await esi.get_public(f"/characters/{main.character_id}/")
+            ).get("corporation_id")
+        except ESIError:
+            corp_id = None
+        if corp_id is None:
+            return None  # nothing to key a sync row against; retry next pass
+        main.corporation_id = corp_id
+        await db.commit()
+    label = f"corporation {corp_id}"
+
+    def record(status: str, detail: str | None = None) -> SyncOutcome:
+        return SyncOutcome(corp_id, label, status, detail=detail)
+
+    # Role gate first: the main's tokens stand in for the corporation.
+    access = await check_corp_access(esi, main)
+    if access.status == "insufficient":
+        await _record_sync(
+            db, OWNER_CORPORATION, corp_id, "no-roles",
+            detail="Main holds no Director/CEO role",
+        )
+        return record("no-roles", "Main holds no Director/CEO role")
+    if access.status != "ok":
+        detail = f"Role gate: {access.status}"
+        await _record_sync(db, OWNER_CORPORATION, corp_id, access.status, detail)
+        return record(access.status, detail)
+    if not has_corp_assets_scope(main):
+        detail = f"Main grant lacks {CORP_ASSETS_SCOPE}"
+        await _record_sync(db, OWNER_CORPORATION, corp_id, "no-scope", detail)
+        return record("no-scope", detail)
+
+    try:
+        rows = await esi.get_paginated(main, f"/corporations/{corp_id}/assets/")
+    except ReauthorizationRequired:
+        await _record_sync(db, OWNER_CORPORATION, corp_id, "reauth")
+        return record("reauth")
+    except ESIError as exc:
+        await _record_sync(db, OWNER_CORPORATION, corp_id, "error", str(exc))
+        return record("error", detail=str(exc))
+
+    assets = _build_assets(OWNER_CORPORATION, corp_id, rows)
+    # Snapshot replace: strictly after all page fetches (see module docstring).
+    await db.execute(
+        delete(Asset).where(
+            Asset.owner_type == OWNER_CORPORATION, Asset.owner_id == corp_id
+        )
+    )
+    if assets:
+        await db.execute(insert(Asset), assets)
+    await _record_sync(
+        db, OWNER_CORPORATION, corp_id, "ok", item_count=len(rows)
+    )
+
+    # Universe resolution is best-effort and outside the snapshot write.
+    await _resolve_universe(db, esi, resolver, main, rows, assets)
+
+    return SyncOutcome(corp_id, label, "synced", item_count=len(rows))
 
 
 async def sync_tick(
@@ -248,6 +374,11 @@ async def sync_tick(
             esi = ESIClient(http, settings, db)
             resolver = UniverseResolver(db, esi, settings=settings)
             outcomes = await sync_all_characters(db, esi, characters, resolver=resolver)
+            # The corporation sync shares the resolver and the tick's
+            # never-raise contract; the gate inside records failures.
+            corp_outcome = await sync_corporation(db, esi, resolver=resolver)
+            if corp_outcome is not None:
+                outcomes.append(corp_outcome)
             for outcome in outcomes:
                 if outcome.status == "error":
                     logger.warning(
