@@ -6,6 +6,7 @@ to the background sync (see app/esi/assets.py). Only POST /assets/sync
 touches ESI, and it does so through the same sync entry point.
 """
 
+from datetime import timedelta
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Request
@@ -17,6 +18,7 @@ from ..assets import (
     CategoryOption,
     RegionOption,
     carry_query,
+    character_filter_groups,
     character_sync_status,
     humanize_sync_age,
     parse_category,
@@ -56,7 +58,20 @@ async def assets_page(request: Request, db: DbDep):
         return RedirectResponse("/", status_code=302)
 
     characters = await _load_characters(db)
-    selected = parse_chars(request.query_params.getlist("chars"), characters)
+    # The character selection lives in the URL when present, and is
+    # remembered in the session otherwise — leaving and returning to the
+    # page keeps the chosen characters. "All" is stored as its sentinel so
+    # it survives too.
+    raw_chars = request.query_params.getlist("chars")
+    if not raw_chars:
+        stored = request.session.get("assets_chars")
+        if stored is not None:
+            raw_chars = [stored]
+    selected = parse_chars(raw_chars, characters)
+    if raw_chars:
+        request.session["assets_chars"] = (
+            "all" if selected is None else ",".join(str(c) for c in selected)
+        )
     selected_category = parse_category(request.query_params.get("category"))
     view = await system_groups(db, owner_ids=selected, category=selected_category)
 
@@ -89,18 +104,27 @@ async def assets_page(request: Request, db: DbDep):
         view.categories.append(CategoryOption(bucket.key, bucket.label))
 
     sync_statuses, last_sync = await character_sync_status(db, characters)
+    # "Fresh" means synced within two sync intervals; older reads as stale.
+    fresh_after = timedelta(
+        minutes=2 * request.app.state.settings.assets_sync_interval_minutes
+    )
     return templates.TemplateResponse(
         request,
         "assets.html",
         {
             "authenticated": True,
             "active": "assets",
-            "characters": characters,
             "selected": selected,
             "view": view,
             "selected_region": selected_region,
             "selected_category": selected_category,
-            "sync_statuses": sync_statuses,
+            "character_groups": await character_filter_groups(
+                db,
+                characters,
+                sync_statuses,
+                selected=selected,
+                fresh_after=fresh_after,
+            ),
             "last_sync_text": humanize_sync_age(last_sync),
             "page_size": request.app.state.settings.assets_page_size,
         },
