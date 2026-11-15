@@ -333,3 +333,27 @@ async def test_dev_auto_reload_gated_by_flag(app, client):
         assert first.status_code == 200
         assert first.text == second.text  # stable until files change
         assert "dev-reload.js" in (await dev_client.get("/")).text
+
+
+@respx.mock
+async def test_roster_shows_paused_queue(client, db_session):
+    """A queue holding skills that aren't training (an Omega-lapsed
+    character: entries without finish dates) reads as Paused, not
+    unknown; an empty queue still reads as an em-dash."""
+    respx.post(SSO_TOKEN_URL).respond(json=token_response())
+    respx.get(WALLET_URL).respond(json=10.0)
+    mock_roster_metadata()
+    queue = respx.get("https://esi.test/latest/characters/1234/skillqueue/")
+    queue.respond(
+        json=[{"skill_id": 17940, "queue_position": 0, "finished_level": 5}]
+    )
+    state = await _start_login(client)
+    await client.get("/auth/eve/callback", params={"code": "abc", "state": state})
+
+    response = await client.get("/characters")
+    assert "Training: Paused" in response.text
+
+    queue.respond(json=[])
+    response = await client.get("/characters")
+    assert "Training: —" in response.text
+    assert "Training: Paused" not in response.text
