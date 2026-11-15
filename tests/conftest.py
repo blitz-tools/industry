@@ -10,11 +10,13 @@ os.environ.setdefault("ESI_CLIENT_SECRET", "conftest-placeholder")
 os.environ.setdefault("SECRET_KEY", "conftest-placeholder-secret")
 
 import time
+from datetime import UTC, datetime, timedelta
 
 import httpx
 import jwt
 import pytest
 import pytest_asyncio
+import respx
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
@@ -49,6 +51,8 @@ TEST_SETTINGS = Settings(
         "publicData",
         "esi-wallet.read_character_wallet.v1",
         "esi-assets.read_assets.v1",
+        "esi-location.read_location.v1",
+        "esi-skills.read_skillqueue.v1",
     ],
     base_url="http://testserver",
     secret_key="test-secret-key",
@@ -73,6 +77,8 @@ def make_access_token(
             "publicData",
             "esi-wallet.read_character_wallet.v1",
             "esi-assets.read_assets.v1",
+            "esi-location.read_location.v1",
+            "esi-skills.read_skillqueue.v1",
         ]
     now = int(time.time())
     payload = {
@@ -102,6 +108,47 @@ def token_response(
         "expires_in": expires_in,
         "token_type": "Bearer",
     }
+
+
+def mock_roster_metadata() -> dict:
+    """respx routes for the roster page's per-character metadata fetches
+    (corporation, alliance, location, training) for the default test
+    character (1234). Returns the authed routes so tests can count calls."""
+    now = datetime.now(UTC)
+    respx.get("https://esi.test/latest/characters/1234/").respond(
+        json={"corporation_id": 98000001, "alliance_id": 99000001}
+    )
+    respx.get("https://esi.test/latest/corporations/98000001/").respond(
+        json={"name": "Federal Freight"}
+    )
+    respx.get("https://esi.test/latest/alliances/99000001/").respond(
+        json={"name": "Eve University"}
+    )
+    routes = {
+        "location": respx.get(
+            "https://esi.test/latest/characters/1234/location/"
+        ).respond(json={"solar_system_id": 30000142, "station_id": 60003743})
+    }
+    respx.get("https://esi.test/latest/universe/systems/30000142/").respond(
+        json={"name": "Jita"}
+    )
+    routes["skillqueue"] = respx.get(
+        "https://esi.test/latest/characters/1234/skillqueue/"
+    ).respond(
+        json=[
+            {
+                "skill_id": 3327,
+                "queue_position": 0,
+                "start_date": (now - timedelta(days=1)).isoformat(),
+                "finish_date": (now + timedelta(days=2)).isoformat(),
+                "finished_level": 5,
+            }
+        ]
+    )
+    respx.get("https://esi.test/latest/universe/types/3327/").respond(
+        json={"name": "Hull Upgrades"}
+    )
+    return routes
 
 
 @pytest_asyncio.fixture

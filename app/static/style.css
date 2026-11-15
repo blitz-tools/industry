@@ -18,6 +18,7 @@
 
   --sidebar-width: 220px;
   --radius: 6px;
+  --panel-issue: #2c2a1f;
 }
 
 * {
@@ -174,6 +175,11 @@ a:hover {
   max-width: 72rem;
 }
 
+/* Pages whose content should use the whole viewport (roster cards). */
+.content.wide {
+  max-width: none;
+}
+
 .content h1 {
   margin: 0 0 1.5rem;
   font-size: 1.5rem;
@@ -246,10 +252,10 @@ a:hover {
 
 .grid {
   display: grid;
+  /* Columns grow to fill the available width; more appear as the browser
+     widens, cards never shrink below the portrait-friendly minimum. */
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: 1.25rem;
-  /* caps the auto-fill grid at four 230px columns plus gaps */
-  max-width: 61rem;
 }
 
 .card {
@@ -293,32 +299,83 @@ a:hover {
   margin: 0;
 }
 
-.card form {
+/* Roster: add-character button under the header, so it stays reachable
+   when the card grid grows long. */
+.roster-actions {
+  margin: 0 0 1.25rem;
+}
+
+/* Tight metadata block (corporation + labeled lines). */
+.meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.card .corporation-name {
+  margin: 0;
+  color: var(--cyan);
+  font-size: 0.9rem;
+}
+
+.card .meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* Cards with issues (notification box present) get a mild warm tint so
+   they stand out from healthy cards at a glance. */
+.card.has-issue {
+  background: var(--panel-issue);
+}
+
+/* Notification box: bounded messages for anything wrong with a
+   character's grant. The whole box is hoverable (cursor hints at it) and
+   carries the combined tooltip. */
+.notify {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--faint);
+  border-radius: 4px;
+  cursor: help;
+}
+
+.notify:hover {
+  border-color: var(--yellow);
+}
+
+.notify p {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.notify .info {
+  color: var(--yellow);
+}
+
+.notify .error {
+  color: var(--pink);
+}
+
+/* Bottom-weighted block: wallet, notification box, and actions pin to
+   the card bottom, so cards align regardless of how many metadata lines
+   (e.g. an Alliance row) sit above. */
+.card-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* matches .card-body's rhythm */
   margin-top: auto;
 }
 
-.add-tile {
+.card-actions {
   display: flex;
-  flex-direction: column;
+  gap: 0.75rem;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border: 2px dashed var(--faint);
-  border-radius: var(--radius);
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
-.add-tile:hover {
-  border-color: var(--green);
-  color: var(--green);
-  text-decoration: none;
-}
-
-.add-tile .plus {
-  font-size: 2rem;
-  font-weight: 300;
-  line-height: 1;
+  padding: 0.4rem 0 0.15rem;
 }
 
 /* --- Buttons ------------------------------------------------------------ */

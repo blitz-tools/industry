@@ -24,3 +24,4 @@ def type_icon_url(type_id: int, size: int = 32, kind: str = "icon") -> str:
 # Image render URLs are usable directly from templates.
 templates.env.globals["portrait_url"] = portrait_url
 templates.env.globals["type_icon_url"] = type_icon_url
+
