@@ -230,8 +230,17 @@ async def test_assets_page_groups_by_system_and_structure(client, db_session):
     assert "The Forge" in text and "Domain" in text
     # Collapsed by default: no asset table rendered on the page itself.
     assert "asset-table" not in text
-    # Character Assets is the active nav item.
+    # Character Assets is the active nav item, inside the Character group;
+    # that group renders expanded, Corporation collapsed.
     assert 'href="/assets" class="active"' in text
+    assert 'id="nav-character-group"' in text
+    assert ">Roster</a>" in text
+    assert re.search(
+        r'id="nav-character-group">\s*<button[^>]*aria-expanded="true"', text
+    )
+    assert re.search(
+        r'id="nav-corp-group">\s*<button[^>]*aria-expanded="false"', text
+    )
 
 
 @respx.mock
@@ -739,6 +748,10 @@ async def test_corp_stub_pages_and_nav_group(client):
     # The nav group is expanded and the right sub-item is active.
     assert 'aria-expanded="true"' in assets.text
     assert 'href="/corp/assets" class="active"' in assets.text
+    # The character group is collapsed on corporation pages.
+    assert re.search(
+        r'id="nav-character-group">\s*<button[^>]*aria-expanded="false"', assets.text
+    )
 
     jobs = await client.get("/corp/jobs")
     assert 'aria-expanded="true"' in jobs.text

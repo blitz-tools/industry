@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     # Restricted structures (ESI 403) are not retried for this many days —
     # every 403 burns ESI's error-limit budget.
     structure_retry_days: int = 7
+    # Dev-only (set by compose.dev.yml): open browsers auto-refresh when
+    # site files change. Never enable in production.
+    dev_auto_reload: bool = False
 
     @field_validator("esi_scopes", mode="before")
     @classmethod

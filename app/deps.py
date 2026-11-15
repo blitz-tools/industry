@@ -30,15 +30,22 @@ async def get_db(
             raise
 
 
-def get_esi_client(
-    request: Request, db: Annotated[AsyncSession, Depends(get_db)]
-) -> ESIClient:
+def make_esi_client(request: Request, db: AsyncSession) -> ESIClient:
+    """Build an ESIClient bound to a specific DB session. Callers running
+    concurrent ESI work need one client (and session) per task — a single
+    AsyncSession is not safe to share across tasks."""
     settings = request.app.state.settings
     # Tests may inject a FakeClock-backed clock/limiter via app.state; None
     # falls through to the real defaults.
     clock = getattr(request.app.state, "esi_clock", None)
     limiter = getattr(request.app.state, "esi_limiter", None)
     return ESIClient(request.app.state.http, settings, db, clock=clock, limiter=limiter)
+
+
+def get_esi_client(
+    request: Request, db: Annotated[AsyncSession, Depends(get_db)]
+) -> ESIClient:
+    return make_esi_client(request, db)
 
 
 def is_authenticated(request: Request) -> bool:

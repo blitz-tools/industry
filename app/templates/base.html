@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}industry{% endblock %}</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css?v={{ static_version }}">
 </head>
 <body>
 {% if authenticated %}
@@ -19,8 +19,17 @@
     <a class="brand" href="/">industry</a>
     <nav aria-label="Sections">
       <a href="/dashboard"{% if active == 'dashboard' %} class="active" aria-current="page"{% endif %}>Dashboard</a>
-      <a href="/characters"{% if active == 'characters' %} class="active" aria-current="page"{% endif %}>Characters</a>
-      <a href="/assets"{% if active == 'assets' %} class="active" aria-current="page"{% endif %}>Assets</a>
+      {% set char_active = active is defined and active in ('characters', 'assets') %}
+      <div class="nav-group" id="nav-character-group">
+        <button class="nav-group-toggle" type="button" aria-controls="nav-character"
+                aria-expanded="{{ 'true' if char_active else 'false' }}">
+          Character
+        </button>
+        <div class="nav-group-items" id="nav-character"{% if not char_active %} hidden{% endif %}>
+          <a href="/characters"{% if active == 'characters' %} class="active" aria-current="page"{% endif %}>Roster</a>
+          <a href="/assets"{% if active == 'assets' %} class="active" aria-current="page"{% endif %}>Assets</a>
+        </div>
+      </div>
       {% set corp_active = active is defined and active.startswith('corp') %}
       <div class="nav-group" id="nav-corp-group">
         <button class="nav-group-toggle" type="button" aria-controls="nav-corp"
@@ -40,9 +49,12 @@
     </footer>
   </aside>
 {% endif %}
-  <main class="{{ 'content' if authenticated else 'bare' }}">
+  <main class="{{ 'content' if authenticated else 'bare' }}{% block main_class %}{% endblock %}">
     {% block content %}{% endblock %}
   </main>
-  <script src="/static/app.js"></script>
+  <script src="/static/app.js?v={{ static_version }}"></script>
+  {% if request.app.state.settings.dev_auto_reload %}
+  <script src="/static/dev-reload.js?v={{ static_version }}"></script>
+  {% endif %}
 </body>
 </html>

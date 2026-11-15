@@ -6,7 +6,7 @@ import respx
 
 from app.db import utc_now
 from app.models import Character
-from tests.conftest import token_response
+from tests.conftest import mock_roster_metadata, token_response
 
 SSO_TOKEN_URL = "https://sso.test/v2/oauth/token"
 WALLET_URL = "https://esi.test/latest/characters/1234/wallet/"
@@ -81,12 +81,16 @@ async def test_invalid_grant_renders_reauth_not_failure(client, db_session):
     await _seed_expired_character(db_session)
 
     respx.post(SSO_TOKEN_URL).respond(status_code=400, json={"error": "invalid_grant"})
+    mock_roster_metadata()  # corporation/alliance are public and still render
 
-    # The re-auth link lives on the Characters grid; the Dashboard instead
-    # shows an "unavailable" footnote. Both must render, not fail.
+    # The re-auth notice and button live on the roster grid; the Dashboard
+    # instead shows an "unavailable" footnote. Both must render, not fail.
     characters = await client.get("/characters")
     assert characters.status_code == 200
-    assert "Re-authorize" in characters.text
+    assert "Needs re-authorization" in characters.text
+    assert 'class="card has-issue"' in characters.text  # error-severity issue
+    assert ">Re-Auth</a>" in characters.text
+    assert "Federal Freight" in characters.text
     dashboard = await client.get("/dashboard")
     assert dashboard.status_code == 200
     assert "unavailable" in dashboard.text
