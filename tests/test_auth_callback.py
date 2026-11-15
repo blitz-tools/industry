@@ -9,7 +9,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import select
 
 from app.main import create_app
-from app.models import Character
+from app.models import Character, UniverseCorporation
 from tests.conftest import (
     TEST_SETTINGS,
     make_access_token,
@@ -74,6 +74,13 @@ async def test_callback_happy_path(client, db_session):
     assert "Scopes out of sync" not in characters.text
     assert 'class="notify"' not in characters.text
     assert "has-issue" not in characters.text
+    # The roster render persists corporation membership + name, so the
+    # assets page can group by corporation without touching ESI.
+    db_session.expire_all()
+    character = await db_session.get(Character, 1234)
+    assert character.corporation_id == 98000001
+    corp = await db_session.get(UniverseCorporation, 98000001)
+    assert corp is not None and corp.name == "Federal Freight"
 
 
 @respx.mock
