@@ -1,6 +1,6 @@
-"""Character and corporation asset sync: pull every page of ESI's assets
-endpoints into the assets table, resolve the universe IDs the snapshot
-references, and record a per-owner outcome.
+"""Character and corporation data sync: assets, blueprints, and industry
+jobs, pulled page-by-page from ESI into owner-keyed tables with the
+universe IDs each snapshot references resolved alongside.
 
 Page fetches go through the ETag cache (a fresh-window pass makes zero
 HTTP calls; an expired one revalidates with cheap 304s). The snapshot
@@ -18,6 +18,7 @@ import asyncio
 import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import delete, insert, select
@@ -25,7 +26,15 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ..config import Settings
 from ..db import utc_now
-from ..models import Asset, AssetSync, Character, UniverseType
+from ..models import (
+    Asset,
+    AssetSync,
+    Blueprint,
+    Character,
+    DataSync,
+    IndustryJob,
+    UniverseType,
+)
 from .client import ESIClient, ESIError, ReauthorizationRequired
 from .roles import check_corp_access
 from .universe import UniverseResolver
@@ -34,6 +43,12 @@ logger = logging.getLogger(__name__)
 
 ASSETS_SCOPE = "esi-assets.read_assets.v1"
 CORP_ASSETS_SCOPE = "esi-assets.read_corporation_assets.v1"
+CORP_BLUEPRINTS_SCOPE = "esi-corporations.read_blueprints.v1"
+CORP_JOBS_SCOPE = "esi-industry.read_corporation_jobs.v1"
+
+# data_syncs kinds for the corporation data this module syncs.
+KIND_CORP_BLUEPRINTS = "corp-blueprints"
+KIND_CORP_JOBS = "corp-jobs"
 
 # ESI's marker item for a rented office (corporation assets only): each
 # office shows up as a type-27 "Office" row (flag "OfficeFolder" for
@@ -271,11 +286,11 @@ async def sync_corporation(
     esi: ESIClient,
     *,
     resolver: UniverseResolver,
-) -> SyncOutcome | None:
-    """Sync the main character's corporation assets. None when no main is
-    selected (nothing to target); every gate failure records an
-    explanatory sync row instead of burning the error budget on a
-    guaranteed 403."""
+) -> list[SyncOutcome] | None:
+    """Sync the main character's corporation data: assets, blueprints,
+    and industry jobs. None when no main is selected (nothing to target).
+    The role gate runs once; each kind records its own outcome, so a
+    missing kind-specific scope fails only that kind."""
     async with _sync_lock:
         return await _sync_corporation_locked(db, esi, resolver)
 
@@ -284,7 +299,7 @@ async def _sync_corporation_locked(
     db: AsyncSession,
     esi: ESIClient,
     resolver: UniverseResolver,
-) -> SyncOutcome | None:
+) -> list[SyncOutcome] | None:
     main = (
         await db.execute(select(Character).where(Character.is_main))
     ).scalar_one_or_none()
@@ -307,34 +322,51 @@ async def _sync_corporation_locked(
         await db.commit()
     label = f"corporation {corp_id}"
 
-    def record(status: str, detail: str | None = None) -> SyncOutcome:
-        return SyncOutcome(corp_id, label, status, detail=detail)
-
     # Role gate first: the main's tokens stand in for the corporation.
     access = await check_corp_access(esi, main)
-    if access.status == "insufficient":
-        await _record_sync(
-            db, OWNER_CORPORATION, corp_id, "no-roles",
-            detail="Main holds no Director/CEO role",
-        )
-        return record("no-roles", "Main holds no Director/CEO role")
     if access.status != "ok":
-        detail = f"Role gate: {access.status}"
-        await _record_sync(db, OWNER_CORPORATION, corp_id, access.status, detail)
-        return record(access.status, detail)
+        if access.status == "insufficient":
+            status, detail = "no-roles", "Main holds no Director/CEO role"
+        else:
+            status, detail = access.status, f"Role gate: {access.status}"
+        await _record_sync(db, OWNER_CORPORATION, corp_id, status, detail)
+        await _record_data_sync(
+            db, KIND_CORP_BLUEPRINTS, OWNER_CORPORATION, corp_id, status, detail
+        )
+        await _record_data_sync(
+            db, KIND_CORP_JOBS, OWNER_CORPORATION, corp_id, status, detail
+        )
+        return [SyncOutcome(corp_id, label, status, detail=detail)]
+
+    return [
+        await _sync_corp_assets(db, esi, resolver, main, corp_id, label),
+        await _sync_corp_blueprints(db, esi, main, corp_id, label),
+        await _sync_corp_jobs(db, esi, main, corp_id, label),
+    ]
+
+
+async def _sync_corp_assets(
+    db: AsyncSession,
+    esi: ESIClient,
+    resolver: UniverseResolver,
+    main: Character,
+    corp_id: int,
+    label: str,
+) -> SyncOutcome:
+    """Corporation asset snapshot (role gate already passed)."""
     if not has_corp_assets_scope(main):
         detail = f"Main grant lacks {CORP_ASSETS_SCOPE}"
         await _record_sync(db, OWNER_CORPORATION, corp_id, "no-scope", detail)
-        return record("no-scope", detail)
+        return SyncOutcome(corp_id, label, "no-scope", detail=detail)
 
     try:
         rows = await esi.get_paginated(main, f"/corporations/{corp_id}/assets/")
     except ReauthorizationRequired:
         await _record_sync(db, OWNER_CORPORATION, corp_id, "reauth")
-        return record("reauth")
+        return SyncOutcome(corp_id, label, "reauth")
     except ESIError as exc:
         await _record_sync(db, OWNER_CORPORATION, corp_id, "error", str(exc))
-        return record("error", detail=str(exc))
+        return SyncOutcome(corp_id, label, "error", detail=str(exc))
 
     assets = _build_assets(OWNER_CORPORATION, corp_id, rows)
     # Snapshot replace: strictly after all page fetches (see module docstring).
@@ -345,14 +377,166 @@ async def _sync_corporation_locked(
     )
     if assets:
         await db.execute(insert(Asset), assets)
-    await _record_sync(
-        db, OWNER_CORPORATION, corp_id, "ok", item_count=len(rows)
-    )
+    await _record_sync(db, OWNER_CORPORATION, corp_id, "ok", item_count=len(rows))
 
     # Universe resolution is best-effort and outside the snapshot write.
     await _resolve_universe(db, esi, resolver, main, rows, assets)
 
     return SyncOutcome(corp_id, label, "synced", item_count=len(rows))
+
+
+async def _sync_corp_blueprints(
+    db: AsyncSession,
+    esi: ESIClient,
+    main: Character,
+    corp_id: int,
+    label: str,
+) -> SyncOutcome:
+    """Corporation blueprint snapshot (role gate already passed)."""
+
+    def record(status: str, detail: str | None = None) -> SyncOutcome:
+        return SyncOutcome(corp_id, label, status, detail=detail)
+
+    if CORP_BLUEPRINTS_SCOPE not in main.scopes.split():
+        detail = f"Main grant lacks {CORP_BLUEPRINTS_SCOPE}"
+        await _record_data_sync(
+            db, KIND_CORP_BLUEPRINTS, OWNER_CORPORATION, corp_id, "no-scope", detail
+        )
+        return record("no-scope", detail)
+    try:
+        rows = await esi.get_paginated(main, f"/corporations/{corp_id}/blueprints/")
+    except ReauthorizationRequired:
+        await _record_data_sync(
+            db, KIND_CORP_BLUEPRINTS, OWNER_CORPORATION, corp_id, "reauth"
+        )
+        return record("reauth")
+    except ESIError as exc:
+        await _record_data_sync(
+            db, KIND_CORP_BLUEPRINTS, OWNER_CORPORATION, corp_id, "error", str(exc)
+        )
+        return record("error", detail=str(exc))
+
+    values = [
+        {
+            "owner_type": OWNER_CORPORATION,
+            "owner_id": corp_id,
+            "item_id": row["item_id"],
+            "type_id": row["type_id"],
+            "location_id": row["location_id"],
+            "location_flag": row.get("location_flag", ""),
+            "quantity": row.get("quantity", 1),
+            "runs": row.get("runs"),
+            "material_efficiency": row.get("material_efficiency", 0),
+            "time_efficiency": row.get("time_efficiency", 0),
+        }
+        for row in rows
+    ]
+    await db.execute(
+        delete(Blueprint).where(
+            Blueprint.owner_type == OWNER_CORPORATION, Blueprint.owner_id == corp_id
+        )
+    )
+    if values:
+        await db.execute(insert(Blueprint), values)
+    await _record_data_sync(db, KIND_CORP_BLUEPRINTS, OWNER_CORPORATION, corp_id, "ok")
+    return SyncOutcome(corp_id, label, "synced", item_count=len(rows))
+
+
+async def _sync_corp_jobs(
+    db: AsyncSession,
+    esi: ESIClient,
+    main: Character,
+    corp_id: int,
+    label: str,
+) -> SyncOutcome:
+    """Corporation industry job snapshot, completed jobs included — the
+    planner will correlate history, not just live slots (role gate
+    already passed)."""
+
+    def record(status: str, detail: str | None = None) -> SyncOutcome:
+        return SyncOutcome(corp_id, label, status, detail=detail)
+
+    if CORP_JOBS_SCOPE not in main.scopes.split():
+        detail = f"Main grant lacks {CORP_JOBS_SCOPE}"
+        await _record_data_sync(
+            db, KIND_CORP_JOBS, OWNER_CORPORATION, corp_id, "no-scope", detail
+        )
+        return record("no-scope", detail)
+    try:
+        rows = await esi.get_paginated(
+            main,
+            f"/corporations/{corp_id}/industry/jobs/",
+            params={"include_completed": "true"},
+        )
+    except ReauthorizationRequired:
+        await _record_data_sync(
+            db, KIND_CORP_JOBS, OWNER_CORPORATION, corp_id, "reauth"
+        )
+        return record("reauth")
+    except ESIError as exc:
+        await _record_data_sync(
+            db, KIND_CORP_JOBS, OWNER_CORPORATION, corp_id, "error", str(exc)
+        )
+        return record("error", detail=str(exc))
+
+    values = [
+        {
+            "owner_type": OWNER_CORPORATION,
+            "owner_id": corp_id,
+            "job_id": row["job_id"],
+            "installer_id": row.get("installer_id", 0),
+            "activity_id": row.get("activity_id", 0),
+            "blueprint_type_id": row.get("blueprint_type_id", 0),
+            "runs": row.get("runs", 0),
+            "successful_runs": row.get("successful_runs"),
+            "status": row.get("status", ""),
+            "start_date": _parse_esi_datetime(row.get("start_date")),
+            "end_date": _parse_esi_datetime(row.get("end_date")),
+            "completed_date": _parse_esi_datetime(row.get("completed_date")),
+            "station_id": row.get("station_id"),
+        }
+        for row in rows
+    ]
+    await db.execute(
+        delete(IndustryJob).where(
+            IndustryJob.owner_type == OWNER_CORPORATION, IndustryJob.owner_id == corp_id
+        )
+    )
+    if values:
+        await db.execute(insert(IndustryJob), values)
+    await _record_data_sync(db, KIND_CORP_JOBS, OWNER_CORPORATION, corp_id, "ok")
+    return SyncOutcome(corp_id, label, "synced", item_count=len(rows))
+
+
+def _parse_esi_datetime(value: str | None):
+    """ISO-8601 (ESI sends UTC with a Z suffix) to naive UTC, or None."""
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is not None:
+        parsed = parsed.astimezone(UTC).replace(tzinfo=None)
+    return parsed
+
+
+async def _record_data_sync(
+    db: AsyncSession,
+    kind: str,
+    owner_type: str,
+    owner_id: int,
+    status: str,
+    detail: str | None = None,
+) -> None:
+    sync = await db.get(DataSync, (kind, owner_type, owner_id))
+    if sync is None:
+        sync = DataSync(kind=kind, owner_type=owner_type, owner_id=owner_id)
+        db.add(sync)
+    sync.status = status
+    sync.detail = detail
+    sync.synced_at = utc_now()
+    await db.commit()
 
 
 async def sync_tick(
@@ -376,9 +560,9 @@ async def sync_tick(
             outcomes = await sync_all_characters(db, esi, characters, resolver=resolver)
             # The corporation sync shares the resolver and the tick's
             # never-raise contract; the gate inside records failures.
-            corp_outcome = await sync_corporation(db, esi, resolver=resolver)
-            if corp_outcome is not None:
-                outcomes.append(corp_outcome)
+            corp_outcomes = await sync_corporation(db, esi, resolver=resolver)
+            if corp_outcomes is not None:
+                outcomes.extend(corp_outcomes)
             for outcome in outcomes:
                 if outcome.status == "error":
                     logger.warning(

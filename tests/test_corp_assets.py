@@ -210,13 +210,17 @@ async def test_sync_corporation_assets(app, db_session):
     _mock_universe()
 
     esi = _make_esi(app, db_session)
-    outcome = await sync_corporation(
+    outcomes = await sync_corporation(
         db_session, esi, resolver=_make_resolver(db_session, esi)
     )
 
-    assert outcome is not None
-    assert outcome.status == "synced"
-    assert outcome.item_count == 3
+    # The grant holds the roles + corp-assets scopes only, so the
+    # blueprints and jobs kinds trip their own scope gates (their
+    # endpoints are unmocked — calling one would fail the test).
+    assert [outcome.status for outcome in outcomes] == [
+        "synced", "no-scope", "no-scope",
+    ]
+    assert outcomes[0].item_count == 3
     assert corp_route.call_count == 2  # both pages walked
     rows = {
         row.item_id: row
@@ -255,10 +259,10 @@ async def test_sync_corporation_assets(app, db_session):
 @respx.mock
 async def test_sync_corporation_no_main(app, db_session):
     esi = _make_esi(app, db_session)
-    outcome = await sync_corporation(
+    outcomes = await sync_corporation(
         db_session, esi, resolver=_make_resolver(db_session, esi)
     )
-    assert outcome is None
+    assert outcomes is None
 
 
 @respx.mock
@@ -270,11 +274,11 @@ async def test_sync_corporation_gate_no_roles_scope(app, db_session):
     corp_route = respx.get(CORP_ASSETS_URL).respond(json=[])
 
     esi = _make_esi(app, db_session)
-    outcome = await sync_corporation(
+    outcomes = await sync_corporation(
         db_session, esi, resolver=_make_resolver(db_session, esi)
     )
 
-    assert outcome.status == "no-scope"
+    assert [outcome.status for outcome in outcomes] == ["no-scope"]
     assert corp_route.call_count == 0
     sync = await db_session.get(AssetSync, (OWNER_CORPORATION, CORP_ID))
     assert sync.status == "no-scope"
@@ -287,11 +291,11 @@ async def test_sync_corporation_gate_insufficient_roles(app, db_session):
     corp_route = respx.get(CORP_ASSETS_URL).respond(json=[])
 
     esi = _make_esi(app, db_session)
-    outcome = await sync_corporation(
+    outcomes = await sync_corporation(
         db_session, esi, resolver=_make_resolver(db_session, esi)
     )
 
-    assert outcome.status == "no-roles"
+    assert [outcome.status for outcome in outcomes] == ["no-roles"]
     assert corp_route.call_count == 0
     sync = await db_session.get(AssetSync, (OWNER_CORPORATION, CORP_ID))
     assert sync.status == "no-roles"
@@ -307,12 +311,14 @@ async def test_sync_corporation_missing_assets_scope(app, db_session):
     corp_route = respx.get(CORP_ASSETS_URL).respond(json=[])
 
     esi = _make_esi(app, db_session)
-    outcome = await sync_corporation(
+    outcomes = await sync_corporation(
         db_session, esi, resolver=_make_resolver(db_session, esi)
     )
 
-    assert outcome.status == "no-scope"
-    assert "read_corporation_assets" in outcome.detail
+    assert [outcome.status for outcome in outcomes] == [
+        "no-scope", "no-scope", "no-scope",
+    ]
+    assert "read_corporation_assets" in outcomes[0].detail
     assert corp_route.call_count == 0
 
 
@@ -323,11 +329,11 @@ async def test_sync_corporation_reauth(app, db_session):
     respx.post(SSO_TOKEN_URL).respond(json={"error": "invalid_grant"}, status_code=400)
 
     esi = _make_esi(app, db_session)
-    outcome = await sync_corporation(
+    outcomes = await sync_corporation(
         db_session, esi, resolver=_make_resolver(db_session, esi)
     )
 
-    assert outcome.status == "reauth"
+    assert [outcome.status for outcome in outcomes] == ["reauth"]
     sync = await db_session.get(AssetSync, (OWNER_CORPORATION, CORP_ID))
     assert sync.status == "reauth"
 
