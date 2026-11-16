@@ -152,6 +152,11 @@ async def test_sync_corp_blueprints_and_jobs(app, db_session):
         refresh_token="R", is_main=True, corporation_id=CORP_ID,
     )
     db_session.add(main)
+    # The blueprints' station, pre-resolved so the kind's location pass
+    # (no asset snapshot exists to hop) makes no station-endpoint call.
+    db_session.add(
+        UniverseLocation(location_id=STATION, kind="station", name=STATION_NAME)
+    )
     await db_session.commit()
     _mock_roles(["Director"])
     _mock_corp_endpoints()
@@ -391,6 +396,11 @@ async def test_corp_sync_button_shared_route(client, db_session):
     await _login_with_main(client, db_session)
     _mock_roles(["Director"])
     _mock_corp_endpoints()
+    # Pre-resolved station (see test_sync_corp_blueprints_and_jobs).
+    db_session.add(
+        UniverseLocation(location_id=STATION, kind="station", name=STATION_NAME)
+    )
+    await db_session.commit()
     # The assets endpoint is in the grant; leave it mocked-out-failure —
     # the shared route syncs all kinds, so give it an empty page set.
     respx.get("https://esi.test/latest/corporations/98000001/assets/").respond(

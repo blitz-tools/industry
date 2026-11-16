@@ -20,7 +20,7 @@ from ..esi.sso import (
     TokenResponse,
     decode_access_token,
 )
-from ..models import Asset, AssetSync, Character
+from ..models import Asset, AssetSync, Blueprint, Character, DataSync, IndustryJob, Skill
 from ..templates import templates
 
 router = APIRouter()
@@ -143,7 +143,11 @@ async def forget(character_id: int, request: Request, http: HttpDep, db: DbDep):
         except SSOError:
             pass  # best-effort; drop the row regardless
         await db.delete(character)
-        # Their asset snapshot and sync state go with the character.
+        # Their snapshots and sync state go with the character: assets
+        # (and its sync row) plus every owner-keyed data kind —
+        # blueprints, skills, industry jobs, and the per-kind data_syncs
+        # records. Anything left behind would orphan rows the character
+        # can never be re-synced to replace.
         await db.execute(
             delete(Asset).where(
                 Asset.owner_type == OWNER_CHARACTER, Asset.owner_id == character_id
@@ -153,6 +157,29 @@ async def forget(character_id: int, request: Request, http: HttpDep, db: DbDep):
             delete(AssetSync).where(
                 AssetSync.owner_type == OWNER_CHARACTER,
                 AssetSync.owner_id == character_id,
+            )
+        )
+        await db.execute(
+            delete(Blueprint).where(
+                Blueprint.owner_type == OWNER_CHARACTER,
+                Blueprint.owner_id == character_id,
+            )
+        )
+        await db.execute(
+            delete(Skill).where(
+                Skill.owner_type == OWNER_CHARACTER, Skill.owner_id == character_id
+            )
+        )
+        await db.execute(
+            delete(IndustryJob).where(
+                IndustryJob.owner_type == OWNER_CHARACTER,
+                IndustryJob.owner_id == character_id,
+            )
+        )
+        await db.execute(
+            delete(DataSync).where(
+                DataSync.owner_type == OWNER_CHARACTER,
+                DataSync.owner_id == character_id,
             )
         )
         await db.commit()

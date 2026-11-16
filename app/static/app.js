@@ -91,6 +91,13 @@ window.addEventListener("popstate", () => {
   }
 });
 
+// --- Filter forms that submit on change ---------------------------------------
+// Simple dropdown filters (character picker on the data pages): changing
+// the select navigates; <noscript> fallbacks carry an Apply button.
+document.querySelectorAll("form[data-autosubmit]").forEach((form) => {
+  form.addEventListener("change", () => form.submit());
+});
+
 // --- Assets page behaviors (re-bound after every swap) ------------------------
 window.initAssetsPage = () => {
   // Asset structure panels. The fragment route is page-specific (character

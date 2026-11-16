@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}industry — skills{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Skills</h1>
+  <form method="post" action="/character/sync" class="sync-form">
+    <input type="hidden" name="back" value="/skills">
+    {% if selected %}<input type="hidden" name="char" value="{{ selected.character_id }}">{% endif %}
+    <button type="submit">Sync now</button>
+    <span class="last-sync">{{ last_sync_text }}</span>
+  </form>
+</div>
+
+{% for note in sync_notes %}
+<div class="notify">
+  <p class="{{ note[0] }}">{{ note[1] }}</p>
+</div>
+{% endfor %}
+
+<div class="assets-toolbar">
+  <form class="char-filter" method="get" action="/skills" data-autosubmit>
+    <div class="filter-selects">
+      <select name="char" aria-label="Filter by character">
+        <option value="">Overview</option>
+        {% for character in characters %}
+        <option value="{{ character.character_id }}"{% if selected and selected.character_id == character.character_id %} selected{% endif %}>{{ character.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <noscript><button type="submit" class="button">Apply</button></noscript>
+  </form>
+</div>
+
+{% if not selected %}
+  {% if not summaries %}
+  <p class="stat-note">No characters registered — add one from the roster.</p>
+  {% else %}
+  <div class="grid">
+    {% for summary in summaries %}
+    <div class="card">
+      <img class="portrait" src="{{ portrait_url(summary.character.character_id, 256) }}" alt="{{ summary.character.name }} portrait" width="256" height="256">
+      <div class="card-body">
+        <h2>{{ summary.character.name }}</h2>
+        <div class="meta-list">
+          {% if summary.status == 'ok' %}
+          <p class="meta">{{ '{:,}'.format(summary.skill_count) }} skill{{ '' if summary.skill_count == 1 else 's' }}</p>
+          <p class="meta">{{ '{:,}'.format(summary.total_sp) }} skillpoints</p>
+          {% elif summary.status is none %}
+          <p class="meta">Skills not synced yet.</p>
+          {% else %}
+          {# A failed first sync has no snapshot — counts would read as a
+             confident "0 skills". The notice above carries the reason. #}
+          <p class="meta">Skills unavailable — the last sync didn't succeed.</p>
+          {% endif %}
+        </div>
+        <div class="card-footer">
+          <a class="button" href="/skills?char={{ summary.character.character_id }}">View skills</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% elif not rows %}
+  {% if last_sync_text == 'Data not synced yet' %}
+  <p class="stat-note">No skills synced yet — use Sync now or wait for the background sync.</p>
+  {% else %}
+  <p class="stat-note">{{ selected.name }} has no skills recorded.</p>
+  {% endif %}
+{% else %}
+<table class="asset-table corp-data-table">
+  <thead>
+    <tr>
+      <th>Skill</th>
+      <th class="num">Trained</th>
+      <th class="num">Active</th>
+      <th class="num">Skillpoints</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+    <tr>
+      <td class="type-name">{{ row.name }}</td>
+      <td class="num">{{ row.trained_roman }}</td>
+      <td class="num">{{ row.active_roman }}</td>
+      <td class="num">{{ '{:,}'.format(row.skillpoints) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<nav class="pagination" aria-label="Skill pages">
+  {% if pages > 1 %}
+  {% for p in range(1, pages + 1) %}
+  <a class="page{% if p == page %} current{% endif %}" href="/skills?char={{ selected.character_id }}&page={{ p }}">{{ p }}</a>
+  {% endfor %}
+  {% endif %}
+  <span class="total">{{ total }} skill{{ '' if total == 1 else 's' }}</span>
+</nav>
+{% endif %}
+{% endblock %}

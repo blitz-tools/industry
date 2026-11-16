@@ -138,6 +138,23 @@ class Blueprint(Base, TimestampMixin):
     time_efficiency: Mapped[int] = mapped_column(nullable=False)
 
 
+class Skill(Base, TimestampMixin):
+    """One trained skill for a character, synced from ESI's skills endpoint
+    and replaced wholesale per owner. The planner multiplies these against
+    blueprint-required skills (M4 time math) and slot-count ceilings (M9);
+    `trained_skill_level` is what was actually trained, while
+    `active_skill_level` includes implant/booster effects."""
+
+    __tablename__ = "skills"
+
+    owner_type: Mapped[str] = mapped_column(String(16), primary_key=True)
+    owner_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    skill_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    trained_skill_level: Mapped[int] = mapped_column(nullable=False)
+    active_skill_level: Mapped[int] = mapped_column(nullable=False)
+    skillpoints_in_skill: Mapped[int] = mapped_column(BigInteger, nullable=False)
+
+
 class IndustryJob(Base, TimestampMixin):
     """An industry job installed by a member of the owning character or
     corporation, synced from ESI's industry jobs endpoints. The activity
@@ -163,8 +180,9 @@ class IndustryJob(Base, TimestampMixin):
 
 class DataSync(Base, TimestampMixin):
     """Last sync outcome per data kind per owner, for kinds beyond assets
-    (which have their own asset_syncs table): corporation blueprints,
-    industry jobs, and future kinds (skills, prices, …)."""
+    (which have their own asset_syncs table): corporation blueprints and
+    jobs, character blueprints, skills, and jobs, and future kinds
+    (prices, …)."""
 
     __tablename__ = "data_syncs"
 
