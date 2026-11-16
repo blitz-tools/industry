@@ -31,7 +31,16 @@ Live anchors for a fresh session: schlepzrage is the main (Director,
 corp 98830898, all corp data synced); SDE release 2026-11-13 mirrored
 (53,925 types) and self-maintaining; the Typhoon recipe reads end to
 end through the mirror (blueprint **998** → ship **644**, three
-buildable components, Industry 1, 5.0h base).
+buildable components, Industry 1, 5.0h base). All eight characters
+sync blueprints, skills, and jobs (char + corp sides both live: 754
+character blueprints, 1,099 skills, 44 character jobs), so the
+owned-blueprint overlay and skill math have real data to join against.
+Two things worth knowing before the catalog work: the skills table
+carries **trained vs active** level separately (active includes
+implants/boosters — M4's time math should pick deliberately), and
+`UniverseResolver.resolve_location_ids` is the ready-made primitive
+for naming any location id that arrives without a type (the M6 jobs
+correlation and any future Location column want it).
 
 ---
 

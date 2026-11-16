@@ -18,6 +18,20 @@ Groundwork that already exists and applies broadly:
 - **Registered portal scopes** (see `.env.example` `ESI_SCOPES`): character
   + corporation variants of assets, blueprints, industry jobs, market
   orders, wallets, projects, skills, skill queue, location.
+- **Synced industry data** (M1 + M2, PRs #12–#17): the owner-keyed
+  `blueprints`, `skills`, and `industry_jobs` tables hold both sides —
+  corporation (main's corp) and every registered character — refreshed
+  by the background sync with per-kind status in `data_syncs`. The
+  planner's owned-blueprint overlay, skill math, and job correlation
+  are plain DB joins now, no new fetching.
+- **Location naming**: `UniverseResolver.resolve_location_ids`
+  (`app/esi/universe.py`) names any location id that arrives without a
+  usable type — blueprint locations, job stations, dangling item ids —
+  classifying by id range (stations < 10¹² answer on the public
+  stations endpoint; structures/office containers on the scoped
+  structures endpoint) and parking unresolvable ids as restricted. Any
+  new surface that shows a Location should resolve through it at sync
+  time; renders stay pure `universe_locations` joins.
 - **Assets page purity rule**: page renders never touch ESI; everything
   resolves through the background sync into DB tables first.
 - **UI patterns to reuse**: collapsible rows/cards with sync-state rings
@@ -95,13 +109,15 @@ page with CRUD. System cost indices come from public
 
 Search and select a blueprint, then calculate a build plan:
 
-- **Blueprint inputs**: number of runs, blueprint ME/TE. Character and
-  corporation blueprints are already reachable — scope
-  `esi-characters.read_blueprints.v1` is registered; the endpoint returns
-  type_id, ME/TE, runs, location.
-- **Character skills**: Industry and Advanced Industry levels (0–5) —
-  `/characters/{id}/skills/`, scope `esi-skills.read_skills.v1`
-  registered.
+- **Blueprint inputs**: number of runs, blueprint ME/TE. Owned
+  blueprints for characters and the corporation are already synced
+  into the owner-keyed `blueprints` table (ME/TE/runs; originals run
+  -1) — the planner reads them, no ESI involved.
+- **Character skills**: Industry and Advanced Industry levels (0–5),
+  already synced into `skills` per character. The table stores trained
+  and active level separately (active includes implants/boosters);
+  pick deliberately per use — slot ceilings and requirements check
+  trained level, time math arguably wants active.
 - **Facility**: structure + rigs from the structure manager (default
   per activity, overridable), tax rate, and the system's cost index.
 - **Market price comparison**: build-vs-buy decisions for materials,
@@ -119,7 +135,9 @@ Plans" (and eventually "Corporate Build Plans") menu item. Shows progress
 towards gathering required inputs (materials, components, reactions…)
 measured against character and/or corporation assets — the assets tables
 and per-type aggregation (`structure_page` in `app/assets.py`) already
-provide the availability side.
+provide the availability side. Industry jobs for both sides (characters
+and corporation, completed history included) are already synced into
+`industry_jobs`, so correlating installed jobs to plan nodes is a join.
 
 ---
 

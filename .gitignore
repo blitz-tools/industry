@@ -9,6 +9,7 @@ __pycache__/
 
 # Databases
 *.db
+*.db-journal
 *.sqlite3
 data/
 
