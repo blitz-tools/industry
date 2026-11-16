@@ -13,6 +13,27 @@ without needing invention or reactions.
 
 ---
 
+## Status (updated 2026-11-16)
+
+| Milestone | State |
+|---|---|
+| M1 — main character & corporation pool | ✅ **Complete** (PRs #12–#14) |
+| M2 — SDE foundation & blueprint catalog | 🟡 **In progress** — SDE foundation + admin self-update complete (PRs #15–#16); remaining: character blueprints + skills syncs, catalog surface |
+| M3+ | Not started |
+
+**Pick up at**: M2 remainder — the character-side blueprints and skills
+syncs (the corp side landed with M1), then the catalog query layer the
+M4 planner consumes. Everything below M3's heading is still plan; the
+landed sections record where reality diverged.
+
+Live anchors for a fresh session: schlepzrage is the main (Director,
+corp 98830898, all corp data synced); SDE release 2026-11-13 mirrored
+(53,925 types) and self-maintaining; the Typhoon recipe reads end to
+end through the mirror (blueprint **998** → ship **644**, three
+buildable components, Industry 1, 5.0h base).
+
+---
+
 ## Architecture: three data layers
 
 Every planner feature is a join across exactly these layers. Keeping the
@@ -28,8 +49,8 @@ resolver extensions* instead of schema rewrites.
 Two consequences worth stating outright:
 
 - **ESI cannot answer "what does this blueprint build from."** The
-  production chain lives in the SDE (`invBlueprintTypes`,
-  `industryActivityMaterials`, `industryActivityProducts`,
+  production chain lives in the SDE (`industryBlueprints` as the
+  registry, `industryActivityMaterials`, `industryActivityProducts`,
   `industryActivitySkills`). ESI supplies what the SDE can't: which
   blueprints you own, who you are (skills), what's installed (jobs),
   where things sit (assets), and what it costs (indices, later prices).
@@ -43,8 +64,9 @@ Two consequences worth stating outright:
 ### Decisions already made
 
 - **SDE source**: managed import command — downloads the fuzzwork SQLite
-  dump for the current EVE release and loads the industry tables.
-  Re-run per release; nothing checked into git.
+  dump for the current EVE release and mirrors it verbatim (see M2's
+  landed-as notes). Re-run per release; nothing checked into git.
+  Landed 2026-11-16 with the admin self-update.
 - **V1 chain scope**: T1 manufacturing only; reactions are the first
   extension; invention/T2 and T3 follow. Schema supports all from the
   start.
@@ -58,11 +80,49 @@ Two consequences worth stating outright:
 
 ---
 
-## M1 — Main character & corporation pool
+## M1 — Main character & corporation pool — ✅ COMPLETE (PRs #12–#14, 2026-11-15/16)
 
-*Prerequisite for everything corporate. Owner-agnostic sync and views
-already exist; this milestone mostly adds selection, gating, and the
-corp-side sync targets.*
+*Landed as planned, plus more: the corp blueprints and industry jobs
+syncs originally sketched for M2 landed here (PR #14), and the
+structures scope arrived early (see below).*
+
+**Landed as**
+
+- `Character.is_main` (migration 0006), roster "Set as main" (icon
+  button) + Main badge; `is_authenticated` remains the only access gate.
+- Role gating (`app/esi/roles.py`): Director/CEO check via
+  `/characters/{id}/roles/`, scope-gated, every failure renders an
+  explanatory state on `/corp` (the overview); sub-pages redirect there
+  until the gate passes.
+- `sync_corporation` (`app/esi/assets.py`): ONE role gate, then three
+  kinds — assets, blueprints, jobs — each with its own scope check and
+  recorded outcome (`asset_syncs` for assets, `data_syncs` for the rest;
+  the per-kind sync-status pattern future kinds reuse). Runs in the
+  background tick and the pages' Sync now.
+- `/corp/assets` browser (owner-parameterized view layer, region/type
+  filters, no owner column); `/corp/blueprints` (bp/bpc icons,
+  Original/Copy badges, ME/TE; ESI `quantity` is a sentinel −2/−1/1 and
+  never renders; locations resolve via the **asset-snapshot hop** —
+  blueprints report their location as the office ITEM id); `/corp/jobs`
+  (active by default, `?all=1` history; installer names via tracked
+  characters). Wallets remains a stub (deliberate).
+- **Office shape learned from live data** (diverged from the original
+  `location_flag = "Office"` sketch): offices are type-27 "Office"
+  markers (flag `OfficeFolder`/`Office`) whose contents share an
+  item-typed container id that is never an asset row. Markers are hidden
+  from corp tables/counts; office contents render inside a nested
+  "Office" expander; marker-only offices stay listed; the Offices box is
+  a static header + note.
+- `esi-universe.read_structures.v1` registered + resolver scope-gating:
+  only scope-holding characters are tried for structures (a scopeless
+  401 never parks and would burn error budget), 404s park like 403s,
+  office containers resolve as structures. Live: all four offices
+  resolved to their Amamake/Lirerim structures.
+
+**Validation**: passed live — Director main confirmed, 175 corp assets,
+129 blueprints, 229 jobs (2 active), offices resolved.
+
+---
 
 **Scope**
 
@@ -101,42 +161,62 @@ shows the explanatory role state instead of error spam.
 
 ---
 
-## M2 — SDE foundation & blueprint catalog
+## M2 — SDE foundation & blueprint catalog — 🟡 IN PROGRESS
 
-*Makes it possible to answer "what does this blueprint make and need."
-Prerequisite for the planner (M4+). Independent of M1 — can run in
-parallel.*
+*The foundation half is complete (PRs #15–#16) and landed **differently**
+than sketched — read the "landed as" notes; they supersede the original
+scope where they conflict. Remaining: the character-side syncs and the
+catalog surface.*
 
-**Scope**
+**Landed as (PRs #15–#16, 2026-11-16)**
 
-- Import command (CLI / management entry point): download the fuzzwork
-  SQLite SDE dump for a release, load the industry tables into the app
-  DB under an `sde_` namespace, stamp `sde_meta` (source, release
-  version, imported_at). Idempotent — re-running replaces the SDE set
-  atomically.
-- Tables loaded (sketch, namespaced to avoid colliding with the ESI
-  resolver's `universe_*`):
-  - `sde_types` — complement to `universe_types`; the catalog authority
-    for chain resolution and type lookup.
-  - `sde_blueprints` — blueprint ↔ product type, research/copy times.
-  - `sde_activity_materials` — inputs per (blueprint, activity).
-  - `sde_activity_products` — outputs per (blueprint, activity).
-  - `sde_activity_skills` — required skills + levels per activity.
-  - `sde_activity_probabilities` — invention/reverse-engineering odds
-    (loaded now, used from M8).
-- `universe_types` remains the ESI-side resolver for names; the catalog
-  merge rule (prefer SDE name, fall back to resolved) gets decided here.
-- **Blueprint sync** (the owned side of the catalog): background sync
-  of char + corp blueprints (scope already registered) into
-  `blueprints` — type_id, ME/TE, runs, quantity, location.
+- **The `sde_*` namespace is a verbatim mirror, not app-schema tables.**
+  No alembic migration, no ORM models: `app/sde.py` owns the namespace
+  wholesale (`DROP` + `CREATE TABLE AS SELECT` per table in one
+  transaction), so a dump schema change can never break the import.
+  Same columns, same rows, duplicates included. **Interpreting the data
+  (blueprint→product joins, skill dedup, activity labels) belongs to the
+  consuming query layer, never the import** — an explicit product-owner
+  correction from review.
+- The YAML-era dump has **no `invBlueprintTypes`**: the registry is
+  `industryBlueprints` (typeID, maxProductionLimit); the blueprint→
+  product mapping comes from the activity-1 products join at query time.
+  Mirrored tables: invTypes, invGroups, invCategories,
+  industryBlueprints, ramActivities, industryActivity(+Materials/
+  Products/Skills/Probabilities) — 53,925 types, 5,135 blueprints at
+  release 2026-11-13.
+- Source: fuzzwork's stable-URL gzipped dump
+  (`latest-sqlite.db.gz`, ~141 MiB) + `.md5sum` sidecar. `python -m
+  app.sde import` (md5 check first, `--file`, `info`).
+- **Admin section** (Admin → SDE Data, `app/routes/admin.py`): status
+  surface (last check/import/release/outcome/counts) plus Import now
+  (forced full re-import, confirm dialog), Check now (cheap md5-only
+  check), Pause automatic imports (persisted in `sde_meta.paused`,
+  survives re-imports), Stop current import (cooperative cancel between
+  download chunks). The background `sde_check_loop` polls hourly, checks
+  at most once per 24h (persisted gate), **only maintains an existing
+  mirror** — the initial import on a fresh deployment is the admin's
+  call — and drop-and-reimports on a changed hash (no diffing).
+- Validation passed: the Typhoon recipe reads end to end through the
+  mirror (blueprint 998 → ship 644, three buildable components flagged
+  for chain continuation, Industry 1, 5.0h base time).
+
+**Remaining scope**
+
+- **Character blueprints sync**: `/characters/{id}/blueprints/` into the
+  owner-keyed `blueprints` table (the corp side landed with M1; the
+  table and page plumbing already exist).
 - **Skills sync**: `/characters/{id}/skills/` into a `skills` table
-  (skill_id, level, skillpoints) — needed from M4 for time math and
-  from M9 for slot counts. Registered scope exists.
+  (skill_id, level, skillpoints) — needed from M4 for time math and M9
+  for slot counts. Registered scope exists.
+- **Catalog surface**: the query layer the M4 planner consumes
+  (blueprint search, recipe joins, owned-blueprint overlay). The catalog
+  merge rule (SDE name vs `universe_types`) is decided here, at
+  consumption time.
 
-**Validation**: import runs against the live SDE release; searching
-"Typhoon" resolves blueprint type 622 (Typhoon Blueprint) with its
-manufacturing materials and products; owned blueprints for registered
-characters appear with ME/TE.
+**Validation (remaining)**: owned blueprints for registered characters
+appear with ME/TE alongside the corp set; skills sync and render per
+character.
 
 ---
 
