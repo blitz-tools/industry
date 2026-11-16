@@ -248,3 +248,4 @@ class UniverseRegion(Base, TimestampMixin):
 
     region_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
+
