@@ -18,13 +18,14 @@ without needing invention or reactions.
 | Milestone | State |
 |---|---|
 | M1 — main character & corporation pool | ✅ **Complete** (PRs #12–#14) |
-| M2 — SDE foundation & blueprint catalog | 🟡 **In progress** — SDE foundation + admin self-update complete (PRs #15–#16); remaining: character blueprints + skills syncs, catalog surface |
+| M2 — SDE foundation & blueprint catalog | 🟡 **In progress** — SDE foundation + admin self-update (PRs #15–#16) and the character-side data syncs (PR #17) complete; remaining: catalog surface |
 | M3+ | Not started |
 
-**Pick up at**: M2 remainder — the character-side blueprints and skills
-syncs (the corp side landed with M1), then the catalog query layer the
-M4 planner consumes. Everything below M3's heading is still plan; the
-landed sections record where reality diverged.
+**Pick up at**: M2 remainder — the catalog query layer the M4 planner
+consumes (blueprint search, recipe joins, owned-blueprint overlay; the
+SDE-name vs `universe_types` merge rule gets decided there). Everything
+below M3's heading is still plan; the landed sections record where
+reality diverged.
 
 Live anchors for a fresh session: schlepzrage is the main (Director,
 corp 98830898, all corp data synced); SDE release 2026-11-13 mirrored
@@ -201,22 +202,62 @@ catalog surface.*
   mirror (blueprint 998 → ship 644, three buildable components flagged
   for chain continuation, Industry 1, 5.0h base time).
 
+**Landed as (PR #17, 2026-11-16) — the character-side data syncs**
+
+- **Three new per-character kinds** ride the existing per-character
+  pass: blueprints, skills, and industry jobs, each with its own scope
+  gate and `data_syncs` record (`char-blueprints` / `char-skills` /
+  `char-jobs`). A dead refresh token short-circuits the remaining kinds
+  — each would only re-attempt the same dead refresh and record the
+  same reauth.
+- **Character industry jobs landed here**, not with M6 (where they were
+  sketched): the plumbing is identical to the other character kinds and
+  the owner-keyed `industry_jobs` table already existed, so M6's job
+  correlation now has both sides. Character jobs include history, same
+  as the corp kind.
+- `skills` table (migration 0008): skill_id, trained level, active
+  level (implants/boosters — what gameplay math sees), skillpoints.
+  Total SP is derived (summed), matching ESI's `total_sp`.
+- Skill and blueprint type names resolve at sync time through the
+  existing universe resolver (write-once cache, best-effort) — the same
+  pattern asset syncs use; pages stay DB-pure.
+- **Pages under the Character nav**: `/blueprints`, `/skills`,
+  `/jobs` — owner-parameterized versions of the corporation queries
+  (`BlueprintRow`/`JobRow` gained `owner_name`; the corp functions are
+  now thin single-owner wrappers). `?char=` filter (an unknown id means
+  every character), a shared `POST /character/sync` Sync now, and the
+  skills page's overview-cards → per-character-sheet split. ESI's
+  quantity sentinels never render here either.
+- **Generic untyped-location resolution**
+  (`UniverseResolver.resolve_location_ids`), from a live-data discovery:
+  ESI reports some structure-hangar contents with `location_type "item"`
+  naming the structure itself — an id no snapshot can hop, so those
+  locations read "Location #id" on every page. Location ids that arrive
+  without a usable type (these danglers, blueprint locations) now
+  classify by id range — stations below 10¹² answer on the public
+  stations endpoint, structures/office containers above it on the scoped
+  structures endpoint (the M1 office-container discovery holds there
+  too) — and resolve or park like any other location. The asset sync
+  resolves dangling item ids through it, and both blueprint kinds
+  resolve locations their owner's snapshot can't hop (hop-able ids keep
+  naming via their parent, so a parked placeholder can never mask a
+  parent's real name). Validated live: five previously-unnamed
+  structures resolved across the roster, two parked restricted (no
+  docking access anywhere).
+
 **Remaining scope**
 
-- **Character blueprints sync**: `/characters/{id}/blueprints/` into the
-  owner-keyed `blueprints` table (the corp side landed with M1; the
-  table and page plumbing already exist).
-- **Skills sync**: `/characters/{id}/skills/` into a `skills` table
-  (skill_id, level, skillpoints) — needed from M4 for time math and M9
-  for slot counts. Registered scope exists.
 - **Catalog surface**: the query layer the M4 planner consumes
   (blueprint search, recipe joins, owned-blueprint overlay). The catalog
   merge rule (SDE name vs `universe_types`) is decided here, at
   consumption time.
 
-**Validation (remaining)**: owned blueprints for registered characters
-appear with ME/TE alongside the corp set; skills sync and render per
-character.
+**Validation (remaining)**: the catalog query layer reads the Typhoon
+recipe through the mirror with owned-blueprint overlay joining live
+`blueprints` rows. (The character syncs validated live on the dev
+deployment: all characters synced the three kinds ok — 1,099 skills with
+game-accurate skillpoints, 754 blueprints with ME/TE, 44 jobs — and the
+dangling-structure location fix confirmed against real data.)
 
 ---
 

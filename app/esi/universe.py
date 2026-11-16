@@ -40,6 +40,13 @@ LOCATION_SYSTEM = "solar_system"
 # refusal and would never park, burning the error budget every pass).
 STRUCTURES_SCOPE = "esi-universe.read_structures.v1"
 
+# Location ids at or above this floor are structures, offices, or other
+# item containers (they answer on the structures endpoint); NPC station
+# ids live below it. Classifies location ids that arrive without a
+# location_type — blueprint locations, industry-job stations, and the
+# dangling item ids asset snapshots can't hop.
+STRUCTURE_ID_FLOOR = 10**12
+
 
 async def corporation_name(
     db: AsyncSession, esi: ESIClient, corporation_id: int | None
@@ -172,6 +179,32 @@ class UniverseResolver:
         category = UniverseCategory(category_id=category_id, name=body["name"])
         self._db.add(category)
         return category
+
+    async def resolve_location_ids(
+        self,
+        location_ids: Iterable[int],
+        *,
+        characters: Sequence[Character] = (),
+    ) -> dict[int, LocationInfo]:
+        """Resolve location ids whose kind is unknown — no location_type
+        traveled with them (blueprint locations, industry-job stations,
+        dangling item ids in asset snapshots). Station ids answer on the
+        public stations endpoint; structure, office, and container ids on
+        the scoped structures endpoint (the M1 discovery: office
+        containers answer there too). Ids that resolve nowhere park as
+        restricted rather than burning the error budget every pass."""
+        return await self.resolve_locations(
+            {
+                (
+                    location_id,
+                    LOCATION_STATION
+                    if location_id < STRUCTURE_ID_FLOOR
+                    else LOCATION_STRUCTURE,
+                )
+                for location_id in location_ids
+            },
+            characters=characters,
+        )
 
     async def resolve_locations(
         self,

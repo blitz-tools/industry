@@ -275,7 +275,11 @@ async def test_reauth_recorded_snapshot_and_siblings_retained(app, db_session):
         db_session, esi, [expired, healthy], resolver=resolver
     )
 
-    by_id = {outcome.owner_id: outcome for outcome in outcomes}
+    # Each character's first outcome is its assets kind (the pass syncs
+    # blueprints, skills, and jobs after — all reauth-skipped here).
+    by_id = {}
+    for outcome in outcomes:
+        by_id.setdefault(outcome.owner_id, outcome)
     assert by_id[1234].status == "reauth"
     assert by_id[5678].status == "synced"
     assert bravo_route.call_count == 1
@@ -353,3 +357,53 @@ async def test_sync_tick_survives_esi_failure(app, db_session):
     assert sync_row is not None
     assert sync_row.status == "error"
     assert "500" in sync_row.detail
+
+
+@respx.mock
+async def test_dangling_item_location_resolves_as_structure(app, db_session):
+    """Structure-hangar contents can arrive with location_type "item"
+    naming the structure itself — an id that is never an asset row, so no
+    snapshot hop exists. The sync resolves the dangling id like any
+    untyped location id (see UniverseResolver.resolve_location_ids), so
+    the structure names on the assets and blueprints pages instead of
+    reading "Location #id"."""
+    structure_id = 1022167642188
+    character = await _seed_character(
+        db_session, scopes=f"{WITH_ASSETS} esi-universe.read_structures.v1"
+    )
+    esi = _make_esi(app, db_session)
+    resolver = _make_resolver(db_session, esi)
+    _mock_universe()
+    respx.get(
+        f"https://esi.test/latest/universe/structures/{structure_id}/"
+    ).respond(json={"name": "Amamake - Fort Amamake", "solar_system_id": 30002537})
+    respx.get("https://esi.test/latest/universe/systems/30002537/").respond(
+        json={"name": "Amamake", "constellation_id": 20000020}
+    )
+    _mock_assets(
+        character.character_id,
+        [
+            [
+                {
+                    "item_id": 50,
+                    "type_id": 1230,
+                    "quantity": 10,
+                    "location_id": structure_id,
+                    "location_flag": "Hangar",
+                    "location_type": "item",  # the ESI quirk under test
+                    "is_singleton": False,
+                }
+            ]
+        ],
+    )
+
+    await sync_all_characters(db_session, esi, [character], resolver=resolver)
+
+    location = await db_session.get(UniverseLocation, structure_id)
+    assert location is not None
+    assert location.name == "Amamake - Fort Amamake"
+    assert location.system_id == 30002537
+    # The asset row keeps its raw location (there is no hop); the panel
+    # names through the resolved location row.
+    asset = (await db_session.execute(select(Asset))).scalars().one()
+    assert asset.parent_location_id == structure_id

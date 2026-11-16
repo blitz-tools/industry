@@ -19,7 +19,7 @@
     <a class="brand" href="/">industry</a>
     <nav aria-label="Sections">
       <a href="/dashboard"{% if active == 'dashboard' %} class="active" aria-current="page"{% endif %}>Dashboard</a>
-      {% set char_active = active is defined and active in ('characters', 'assets') %}
+      {% set char_active = active is defined and active in ('characters', 'assets', 'blueprints', 'skills', 'jobs') %}
       <div class="nav-group" id="nav-character-group">
         <button class="nav-group-toggle" type="button" aria-controls="nav-character"
                 aria-expanded="{{ 'true' if char_active else 'false' }}">
@@ -28,6 +28,9 @@
         <div class="nav-group-items" id="nav-character"{% if not char_active %} hidden{% endif %}>
           <a href="/characters"{% if active == 'characters' %} class="active" aria-current="page"{% endif %}>Roster</a>
           <a href="/assets"{% if active == 'assets' %} class="active" aria-current="page"{% endif %}>Assets</a>
+          <a href="/blueprints"{% if active == 'blueprints' %} class="active" aria-current="page"{% endif %}>Blueprints</a>
+          <a href="/skills"{% if active == 'skills' %} class="active" aria-current="page"{% endif %}>Skills</a>
+          <a href="/jobs"{% if active == 'jobs' %} class="active" aria-current="page"{% endif %}>Jobs</a>
         </div>
       </div>
       {% set corp_active = active is defined and active.startswith('corp') %}

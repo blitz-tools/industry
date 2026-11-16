@@ -1,6 +1,6 @@
-"""Character and corporation data sync: assets, blueprints, and industry
-jobs, pulled page-by-page from ESI into owner-keyed tables with the
-universe IDs each snapshot references resolved alongside.
+"""Character and corporation data sync: assets, blueprints, skills, and
+industry jobs, pulled from ESI into owner-keyed tables with the universe
+IDs each snapshot references resolved alongside.
 
 Page fetches go through the ETag cache (a fresh-window pass makes zero
 HTTP calls; an expired one revalidates with cheap 304s). The snapshot
@@ -16,7 +16,7 @@ a corp endpoint (a call we know will 403 burns ESI's error-limit budget).
 
 import asyncio
 import logging
-from collections.abc import Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
@@ -33,6 +33,7 @@ from ..models import (
     Character,
     DataSync,
     IndustryJob,
+    Skill,
     UniverseType,
 )
 from .client import ESIClient, ESIError, ReauthorizationRequired
@@ -45,10 +46,16 @@ ASSETS_SCOPE = "esi-assets.read_assets.v1"
 CORP_ASSETS_SCOPE = "esi-assets.read_corporation_assets.v1"
 CORP_BLUEPRINTS_SCOPE = "esi-corporations.read_blueprints.v1"
 CORP_JOBS_SCOPE = "esi-industry.read_corporation_jobs.v1"
+CHAR_BLUEPRINTS_SCOPE = "esi-characters.read_blueprints.v1"
+SKILLS_SCOPE = "esi-skills.read_skills.v1"
+CHAR_JOBS_SCOPE = "esi-industry.read_character_jobs.v1"
 
-# data_syncs kinds for the corporation data this module syncs.
+# data_syncs kinds for the data this module syncs.
 KIND_CORP_BLUEPRINTS = "corp-blueprints"
 KIND_CORP_JOBS = "corp-jobs"
+KIND_CHAR_BLUEPRINTS = "char-blueprints"
+KIND_CHAR_SKILLS = "char-skills"
+KIND_CHAR_JOBS = "char-jobs"
 
 # ESI's marker item for a rented office (corporation assets only): each
 # office shows up as a type-27 "Office" row (flag "OfficeFolder" for
@@ -96,15 +103,50 @@ async def sync_all_characters(
     *,
     resolver: UniverseResolver,
 ) -> list[SyncOutcome]:
-    """Sync every character; one failure never aborts the rest."""
+    """Sync every character's data kinds; one failure never aborts the
+    rest."""
     async with _sync_lock:
         return [
-            await _sync_one_character(db, esi, resolver, character)
+            outcome
             for character in characters
+            for outcome in await _sync_one_character(db, esi, resolver, character)
         ]
 
 
 async def _sync_one_character(
+    db: AsyncSession,
+    esi: ESIClient,
+    resolver: UniverseResolver,
+    character: Character,
+) -> list[SyncOutcome]:
+    """Sync one character's kinds: assets (with universe resolution),
+    blueprints, skills, and industry jobs, each with its own scope gate
+    and outcome. A dead refresh token short-circuits the remaining kinds —
+    they would all fail the same way, and each failure re-attempts the
+    refresh."""
+    first = await _sync_character_assets(db, esi, resolver, character)
+    outcomes = [first]
+    dead_token = first.status == "reauth"
+    for kind, fetch in (
+        (KIND_CHAR_BLUEPRINTS, _sync_character_blueprints),
+        (KIND_CHAR_SKILLS, _sync_character_skills),
+        (KIND_CHAR_JOBS, _sync_character_jobs),
+    ):
+        if dead_token:
+            await _record_data_sync(
+                db, kind, OWNER_CHARACTER, character.character_id, "reauth"
+            )
+            outcomes.append(
+                SyncOutcome(character.character_id, character.name, "reauth")
+            )
+            continue
+        outcome = await fetch(db, esi, resolver, character)
+        outcomes.append(outcome)
+        dead_token = outcome.status == "reauth"
+    return outcomes
+
+
+async def _sync_character_assets(
     db: AsyncSession,
     esi: ESIClient,
     resolver: UniverseResolver,
@@ -148,6 +190,267 @@ async def _sync_one_character(
 
     return SyncOutcome(
         character.character_id, character.name, "synced", item_count=len(rows)
+    )
+
+
+async def _sync_data_kind(
+    db: AsyncSession,
+    *,
+    kind: str,
+    holder: Character,
+    owner_type: str,
+    owner_id: int,
+    owner_name: str,
+    scope: str,
+    replace: Callable[[], Awaitable[int]],
+) -> SyncOutcome:
+    """The scaffolding every data-kind sync shares: scope gate (a scopeless
+    call is a guaranteed 403 and burns ESI's error-limit budget), outcome
+    recording, and the SyncOutcome. `holder` is the character whose grant
+    is checked — the synced character, or the main standing in for the
+    corporation. `replace` performs the page fetches and the snapshot
+    replace and returns the item count; keeping the replace inside it
+    preserves the module's ordering rule (the snapshot replace is the
+    fetch's last write, so a failure leaves the previous snapshot)."""
+    if scope not in holder.scopes.split():
+        detail = f"Grant lacks {scope}"
+        await _record_data_sync(db, kind, owner_type, owner_id, "no-scope", detail)
+        return SyncOutcome(owner_id, owner_name, "no-scope", detail=detail)
+    try:
+        item_count = await replace()
+    except ReauthorizationRequired:
+        await _record_data_sync(db, kind, owner_type, owner_id, "reauth")
+        return SyncOutcome(owner_id, owner_name, "reauth")
+    except ESIError as exc:
+        await _record_data_sync(db, kind, owner_type, owner_id, "error", str(exc))
+        return SyncOutcome(owner_id, owner_name, "error", detail=str(exc))
+    await _record_data_sync(db, kind, owner_type, owner_id, "ok")
+    return SyncOutcome(owner_id, owner_name, "synced", item_count=item_count)
+
+
+def _blueprint_values(
+    owner_type: str, owner_id: int, rows: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """ESI blueprint rows to owner-keyed table values (character and
+    corporation endpoints share the shape)."""
+    return [
+        {
+            "owner_type": owner_type,
+            "owner_id": owner_id,
+            "item_id": row["item_id"],
+            "type_id": row["type_id"],
+            "location_id": row["location_id"],
+            "location_flag": row.get("location_flag", ""),
+            "quantity": row.get("quantity", 1),
+            "runs": row.get("runs"),
+            "material_efficiency": row.get("material_efficiency", 0),
+            "time_efficiency": row.get("time_efficiency", 0),
+        }
+        for row in rows
+    ]
+
+
+def _job_values(
+    owner_type: str, owner_id: int, rows: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """ESI industry-job rows to owner-keyed table values (character and
+    corporation endpoints share the shape)."""
+    return [
+        {
+            "owner_type": owner_type,
+            "owner_id": owner_id,
+            "job_id": row["job_id"],
+            "installer_id": row.get("installer_id", 0),
+            "activity_id": row.get("activity_id", 0),
+            "blueprint_type_id": row.get("blueprint_type_id", 0),
+            "runs": row.get("runs", 0),
+            "successful_runs": row.get("successful_runs"),
+            "status": row.get("status", ""),
+            "start_date": _parse_esi_datetime(row.get("start_date")),
+            "end_date": _parse_esi_datetime(row.get("end_date")),
+            "completed_date": _parse_esi_datetime(row.get("completed_date")),
+            "station_id": row.get("station_id"),
+        }
+        for row in rows
+    ]
+
+
+async def _resolve_blueprint_locations(
+    db: AsyncSession,
+    resolver: UniverseResolver,
+    *,
+    owner_type: str,
+    owner_id: int,
+    rows: list[dict[str, Any]],
+) -> None:
+    """Name blueprint locations the owner's asset snapshot can't hop:
+    location ids that are not snapshot items resolve on their own (station
+    or structure — see UniverseResolver.resolve_location_ids). Hop-able
+    ids (containers, offices) keep naming through their parent at render
+    time, so this never parks a placeholder over a name the hop would
+    find. Best-effort like all universe resolution; the resolver never
+    raises."""
+    if not rows:
+        return
+    location_ids = {row["location_id"] for row in rows}
+    hopable = set(
+        (
+            await db.execute(
+                select(Asset.item_id).where(
+                    Asset.owner_type == owner_type,
+                    Asset.owner_id == owner_id,
+                    Asset.item_id.in_(location_ids),
+                )
+            )
+        ).scalars()
+    )
+    unresolvable = location_ids - hopable
+    if not unresolvable:
+        return
+    all_characters = (
+        (await db.execute(select(Character).order_by(Character.name))).scalars().all()
+    )
+    await resolver.resolve_location_ids(unresolvable, characters=all_characters)
+
+
+async def _sync_character_blueprints(
+    db: AsyncSession,
+    esi: ESIClient,
+    resolver: UniverseResolver,
+    character: Character,
+) -> SyncOutcome:
+    """Character blueprint snapshot, same shape as the corporation kind."""
+    fetched: list[dict[str, Any]] = []
+
+    async def replace() -> int:
+        rows = await esi.get_paginated(
+            character, "/characters/{character_id}/blueprints/"
+        )
+        fetched.extend(rows)
+        values = _blueprint_values(OWNER_CHARACTER, character.character_id, rows)
+        await db.execute(
+            delete(Blueprint).where(
+                Blueprint.owner_type == OWNER_CHARACTER,
+                Blueprint.owner_id == character.character_id,
+            )
+        )
+        if values:
+            await db.execute(insert(Blueprint), values)
+        return len(rows)
+
+    outcome = await _sync_data_kind(
+        db,
+        kind=KIND_CHAR_BLUEPRINTS,
+        holder=character,
+        owner_type=OWNER_CHARACTER,
+        owner_id=character.character_id,
+        owner_name=character.name,
+        scope=CHAR_BLUEPRINTS_SCOPE,
+        replace=replace,
+    )
+    if outcome.status == "synced":
+        # Blueprint type names for the page, best-effort and outside the
+        # outcome (a failing name lookup must not lose a good snapshot;
+        # the resolver never raises).
+        await resolver.ensure_types({row["type_id"] for row in fetched})
+        # And the locations the owner's snapshot can't hop (structures
+        # named directly — see _resolve_blueprint_locations).
+        await _resolve_blueprint_locations(
+            db,
+            resolver,
+            owner_type=OWNER_CHARACTER,
+            owner_id=character.character_id,
+            rows=fetched,
+        )
+    return outcome
+
+
+async def _sync_character_skills(
+    db: AsyncSession,
+    esi: ESIClient,
+    resolver: UniverseResolver,
+    character: Character,
+) -> SyncOutcome:
+    """Character skills snapshot: the whole sheet in one response (not
+    paginated)."""
+    sheet: list[dict[str, Any]] = []
+
+    async def replace() -> int:
+        body = await esi.get(character, "/characters/{character_id}/skills/")
+        sheet.extend(body.get("skills", []) if isinstance(body, dict) else [])
+        values = [
+            {
+                "owner_type": OWNER_CHARACTER,
+                "owner_id": character.character_id,
+                "skill_id": skill["skill_id"],
+                "trained_skill_level": skill.get("trained_skill_level", 0),
+                "active_skill_level": skill.get("active_skill_level", 0),
+                "skillpoints_in_skill": skill.get("skillpoints_in_skill", 0),
+            }
+            for skill in sheet
+        ]
+        await db.execute(
+            delete(Skill).where(
+                Skill.owner_type == OWNER_CHARACTER,
+                Skill.owner_id == character.character_id,
+            )
+        )
+        if values:
+            await db.execute(insert(Skill), values)
+        return len(sheet)
+
+    outcome = await _sync_data_kind(
+        db,
+        kind=KIND_CHAR_SKILLS,
+        holder=character,
+        owner_type=OWNER_CHARACTER,
+        owner_id=character.character_id,
+        owner_name=character.name,
+        scope=SKILLS_SCOPE,
+        replace=replace,
+    )
+    if outcome.status == "synced":
+        # Skill names for the page, best-effort (see blueprints above).
+        await resolver.ensure_types({skill["skill_id"] for skill in sheet})
+    return outcome
+
+
+async def _sync_character_jobs(
+    db: AsyncSession,
+    esi: ESIClient,
+    resolver: UniverseResolver,
+    character: Character,
+) -> SyncOutcome:
+    """Character industry job snapshot, completed jobs included — the
+    planner correlates history, not just live slots (same view as the
+    corporation kind)."""
+
+    async def replace() -> int:
+        rows = await esi.get_paginated(
+            character,
+            "/characters/{character_id}/industry/jobs/",
+            params={"include_completed": "true"},
+        )
+        values = _job_values(OWNER_CHARACTER, character.character_id, rows)
+        await db.execute(
+            delete(IndustryJob).where(
+                IndustryJob.owner_type == OWNER_CHARACTER,
+                IndustryJob.owner_id == character.character_id,
+            )
+        )
+        if values:
+            await db.execute(insert(IndustryJob), values)
+        return len(rows)
+
+    return await _sync_data_kind(
+        db,
+        kind=KIND_CHAR_JOBS,
+        holder=character,
+        owner_type=OWNER_CHARACTER,
+        owner_id=character.character_id,
+        owner_name=character.name,
+        scope=CHAR_JOBS_SCOPE,
+        replace=replace,
     )
 
 
@@ -218,12 +521,24 @@ async def _resolve_universe(
     resolver never raises; failures degrade names to placeholders that the
     next sync pass retries."""
     type_ids = {row["type_id"] for row in rows}
+    item_ids = {row["item_id"] for row in rows}
     # Top-level locations: rows that sit directly in one (containers point
     # at their parent, so every parent is covered).
     wanted = {
         (row["location_id"], row["location_type"])
         for row in rows
         if row["location_type"] != "item"
+    }
+    # Dangling item locations: ESI reports some structure-hangar contents
+    # (and personal items in corporation offices) against ids that are
+    # never asset rows in the owner's snapshot — no hop exists. They
+    # resolve like any untyped location id (stations/structures answer,
+    # docking access permitting; an id that resolves nowhere parks as
+    # restricted instead of burning the error budget every pass).
+    dangling = {
+        row["location_id"]
+        for row in rows
+        if row["location_type"] == "item" and row["location_id"] not in item_ids
     }
     # Office contents (and the marker) hang off container ids reported as
     # "item" that are really the office's structure — resolving them names
@@ -235,7 +550,7 @@ async def _resolve_universe(
         if row["owner_type"] == OWNER_CORPORATION
         and row["location_flag"] in OFFICE_FLAGS
     }
-    if not type_ids and not wanted:
+    if not type_ids and not wanted and not dangling:
         return
     all_characters = (
         (await db.execute(select(Character).order_by(Character.name))).scalars().all()
@@ -258,6 +573,15 @@ async def _resolve_universe(
         }
         await resolver.ensure_groups(group_ids)
     infos = await resolver.resolve_locations(wanted, characters=all_characters)
+    # Dangling ids classify and resolve like any untyped location id
+    # (see resolve_location_ids) — this is what names structure-hangar
+    # contents on the assets AND blueprints pages.
+    if dangling:
+        infos.update(
+            await resolver.resolve_location_ids(
+                dangling, characters=all_characters
+            )
+        )
     system_ids = {info.system_id for info in infos.values() if info.system_id}
     await resolver.ensure_systems(system_ids)
 
@@ -340,7 +664,7 @@ async def _sync_corporation_locked(
 
     return [
         await _sync_corp_assets(db, esi, resolver, main, corp_id, label),
-        await _sync_corp_blueprints(db, esi, main, corp_id, label),
+        await _sync_corp_blueprints(db, esi, resolver, main, corp_id, label),
         await _sync_corp_jobs(db, esi, main, corp_id, label),
     ]
 
@@ -388,58 +712,49 @@ async def _sync_corp_assets(
 async def _sync_corp_blueprints(
     db: AsyncSession,
     esi: ESIClient,
+    resolver: UniverseResolver,
     main: Character,
     corp_id: int,
     label: str,
 ) -> SyncOutcome:
     """Corporation blueprint snapshot (role gate already passed)."""
+    fetched: list[dict[str, Any]] = []
 
-    def record(status: str, detail: str | None = None) -> SyncOutcome:
-        return SyncOutcome(corp_id, label, status, detail=detail)
-
-    if CORP_BLUEPRINTS_SCOPE not in main.scopes.split():
-        detail = f"Main grant lacks {CORP_BLUEPRINTS_SCOPE}"
-        await _record_data_sync(
-            db, KIND_CORP_BLUEPRINTS, OWNER_CORPORATION, corp_id, "no-scope", detail
-        )
-        return record("no-scope", detail)
-    try:
+    async def replace() -> int:
         rows = await esi.get_paginated(main, f"/corporations/{corp_id}/blueprints/")
-    except ReauthorizationRequired:
-        await _record_data_sync(
-            db, KIND_CORP_BLUEPRINTS, OWNER_CORPORATION, corp_id, "reauth"
+        fetched.extend(rows)
+        values = _blueprint_values(OWNER_CORPORATION, corp_id, rows)
+        await db.execute(
+            delete(Blueprint).where(
+                Blueprint.owner_type == OWNER_CORPORATION,
+                Blueprint.owner_id == corp_id,
+            )
         )
-        return record("reauth")
-    except ESIError as exc:
-        await _record_data_sync(
-            db, KIND_CORP_BLUEPRINTS, OWNER_CORPORATION, corp_id, "error", str(exc)
-        )
-        return record("error", detail=str(exc))
+        if values:
+            await db.execute(insert(Blueprint), values)
+        return len(rows)
 
-    values = [
-        {
-            "owner_type": OWNER_CORPORATION,
-            "owner_id": corp_id,
-            "item_id": row["item_id"],
-            "type_id": row["type_id"],
-            "location_id": row["location_id"],
-            "location_flag": row.get("location_flag", ""),
-            "quantity": row.get("quantity", 1),
-            "runs": row.get("runs"),
-            "material_efficiency": row.get("material_efficiency", 0),
-            "time_efficiency": row.get("time_efficiency", 0),
-        }
-        for row in rows
-    ]
-    await db.execute(
-        delete(Blueprint).where(
-            Blueprint.owner_type == OWNER_CORPORATION, Blueprint.owner_id == corp_id
-        )
+    outcome = await _sync_data_kind(
+        db,
+        kind=KIND_CORP_BLUEPRINTS,
+        holder=main,
+        owner_type=OWNER_CORPORATION,
+        owner_id=corp_id,
+        owner_name=label,
+        scope=CORP_BLUEPRINTS_SCOPE,
+        replace=replace,
     )
-    if values:
-        await db.execute(insert(Blueprint), values)
-    await _record_data_sync(db, KIND_CORP_BLUEPRINTS, OWNER_CORPORATION, corp_id, "ok")
-    return SyncOutcome(corp_id, label, "synced", item_count=len(rows))
+    if outcome.status == "synced":
+        # Locations the corp snapshot can't hop, same as the character
+        # kind (see _resolve_blueprint_locations).
+        await _resolve_blueprint_locations(
+            db,
+            resolver,
+            owner_type=OWNER_CORPORATION,
+            owner_id=corp_id,
+            rows=fetched,
+        )
+    return outcome
 
 
 async def _sync_corp_jobs(
@@ -453,59 +768,33 @@ async def _sync_corp_jobs(
     planner will correlate history, not just live slots (role gate
     already passed)."""
 
-    def record(status: str, detail: str | None = None) -> SyncOutcome:
-        return SyncOutcome(corp_id, label, status, detail=detail)
-
-    if CORP_JOBS_SCOPE not in main.scopes.split():
-        detail = f"Main grant lacks {CORP_JOBS_SCOPE}"
-        await _record_data_sync(
-            db, KIND_CORP_JOBS, OWNER_CORPORATION, corp_id, "no-scope", detail
-        )
-        return record("no-scope", detail)
-    try:
+    async def replace() -> int:
         rows = await esi.get_paginated(
             main,
             f"/corporations/{corp_id}/industry/jobs/",
             params={"include_completed": "true"},
         )
-    except ReauthorizationRequired:
-        await _record_data_sync(
-            db, KIND_CORP_JOBS, OWNER_CORPORATION, corp_id, "reauth"
+        values = _job_values(OWNER_CORPORATION, corp_id, rows)
+        await db.execute(
+            delete(IndustryJob).where(
+                IndustryJob.owner_type == OWNER_CORPORATION,
+                IndustryJob.owner_id == corp_id,
+            )
         )
-        return record("reauth")
-    except ESIError as exc:
-        await _record_data_sync(
-            db, KIND_CORP_JOBS, OWNER_CORPORATION, corp_id, "error", str(exc)
-        )
-        return record("error", detail=str(exc))
+        if values:
+            await db.execute(insert(IndustryJob), values)
+        return len(rows)
 
-    values = [
-        {
-            "owner_type": OWNER_CORPORATION,
-            "owner_id": corp_id,
-            "job_id": row["job_id"],
-            "installer_id": row.get("installer_id", 0),
-            "activity_id": row.get("activity_id", 0),
-            "blueprint_type_id": row.get("blueprint_type_id", 0),
-            "runs": row.get("runs", 0),
-            "successful_runs": row.get("successful_runs"),
-            "status": row.get("status", ""),
-            "start_date": _parse_esi_datetime(row.get("start_date")),
-            "end_date": _parse_esi_datetime(row.get("end_date")),
-            "completed_date": _parse_esi_datetime(row.get("completed_date")),
-            "station_id": row.get("station_id"),
-        }
-        for row in rows
-    ]
-    await db.execute(
-        delete(IndustryJob).where(
-            IndustryJob.owner_type == OWNER_CORPORATION, IndustryJob.owner_id == corp_id
-        )
+    return await _sync_data_kind(
+        db,
+        kind=KIND_CORP_JOBS,
+        holder=main,
+        owner_type=OWNER_CORPORATION,
+        owner_id=corp_id,
+        owner_name=label,
+        scope=CORP_JOBS_SCOPE,
+        replace=replace,
     )
-    if values:
-        await db.execute(insert(IndustryJob), values)
-    await _record_data_sync(db, KIND_CORP_JOBS, OWNER_CORPORATION, corp_id, "ok")
-    return SyncOutcome(corp_id, label, "synced", item_count=len(rows))
 
 
 def _parse_esi_datetime(value: str | None):
