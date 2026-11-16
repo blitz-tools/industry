@@ -14,7 +14,8 @@ from starlette.middleware.sessions import SessionMiddleware
 from .config import Settings, get_settings
 from .db import make_engine, make_session_factory
 from .esi.assets import asset_sync_loop
-from .routes import assets, auth, corp, web
+from .routes import admin, assets, auth, corp, web
+from .sde import sde_check_loop
 from .templates import dev_site_version
 
 _package_dir = Path(__file__).parent
@@ -36,10 +37,15 @@ async def lifespan(app: FastAPI):
     sync_task = asyncio.create_task(
         asset_sync_loop(app.state.session_factory, app.state.http, settings)
     )
+    # Background SDE check: the published dump MD5 at most once per
+    # configured interval; a change drop-and-reimports the mirror.
+    sde_task = asyncio.create_task(sde_check_loop(settings))
     yield
     sync_task.cancel()
+    sde_task.cancel()
     with contextlib.suppress(asyncio.CancelledError):
         await sync_task
+        await sde_task
     # Disposing the engine is critical under --reload, otherwise SQLite
     # connections outlive their event loop.
     await app.state.http.aclose()
@@ -63,6 +69,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(web.router)
     app.include_router(assets.router)
     app.include_router(corp.router)
+    app.include_router(admin.router)
     if settings.dev_auto_reload:
         # Dev-only change token that open browsers poll to auto-refresh.
         # Registered only when enabled, so production never serves it.

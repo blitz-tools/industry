@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}industry — admin: SDE data{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>SDE Data</h1>
+  <form method="post" action="/admin/sde/check" class="sync-form">
+    <button type="submit">Check now</button>
+    <span class="last-sync">checks at most every {{ check_interval_hours }}h automatically</span>
+  </form>
+</div>
+
+{% if in_progress %}
+<div class="notify">
+  <p class="info">A check or import is running right now — refresh to see the result.</p>
+</div>
+{% endif %}
+
+{% if meta is none %}
+<p class="stat-note">No SDE data imported yet. Use Check now, or run
+<code>python -m app.sde import</code> — the background check will also
+pick it up on its next pass.</p>
+{% else %}
+<div class="corp-overview">
+  <div class="corp-overview-body">
+    <h2>Status</h2>
+    <div class="meta-list">
+      <p class="meta">Last checked: {{ meta.last_checked_at or 'never' }}</p>
+      <p class="meta">Last imported: {{ meta.imported_at or 'never' }}</p>
+      <p class="meta">Release: {{ meta.version or 'unknown' }}</p>
+      <p class="meta">Check outcome:
+        {%- if meta.check_status == 'completed' %} <span class="job-status ok">import completed</span>
+        {%- elif meta.check_status == 'up-to-date' %} <span class="job-status done">up to date — no change upstream</span>
+        {%- elif meta.check_status == 'failed' %} <span class="job-status failed">failed</span>
+        {%- elif meta.check_status == 'in-progress' %} <span class="job-status warn">in progress</span>
+        {%- else %} <span class="job-status warn">{{ meta.check_status or 'not run yet' }}</span>
+        {%- endif %}
+      </p>
+      {% if meta.check_detail %}<p class="meta">Detail: {{ meta.check_detail }}</p>{% endif %}
+    </div>
+  </div>
+</div>
+
+{% if counts %}
+<table class="asset-table corp-data-table">
+  <thead>
+    <tr><th>Table</th><th class="num">Rows</th></tr>
+  </thead>
+  <tbody>
+    {% for table, count in counts.items() %}
+    <tr>
+      <td class="type-name">{{ table }}</td>
+      <td class="num">{% if count < 0 %}—{% else %}{{ '{:,}'.format(count) }}{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endif %}
+{% endblock %}

@@ -33,6 +33,13 @@ class Settings(BaseSettings):
     # Asset sync: background interval and page-render knobs.
     assets_sync_interval_minutes: int = 30
     assets_page_size: int = 50
+    # SDE import source (python -m app.sde import): fuzzwork's gzipped
+    # SQLite dump of the latest Tranquility release, at a stable URL.
+    sde_dump_url: str = "https://www.fuzzwork.co.uk/dump/latest-sqlite.db.gz"
+    # Background SDE check cadence (admin section): the published MD5 is
+    # compared at most this often; a changed hash triggers a full
+    # drop-and-reimport of the mirror.
+    sde_check_interval_hours: int = 24
     # Restricted structures (ESI 403) are not retried for this many days —
     # every 403 burns ESI's error-limit budget.
     structure_retry_days: int = 7
