@@ -44,6 +44,16 @@
           <a href="/corp/blueprints"{% if active == 'corp-blueprints' %} class="active" aria-current="page"{% endif %}>Blueprints</a>
         </div>
       </div>
+      {% set admin_active = active is defined and active.startswith('admin') %}
+      <div class="nav-group" id="nav-admin-group">
+        <button class="nav-group-toggle" type="button" aria-controls="nav-admin"
+                aria-expanded="{{ 'true' if admin_active else 'false' }}">
+          Admin
+        </button>
+        <div class="nav-group-items" id="nav-admin"{% if not admin_active %} hidden{% endif %}>
+          <a href="/admin/sde"{% if active == 'admin-sde' %} class="active" aria-current="page"{% endif %}>SDE Data</a>
+        </div>
+      </div>
     </nav>
     <footer class="sidebar-footer">
       <a href="/auth/logout">Log out</a>

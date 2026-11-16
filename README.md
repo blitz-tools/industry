@@ -77,6 +77,23 @@ podman compose -f compose.dev.yml run --rm dev sh -c \
    DATABASE_URL=sqlite+aiosqlite:////tmp/mig.db alembic upgrade head'
 ```
 
+### EVE static data (SDE)
+
+Blueprint recipes (materials, products, skills, durations) come from the
+SDE, not ESI. The `sde_*` tables are a **verbatim mirror** of the dump —
+same columns, same rows — created and replaced wholesale by the import
+(no app-side migration; dump schema changes can't break it). The import
+checks the published dump MD5 first and exits without downloading when
+the release is unchanged. A background loop performs the same check at
+most once a day and re-imports on change; **Admin → SDE Data** shows the
+last check, last import, and outcome, with a manual Check now. Safe to
+run by hand any time:
+
+```sh
+podman compose -f compose.dev.yml run --rm dev python -m app.sde import
+podman compose -f compose.dev.yml run --rm dev python -m app.sde info
+```
+
 ### Direct uv alternative
 
 The container is the supported path, but the plain-uv workflow still works
