@@ -71,6 +71,23 @@ CHECK_POLL_SECONDS = 3600
 # One check/import at a time (loop vs admin button).
 _import_lock = threading.Lock()
 _import_running = threading.Event()
+# Cooperative cancellation for the admin Stop button: checked at phase
+# boundaries and between download chunks.
+_cancel_requested = threading.Event()
+
+
+class ImportCancelled(Exception):
+    """The administrator stopped a running check/import."""
+
+
+def request_cancel() -> None:
+    """Ask the running check/import (if any) to stop at the next
+    boundary; a run that is already cancelled stays cancelled."""
+    _cancel_requested.set()
+
+
+def _cancel_pending() -> bool:
+    return _cancel_requested.is_set()
 
 
 def resolve_db_path(database_url: str) -> Path:
@@ -121,12 +138,17 @@ def is_current(db_path: Path, upstream_md5: str | None) -> bool:
 
 
 def download_dump(
-    url: str, dest_dir: Path, *, user_agent: str
+    url: str,
+    dest_dir: Path,
+    *,
+    user_agent: str,
+    cancel_check=None,
 ) -> tuple[Path, str, str, str | None]:
     """Stream the gzipped dump to dest_dir; returns (path, sha256, md5,
     Last-Modified). The md5 is verified against the published .md5sum by
     the caller; the hashes and date together identify what was imported
-    (the URL itself is stable across releases)."""
+    (the URL itself is stable across releases). `cancel_check` is polled
+    between chunks so a stop request lands within seconds."""
     dest = dest_dir / "sde-dump.db.gz"
     sha256 = hashlib.sha256()
     md5 = hashlib.md5()
@@ -136,6 +158,8 @@ def download_dump(
             last_modified = response.headers.get("Last-Modified")
             with open(dest, "wb") as fh:
                 for chunk in response.iter_bytes(chunk_size=1 << 20):
+                    if cancel_check and cancel_check():
+                        raise ImportCancelled
                     fh.write(chunk)
                     sha256.update(chunk)
                     md5.update(chunk)
@@ -184,17 +208,21 @@ def load_dump(
                 mirror = f"sde_{table}"
                 con.execute(f"DROP TABLE IF EXISTS {mirror}")
                 con.execute(f"CREATE TABLE {mirror} AS SELECT * FROM sdedump.{table}")
+            # The pause flag is administrator state, not import data —
+            # carry it across the wholesale meta replacement.
+            paused = _read_paused(con)
             con.execute(f"DROP TABLE IF EXISTS {META_TABLE}")
             con.execute(
                 f"CREATE TABLE {META_TABLE} ("
                 "id INTEGER PRIMARY KEY, version TEXT, source_url TEXT, "
                 "dump_sha256 TEXT, upstream_md5 TEXT, imported_at TEXT, "
-                "last_checked_at TEXT, check_status TEXT, check_detail TEXT)"
+                "last_checked_at TEXT, check_status TEXT, check_detail TEXT, "
+                "paused INTEGER DEFAULT 0)"
             )
             con.execute(
                 f"INSERT INTO {META_TABLE} "
-                "(id, version, source_url, dump_sha256, upstream_md5, imported_at) "
-                "VALUES (1, ?, ?, ?, ?, ?)",
+                "(id, version, source_url, dump_sha256, upstream_md5, "
+                "imported_at, paused) VALUES (1, ?, ?, ?, ?, ?, ?)",
                 (
                     version,
                     source_url,
@@ -203,6 +231,7 @@ def load_dump(
                     datetime.now(UTC).replace(tzinfo=None).isoformat(
                         sep=" ", timespec="seconds"
                     ),
+                    1 if paused else 0,
                 ),
             )
             con.execute("COMMIT")
@@ -234,7 +263,9 @@ def sde_info(db_path: Path) -> tuple[dict[str, str | None] | None, dict[str, int
         meta_row = None
         for columns in (
             "version, source_url, dump_sha256, imported_at, "
-            "last_checked_at, check_status, check_detail",
+            "last_checked_at, check_status, check_detail, paused",
+            "version, source_url, dump_sha256, imported_at, "
+            "last_checked_at, check_status, check_detail",  # pre-pause schema
             "version, source_url, dump_sha256, imported_at",  # pre-check schema
         ):
             try:
@@ -254,6 +285,7 @@ def sde_info(db_path: Path) -> tuple[dict[str, str | None] | None, dict[str, int
                 "last_checked_at": meta_row[4] if len(meta_row) > 4 else None,
                 "check_status": meta_row[5] if len(meta_row) > 5 else None,
                 "check_detail": meta_row[6] if len(meta_row) > 6 else None,
+                "paused": bool(meta_row[7]) if len(meta_row) > 7 else False,
             }
         counts = {f"sde_{t}": _count(con, f"sde_{t}") for t in MIRROR_TABLES}
         return meta, counts
@@ -261,11 +293,23 @@ def sde_info(db_path: Path) -> tuple[dict[str, str | None] | None, dict[str, int
         con.close()
 
 
+def _read_paused(con: sqlite3.Connection) -> bool:
+    """The pause flag from an existing sde_meta, if present."""
+    try:
+        columns = {row[1] for row in con.execute(f"PRAGMA table_info({META_TABLE})")}
+    except sqlite3.OperationalError:
+        return False
+    if "paused" not in columns:
+        return False
+    row = con.execute(f"SELECT paused FROM {META_TABLE} WHERE id = 1").fetchone()
+    return bool(row and row[0])
+
+
 def ensure_sde_meta(db_path: Path) -> None:
     """Normalize an existing sde_meta to the current shape (adds the
-    check columns, creates the row). The import creates the table fresh
-    each run; this covers databases whose last import predates the
-    check fields."""
+    check and pause columns, creates the row). The import creates the
+    table fresh each run; this covers databases whose last import
+    predates the newer fields."""
     con = sqlite3.connect(db_path, isolation_level=None)
     try:
         try:
@@ -277,13 +321,60 @@ def ensure_sde_meta(db_path: Path) -> None:
                 f"CREATE TABLE IF NOT EXISTS {META_TABLE} ("
                 "id INTEGER PRIMARY KEY, version TEXT, source_url TEXT, "
                 "dump_sha256 TEXT, upstream_md5 TEXT, imported_at TEXT, "
-                "last_checked_at TEXT, check_status TEXT, check_detail TEXT)"
+                "last_checked_at TEXT, check_status TEXT, check_detail TEXT, "
+                "paused INTEGER DEFAULT 0)"
             )
         else:
             for column in ("last_checked_at", "check_status", "check_detail"):
                 if column not in columns:
                     con.execute(f"ALTER TABLE {META_TABLE} ADD COLUMN {column} TEXT")
+            if "paused" not in columns:
+                con.execute(
+                    f"ALTER TABLE {META_TABLE} ADD COLUMN paused INTEGER DEFAULT 0"
+                )
         con.execute(f"INSERT OR IGNORE INTO {META_TABLE} (id) VALUES (1)")
+    finally:
+        con.close()
+
+
+def import_exists(db_path: Path) -> bool:
+    """True once an SDE set has been imported — the background loop only
+    maintains an existing mirror; the initial import is the
+    administrator's call (Import now or the CLI)."""
+    if not db_path.exists():
+        return False
+    con = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    try:
+        try:
+            row = con.execute(
+                f"SELECT imported_at FROM {META_TABLE} WHERE id = 1"
+            ).fetchone()
+        except sqlite3.OperationalError:
+            return False
+        return row is not None and row[0] is not None
+    finally:
+        con.close()
+
+
+def is_paused(db_path: Path) -> bool:
+    """True when the administrator paused automatic imports."""
+    if not db_path.exists():
+        return False
+    con = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    try:
+        return _read_paused(con)
+    finally:
+        con.close()
+
+
+def set_paused(db_path: Path, value: bool) -> None:
+    ensure_sde_meta(db_path)
+    con = sqlite3.connect(db_path, isolation_level=None)
+    try:
+        con.execute(
+            f"UPDATE {META_TABLE} SET paused = ? WHERE id = 1",
+            (1 if value else 0,),
+        )
     finally:
         con.close()
 
@@ -345,39 +436,51 @@ def check_and_import(
     *,
     dump_url: str,
     user_agent: str,
+    force: bool = False,
 ) -> str:
     """The admin-section check: fetch the published MD5, compare with the
     stored import, and on change drop-and-reimport the whole mirror (no
     diffing — the mirror is cheap to rebuild). The MD5 comparison is
-    always honored — only the background loop's interval gate decides
-    WHEN to check, and the admin button bypasses just that. Returns
-    "up-to-date", "completed", "failed", or "in-progress" when another
+    honored unless `force` (the Import now button — for the initial
+    import or a manual refresh); only the background loop's interval
+    gate decides WHEN to check automatically. Returns "up-to-date",
+    "completed", "cancelled", "failed", or "in-progress" when another
     check holds the lock. The check timestamp is stamped at the START of
     the attempt, so a killed attempt still backs off for the interval."""
     if not _import_lock.acquire(blocking=False):
         return "in-progress"
     _import_running.set()
+    _cancel_requested.clear()
     try:
         record_check(db_path, status="in-progress")
+        if _cancel_pending():
+            record_check(db_path, status="cancelled")
+            return "cancelled"
         md5 = fetch_upstream_md5(dump_url, user_agent=user_agent)
+        if _cancel_pending():
+            record_check(db_path, status="cancelled")
+            return "cancelled"
         if md5 is None:
             record_check(
                 db_path, status="failed", detail="Published MD5 unavailable"
             )
             return "failed"
-        if is_current(db_path, md5):
+        if not force and is_current(db_path, md5):
             record_check(db_path, status="up-to-date")
             return "up-to-date"
         with tempfile.TemporaryDirectory(prefix="sde-check-") as tmp:
             tmp_dir = Path(tmp)
             gz_path, sha256, downloaded_md5, last_modified = download_dump(
-                dump_url, tmp_dir, user_agent=user_agent
+                dump_url, tmp_dir, user_agent=user_agent,
+                cancel_check=_cancel_pending,
             )
             if downloaded_md5 != md5:
                 raise RuntimeError(
                     "downloaded dump failed its MD5 check "
                     "(release changed mid-download?)"
                 )
+            if _cancel_pending():
+                raise ImportCancelled
             dump_path = _decompress(gz_path, tmp_dir)
             load_dump(
                 db_path,
@@ -389,6 +492,11 @@ def check_and_import(
             )
         record_check(db_path, status="completed")
         return "completed"
+    except ImportCancelled:
+        record_check(
+            db_path, status="cancelled", detail="stopped by administrator"
+        )
+        return "cancelled"
     except Exception as exc:  # the loop must survive anything
         record_check(db_path, status="failed", detail=str(exc)[:500])
         return "failed"
@@ -424,14 +532,21 @@ def clear_stale_check(db_path: Path) -> None:
 
 async def sde_check_loop(settings) -> None:
     """Background SDE check: poll hourly, run the check at most once per
-    configured interval (persisted gate — restarts don't reset it). A
-    changed MD5 triggers the full drop-and-reimport in a worker thread
-    so the event loop never blocks on the download."""
+    configured interval (persisted gate — restarts don't reset it). The
+    loop only MAINTAINS an existing mirror: a fresh deployment waits for
+    the administrator's initial import (Import now or the CLI), and a
+    paused system skips checks entirely. A changed MD5 triggers the full
+    drop-and-reimport in a worker thread so the event loop never blocks
+    on the download."""
     db_path = resolve_db_path(settings.database_url)
     clear_stale_check(db_path)
     while True:
         try:
-            if check_due(db_path, settings.sde_check_interval_hours):
+            if (
+                import_exists(db_path)
+                and not is_paused(db_path)
+                and check_due(db_path, settings.sde_check_interval_hours)
+            ):
                 status = await asyncio.to_thread(
                     check_and_import,
                     db_path,

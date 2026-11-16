@@ -19,6 +19,7 @@ from app.sde import (
     check_due,
     load_dump,
     record_check,
+    request_cancel,
     sde_info,
 )
 from tests.conftest import token_response
@@ -188,3 +189,123 @@ async def test_admin_sde_check_button(client, app, tmp_path):
             break
     assert meta["check_status"] == "up-to-date"
     assert meta["last_checked_at"] is not None
+
+
+@respx.mock
+def test_import_now_forces_reimport(tmp_path):
+    """Import now bypasses the MD5 comparison: even a matching hash
+    performs the full download and re-import (the initial-import and
+    manual-refresh path)."""
+    db_path = tmp_path / "target.db"
+    dump_path = tmp_path / "dump.sqlite"
+    _make_dump(dump_path)
+    published = _serve_dump(dump_path)
+    load_dump(db_path, dump_path, upstream_md5=published)
+
+    status = check_and_import(
+        db_path, dump_url=DUMP_URL, user_agent="test", force=True
+    )
+
+    assert status == "completed"
+    meta, _ = sde_info(db_path)
+    assert meta["check_status"] == "completed"
+
+
+@respx.mock
+def test_stop_cancels_during_download(tmp_path):
+    """A stop request lands between download chunks: the running check
+    records a cancelled status and leaves the previous mirror intact."""
+    import threading
+    import time
+
+    db_path = tmp_path / "target.db"
+    dump_path = tmp_path / "dump.sqlite"
+    _make_dump(dump_path)
+    load_dump(db_path, dump_path, upstream_md5="0" * 32)
+
+
+    def slow_content():
+        yield b"x" * 16
+        time.sleep(1.5)  # the stop lands while this is pending
+        yield b"y" * 16
+
+    respx.get(DUMP_URL).respond(
+        content=slow_content(), headers={"Last-Modified": LAST_MODIFIED}
+    )
+    respx.get(MD5_URL).respond(text=f"{'9' * 32}  latest-sqlite.db.gz\n")
+    threading.Timer(0.3, request_cancel).start()
+
+    status = check_and_import(db_path, dump_url=DUMP_URL, user_agent="test")
+
+    assert status == "cancelled"
+    meta, counts = sde_info(db_path)
+    assert meta["check_status"] == "cancelled"
+    assert "stopped" in meta["check_detail"]
+    # The previous mirror is untouched.
+    assert counts["sde_invTypes"] == 3
+
+
+def test_pause_and_import_exists_gating(tmp_path):
+    """The loop only maintains an existing mirror: no import yet means
+    no automatic checks, and the pause flag stops them entirely. The
+    flag also survives a re-import."""
+    from app.sde import import_exists, is_paused, set_paused
+
+    db_path = tmp_path / "target.db"
+    assert not import_exists(db_path)  # fresh deployment: admin's call
+
+    dump_path = tmp_path / "dump.sqlite"
+    _make_dump(dump_path)
+    load_dump(db_path, dump_path)
+    assert import_exists(db_path)
+
+    set_paused(db_path, True)
+    assert is_paused(db_path)
+
+    # The pause flag is administrator state — a re-import keeps it.
+    load_dump(db_path, dump_path)
+    assert is_paused(db_path)
+
+    set_paused(db_path, False)
+    assert not is_paused(db_path)
+
+
+@respx.mock
+async def test_admin_import_pause_stop_routes(client, app, tmp_path):
+    await _login(client)
+    db_path = tmp_path / "target.db"
+    dump_path = tmp_path / "dump.sqlite"
+    _make_dump(dump_path)
+    published = _serve_dump(dump_path)
+    load_dump(db_path, dump_path, upstream_md5=published)
+    app.state.settings = app.state.settings.model_copy(
+        update={
+            "database_url": f"sqlite+aiosqlite:///{db_path}",
+            "sde_dump_url": DUMP_URL,
+        }
+    )
+
+    # Pause / resume toggle.
+    response = await client.post("/admin/sde/pause", follow_redirects=False)
+    assert response.status_code == 303
+    from app.sde import is_paused
+
+    assert is_paused(db_path)
+    response = await client.post("/admin/sde/pause", follow_redirects=False)
+    assert response.status_code == 303
+    assert not is_paused(db_path)
+
+    # Import now: forced — completes even though the MD5 matches.
+    response = await client.post("/admin/sde/import", follow_redirects=False)
+    assert response.status_code == 303
+    meta = None
+    for _ in range(50):
+        await asyncio.sleep(0.05)
+        meta, _ = sde_info(db_path)
+        if meta and meta["check_status"] in ("completed", "failed"):
+            break
+    assert meta["check_status"] == "completed"
+
+    # Stop with nothing running: harmless no-op.
+    response = await client.post("/admin/sde/stop", follow_redirects=False)
+    assert response.status_code == 303

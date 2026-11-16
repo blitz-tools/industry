@@ -1051,6 +1051,16 @@ button.danger:hover {
   margin-top: 0.5rem;
 }
 
+/* Admin control row (SDE data page): the manual actions beside the
+   status card. */
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+  margin: 0 0 1.25rem;
+}
+
 .pagination {
   display: flex;
   gap: 0.35rem;
