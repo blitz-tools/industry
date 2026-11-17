@@ -3,7 +3,17 @@ name: CI
 on:
   push:
     branches: [main]
+    # Document-only changes (planning surface, reference docs, license)
+    # don't affect code — skip the test suite for them.
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "LICENSE"
   pull_request:
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "LICENSE"
 
 jobs:
   test:
