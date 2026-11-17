@@ -1,7 +1,7 @@
 [project]
 name = "industry"
 version = "0.1.0"
-description = "EVE Online ESI tools: asset manager and industry planner (scaffold)"
+description = "EVE Online industry planner: ESI-synced corporation data on an SDE recipe mirror"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115",
