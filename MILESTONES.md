@@ -7,9 +7,50 @@ Order matters within a track, not across all of them — dependencies are
 called out explicitly.
 
 Validation case throughout: the **Typhoon** (T1 battleship) blueprint. The
-chain it produces (ship → components → base minerals) is familiar ground
-and exercises phases, blueprint availability, and asset measurement
-without needing invention or reactions.
+chain it produces (ship → components → reaction intermediates → moon
+materials, PI commodities, and minerals) is familiar ground and
+exercises phases, blueprint availability, and asset measurement.
+Correction (2026-11-16, confirmed against the live mirror): the chain
+**does require reactions** (though not invention) — the components take
+reaction products (Pressurized Oxidizers, Reinforced Carbon Fiber)
+whose own recipes are a further reaction layer consuming fuel blocks
+(manufacturing) and moon materials. Reactions commonly sit in the
+early, deep portions of even T1 chains, which is why reaction
+resolution is part of M5's initial scope rather than a later
+extension. Invention arrives only with T2 targets; T3's interface
+with it is to-be-determined (M8).
+
+## End goal (clarified 2026-11-16)
+
+A **work-distribution planner** for a single corporation and its
+registered characters, building target products as efficiently as
+possible — reduced material inputs with maximum time efficiency.
+
+Input a target build and quantity; the system reverses the product
+chain to raw-material inputs, then builds up every chain layer,
+distributing the work across the corporation's characters based on
+skill availability for each blueprint and chunking it across available
+build slots so the components the next stage needs complete as fast as
+possible. The parallelism mechanism is **BPC copies**: the planner
+recommends how many copies to make from owned BPOs and each one's run
+count, so jobs install simultaneously across slots — a single
+max-run job is always the most material-efficient but slowest, so
+more slots are bought at a material cost. A **profit-vs-throughput
+control** (plan-level slider) biases the distribution: the efficiency
+end concentrates work on the builders and job splits whose skills and
+run counts reduce input-material requirements (most profit per
+build); the throughput end fills every available slot to produce as
+many final targets as possible in the shortest time.
+
+The system closes the loop on the roster itself. Capability analysis
+matches the corp's synced skills and owned blueprints against the
+buildable catalog — recommending end products the corporation is
+positioned to produce, and identifying per-target gaps (missing
+skills, missing blueprints). Those gaps have three responses, which
+is where the roadmap forks (equal-weight alternatives, owner's call
+at pickup): **train** (per-character skill plans toward a target's
+maximum efficiency), **farm out** (bid chain portions to friends as
+paid contracts), or **pick a better target**.
 
 ---
 
@@ -66,10 +107,10 @@ Two consequences worth stating outright:
   where things sit (assets), and what it costs (indices, later prices).
 - **The schema models all industry activities from day one** —
   manufacturing, copying, invention, reactions, and T3 reverse
-  engineering — via a generic activity dimension. V1 *resolves* only the
-  T1 manufacturing chain; the others land incrementally (reactions
-  first, per the v1-scope decision) without migrations that retrofit
-  activity types.
+  engineering — via a generic activity dimension. V1 *resolves* the
+  T1 manufacturing + reaction chain (reactions included per the
+  revised v1-scope decision); invention/T2 and T3 land incrementally
+  without migrations that retrofit activity types.
 
 ### Decisions already made
 
@@ -77,9 +118,11 @@ Two consequences worth stating outright:
   dump for the current EVE release and mirrors it verbatim (see M2's
   landed-as notes). Re-run per release; nothing checked into git.
   Landed 2026-11-16 with the admin self-update.
-- **V1 chain scope**: T1 manufacturing only; reactions are the first
-  extension; invention/T2 and T3 follow. Schema supports all from the
-  start.
+- **V1 chain scope** (revised 2026-11-16): T1 manufacturing **and
+  reactions** — even the Typhoon validation chain carries two reaction
+  layers, so reactions resolve with the initial chain (M5) rather than
+  as a later extension; invention/T2 and T3 follow. Schema supports
+  all from the start.
 - **Market pricing**: deferred (separate milestone, near the end). The
   planner computes materials, time, and install cost from tax + system
   cost index; build-vs-buy and profitability come with the market
@@ -305,7 +348,9 @@ index; exactly one default per activity is enforced.
 ## M4 — Planner: single-blueprint calculation
 
 *The calculator core, before any chaining. One blueprint, one activity,
-real numbers.*
+real numbers. This and M5 are the substrate the M9 distribution engine
+consumes — the per-node skill and time math decided here is what the
+assignment weighting later multiplies against.*
 
 **Scope**
 
@@ -313,7 +358,10 @@ real numbers.*
   (pre-filled ME/TE from the `blueprints` table) or from the SDE catalog
   (manual ME/TE entry for BPOs you'd train up to).
 - Inputs: number of runs, ME/TE, facility (structure-manager default
-  for the activity, overridable).
+  for the activity, overridable). Run count is bounded by the
+  blueprint's max production limit (SDE
+  `industryBlueprints.maxProductionLimit`) — in practice around 30
+  days of output per job, the game's job-duration ceiling.
 - Outputs per material: base quantity → adjusted for blueprint ME,
   facility/rig material bonuses, security multipliers (SDE math:
   rounding is round-half-up at the end of the multiplier chain — pin
@@ -335,7 +383,9 @@ against in-game numbers.
 ## M5 — Planner: full chain resolution & phase view
 
 *The recursive BOM explosion — the heart of the system. Turns one
-blueprint into an ordered set of production phases.*
+blueprint into an ordered set of production phases. This is the
+reverse-then-rebuild of the end goal: raw-material inputs on one end,
+the layered chain the distribution engine schedules on the other.*
 
 **Scope**
 
@@ -345,12 +395,41 @@ blueprint into an ordered set of production phases.*
   max(dependency phases) + 1. Detect and refuse blueprint cycles
   defensively (SDE shouldn't contain any for manufacturing, but the
   resolver shouldn't trust it).
+- **Reaction resolution in the initial chain** (moved here from M7,
+  2026-11-16): the resolver walks reaction formulas (SDE activity 11)
+  exactly like manufacturing — any reaction input that is itself a
+  product recurses, whatever the activity. The Typhoon chain exercises
+  this for real: its components take reaction intermediates
+  (Pressurized Oxidizers, Reinforced Carbon Fiber) whose own recipes
+  are a further reaction layer consuming fuel blocks (manufacturing)
+  and moon materials. Reaction-capable facilities and rigs are
+  already modeled by M3's structure manager.
+- **Chain terminators classified**: not every input is buildable —
+  the Typhoon chain bottoms out in minerals, moon materials, and PI
+  commodities (Chiral Structures, Test Cultures, … — reactions in
+  particular commonly take planetary inputs). Terminators are leaf
+  nodes; the resolver must recognize them rather than treat "no
+  blueprint found" as an error. Planning deliberately stops at the
+  raw material input: *how* it's obtained — reprocessed ore (we plan
+  tritanium, never veldspar), planetary industry, moon mining, or
+  market purchase — is out of scope for the build planner. (A later
+  track adds reprocessing yield math on top of the acquisition table
+  — see Later tracks.)
 - Shared-quantity aggregation: the same intermediate type required by
   multiple parents merges into one node with summed requirements, then
   rounds *its* runs/materials once — per-phase, not per-parent.
 - Phase-grouped view: expandable tree per phase, node rows showing
   required qty, activity, and the blueprint involved — the assets-page
-  collapsible patterns.
+  collapsible patterns. **Tree shape of record** (confirmed
+  2026-11-16): the root is the target build item with its count;
+  every branch's input requirements multiply up to meet that count;
+  the final branches are raw material inputs. Each node carries its
+  quantity (multiplied to the target count), its activity, and — via
+  the overlays below — blueprint ownership and asset availability.
+  The fully expanded Typhoon chain — every branch, no elision, plus
+  the aggregated phases and raw-material totals — lives in
+  `TYPHOON-CHAIN.md` (too heavy to inline here; it's the reference
+  output M5's implementation gets checked against).
 - **Blueprint availability overlay**: per node, whether a usable
   blueprint is owned (char + corp, from the `blueprints` table — with
   runs ≥ 0 for copies, ME/TE for originals) and where it sits; missing
@@ -361,11 +440,19 @@ blueprint into an ordered set of production phases.*
   aggregation patterns already exist (`structure_page`).
 - Chain-level output: total materials per phase, total time, total
   install cost.
+- **Raw-material acquisition table**: the chain's terminators summed
+  across all components into one totals table, grouped by category —
+  minerals, moon materials, PI commodities, ice products — so the
+  planner knows exactly what to obtain and via which in-game mechanic
+  (market, planetary industry, mining, reprocessing). The Typhoon ×1
+  version is in `TYPHOON-CHAIN.md`.
 
 **Validation**: the Typhoon chain resolves to the expected phases
-(components then minerals, per the known build chain — user confirms
-phase structure and quantities), blueprint availability matches what's
-actually owned, and a corp-pool measurement sees office inventory.
+(components → reaction intermediates → second reaction layer +
+fuel blocks → minerals, moon materials, and PI commodities — user
+confirms phase structure and quantities), blueprint availability
+matches what's actually owned, and a corp-pool measurement sees office
+inventory.
 
 ---
 
@@ -408,24 +495,22 @@ when it delivers.
 
 ---
 
-## M7 — Reactions (first chain extension)
+## M7 — Reactions — folded into M5 (2026-11-16)
 
-*Extends the resolver from manufacturing-only to manufacturing +
-reactions. The activity-generic schema from M2/M5 pays off here.*
+*Revised when the validation chain was checked against the live
+mirror: the Typhoon chain itself requires two reaction layers, so
+reaction resolution belongs to the initial chain (M5), not a post-M6
+extension. Reactions commonly occupy the early, deep portions of even
+T1 product chains. This section stays as a record of the original
+plan.*
 
-**Scope**
-
-- Reaction chain resolution: SDE activity "reactions" — inputs are
-  mined moon materials and/or reaction products; refineries (Athanor/
-  Tatara) as facilities with reaction rigs; reaction skills for time.
-- Fuel-block and simple/complex reaction chains resolve as phases
-  feeding manufacturing parents.
-- Facility picker gains reaction-capable structures (already modeled in
-  M3's activity-conditional structure types).
-
-**Validation**: a chain that combines reactions and manufacturing —
-e.g. a T2-adjacent component whose advanced materials come from
-reactions — resolves with reactions in the correct early phases.
+What the fold means concretely: the M5 resolver treats reaction
+formulas (SDE activity 11) like any other blueprint product and
+recurses through them; reaction-capable facilities/rigs were already
+in M3's structure manager; reaction skills feed M4's time math like
+any other skill modifier. Nothing of the original scope survives as
+separate work — the activity-generic schema from M2 absorbed it as
+designed.
 
 ---
 
@@ -441,7 +526,11 @@ reactions — resolves with reactions in the correct early phases.
   expected-value math (probabilistic runs: "runs needed" computed with
   success probability, presented as expected + confidence range).
 - T3 reverse engineering from ancient relics (same activity family in
-  the SDE; loaded since M2).
+  the SDE; loaded since M2). **T3's interface with invention/reverse
+  engineering is to-be-determined** — the author doesn't have
+  significant T3 production experience, so the T3 portions of this
+  milestone get designed at pickup (against SDE data and community
+  docs) rather than pre-planned in detail here.
 - Chain view gains probabilistic nodes: an invention node shows the
   underlying copies required and the decryptor choice.
 - Subsystem/hull interdependencies for T3 ships (hull + subsystems
@@ -456,7 +545,8 @@ knowledge as the sanity anchor.
 
 ## M9 — Job orchestration: slots, skills, capsuleers
 
-*The coordination layer: who installs what, when, from where.*
+*The coordination layer: who installs what, when, from where — the
+work-distribution core of the end goal.*
 
 **Scope**
 
@@ -467,11 +557,41 @@ knowledge as the sanity anchor.
   keep it in a data table like the rig multipliers.
 - Live slot occupancy: subtract synced `industry_jobs` (char + corp)
   from each character's slot ceiling per activity.
-- **Per-phase job assignment**: for each phase, a suggested split of
-  its nodes' jobs across participating capsuleers — slots available,
-  skills held (blueprint-required skills from
-  `sde_activity_skills`), and then simple round-robin or
-  load-by-slots. Suggestions are user-editable before export.
+- **Efficiency-weighted per-phase job assignment**: for each phase, a
+  suggested split of its nodes' jobs across participating capsuleers.
+  Eligibility first (required skills from `sde_activity_skills`,
+  slots available), then a weighted distribution: characters whose
+  skill sets build a given component more efficiently get higher
+  weight for that component's nodes. Suggestions are user-editable
+  before export.
+- **Profit-vs-throughput control**: a plan-level weighting between
+  the two ends of the end-goal slider — concentrate work on the
+  builders whose skills reduce input materials (profit), or fill
+  every available build slot to minimize time-to-completion of what
+  the next stage needs (throughput). One slider for the whole chain
+  to start; per-stage control is a possible later refinement.
+- **Copy & BPC planning**: the mechanism for parallel installation —
+  the planner recommends how many BPCs to copy from the owned BPOs
+  and each copy's run count, so the jobs spread across multiple slots
+  and characters. The tradeoffs are modeled explicitly:
+  - A single job at maximum runs is always the most
+    material-efficient way to produce a commodity, but takes the
+    longest; splitting across more slots/characters means more jobs
+    with fewer runs each, and per-job material rounding (M4's math)
+    erodes efficiency as the split grows.
+  - Copy time is a real cost in the schedule — copies must finish
+    before any manufacturing job installs, and copy jobs themselves
+    consume science slots from the same characters' budgets.
+  - Diminishing returns apply: 30 one-run BPCs will not beat 3
+    ten-run BPCs once copy time is counted. The recommendation finds
+    the balance point, informed by the slider.
+  - Run counts are bounded: each blueprint carries a maximum run
+    limit (SDE `industryBlueprints.maxProductionLimit`) — large, in
+    practice capping a single job around 30 days of output, since
+    jobs generally cannot last longer than that. Multiple BPOs of
+    the same type may exist, each with its own ME/TE, so a split can
+    draw across several originals (see the M5 blueprint-selection
+    open question).
 - Remote installation ranges: Supply Chain Management (manufacturing)
   / Scientific Networking (research-family) skill levels vs. job
   location — flag jobs a character can't install remotely and where
@@ -480,9 +600,12 @@ knowledge as the sanity anchor.
   the capsuleer-facing view of the plan.
 
 **Validation**: with two registered characters of differing skills,
-phase assignment respects slots and required skills; a character
-without the remote-install skill for the facility's system gets
-flagged, not silently assigned.
+phase assignment respects slots and required skills, and the slider's
+two ends demonstrably move the same node's work (efficiency end: the
+more-skilled builder; throughput end: both); for a known split, the
+recommended BPC count and run counts are sane with copy lead time
+visible in the schedule; a character without the remote-install skill
+for the facility's system gets flagged, not silently assigned.
 
 ---
 
@@ -504,11 +627,127 @@ flagged, not silently assigned.
   detail, click through to node rows. Reuses plan data; presentation
   only.
 
+---
+
+## The post-core fork
+
+Once M12 lands, the roadmap forks into two **equal-weight
+alternatives** — external distribution (M13) or in-corp efficiency
+gains (M14). They are deliberately not sequenced against each other;
+the product owner decides at pickup which is the higher priority.
+M10's market pricing is a dependency of M14 only.
+
+## M12 — Capability analysis & recommended end products
+
+*The fork-point substrate: what this corporation is actually
+positioned to build, and what it's missing.*
+
+**Scope**
+
+- **Catalog-wide capability match**: the corp's registered characters
+  (synced `skills`) and owned blueprints (`blueprints`, char + corp)
+  joined against the buildable catalog — per product, whether every
+  chain layer is producible in-corp, and if not, exactly which
+  intermediates are blocked and why (missing skills, missing
+  blueprints).
+- **Recommended end products**: ranked suggestions of what the
+  corporation should produce — fully buildable targets first, and
+  partially buildable ones with their gaps surfaced (a target whose
+  intermediates can't be built in-corp may not make sense to produce
+  internally, or may be a farming candidate — see the fork).
+- **Per-target gap report**: for any selected target, the node-level
+  list of missing skills (who could train them) and missing
+  blueprints — the same gap list both fork branches respond to
+  (train, farm out) and the input the end-goal loop closes on.
+
+**Validation**: against the live roster, a fully-covered T1 target
+(e.g. the Typhoon chain) reports producible end to end; a target with
+a known gap (e.g. freighter-capable character without the
+intermediate-component skills or blueprints) reports exactly the
+blocked intermediates and the reason.
+
+## M13 — Fork branch: skill gap analysis & training recommendations
+
+*In-corp efficiency gains: close the gaps the M12 report finds by
+training the roster toward the target.*
+
+**Scope**
+
+- Per-character skill plans for a selected target build: the gap
+  between current synced skills and the chain's requirements
+  (eligibility) plus the skills that carry efficiency gains
+  (material/time), ranked by impact on the target's overall
+  efficiency.
+- Training recommendations presented per character (what to train,
+  toward which node's requirement or efficiency gain), working from
+  the M12 gap report.
+- **Skill→efficiency mapping is resolved empirically here**: once the
+  efficiency math exists, attempting a complex build (T3 destroyer,
+  Carrier chain) self-answers which skills carry efficiencies worth
+  training — validation targets, not pre-research. T1 skill gains
+  are time reduction only; T3 components and advanced reactions have
+  material gains.
+
+**Validation**: run the analysis against a complex chain (T3
+destroyer or Carrier) with the live roster; the recommendations
+surface the skills with real efficiency impact for that chain, and
+training-path suggestions are sane against the skill queue data
+already synced.
+
+## M14 — Fork branch: capsuleer bidding & contract farming
+
+*External distribution: farm chain portions out to friends as paid
+contracts. Depends on M6 (plans), M10 (market pricing), M12 (the gap
+report says what to farm), and the multi-user platform track (TODO) —
+other capsuleers must be able to log in.*
+
+**Scope**
+
+- **Marking plan nodes for farming**: within one build plan, the
+  planner marks what "we" build vs what gets farmed out — on
+  complicated chains some layers make more sense to farm than others.
+  Bid requests are slices of a plan, not separate artifacts.
+- **Publish a request**: target output, quantity, the hangar where
+  the providing blueprints sit, and a delivery window.
+- **Delivery window**: an adjustable human-manageable floor delivery
+  time *plus* the actual build time (e.g. 2 days + 1 hour of build,
+  or 2 days + 2 days of build) — balanced so the planner isn't
+  waiting indefinitely but the producer has realistic hours to
+  produce and deliver. Not a percentage multiplier (those misbehave
+  at the extremes).
+- **Bid pricing**: defaults derived from market rates at the input
+  hub (e.g. Jita) — starting point is the buy rate, often a
+  buy/sell "split" rate; user-adjustable. The planner's edge is
+  acquiring inputs below market sell.
+- **No efficiency math**: efficiency is the bidder's problem; the
+  system only prices and tracks.
+- **Accept → deliver → paid**: a capsuleer accepts a portion of the
+  chain in-app, delivers via in-game contract at the pre-agreed
+  rate, and is paid on contract completion. The app tracks contract
+  state only — isk settlement happens in-game; this is a
+  record/tracking layer, not a payment layer.
+
+**Validation**: publish a one-stage request from a Typhoon plan with
+a blueprint in a corp hangar, have a second account claim and produce
+it, and see delivery reflected on the plan node and the payout
+recorded.
+
+---
+
 ## Later tracks (from TODO, not re-planned here)
 
+- **Reprocessing & acquisition efficiency** (noted 2026-11-16):
+  extends M5's raw-material acquisition table from "what to obtain"
+  into "how much ore/ice to process for it" — yield math for
+  reprocessing compressed veldspar et al. from character skills,
+  implants, and structure bonuses (rigs, faction-warfare system
+  bonus, security status). Deliberately out of the chain planner,
+  which stops at the raw material input; this is a standalone
+  calculator against the acquisition table. Natural pairing with
+  M13's skill recommendations (Reprocessing skill family).
 - **Platform / administration**: local user accounts, admin menu,
   observability. Becomes a prerequisite once more than one human uses
-  the app.
+  the app (and a hard one for M14's bidding).
 - **CI Node 20 deprecation bump** and the smaller TODO items — stay in
   `TODO.md`.
 
@@ -520,11 +759,21 @@ flagged, not silently assigned.
   name) — M2.
 - One plan, multiple facilities: does a plan pin every node's facility
   at export, or re-pick facilities as the plan progresses? — M6.
-- Blueprint selection policy when several copies/BPOs exist (best ME?
-  most runs? user pick?) — M5.
+- Blueprint selection policy when several copies/BPOs exist — BPOs
+  may be duplicated, each with its own ME/TE, alongside copies of
+  varying runs (best ME? most runs? user pick?) — M5.
 - Can corporate plans draw from members' personal inventories as a
   fallback pool, or strictly the corp offices? — M5/M6.
 - Invention: fixed decryptor choice per plan vs. comparing decryptor
   EVs in the planner UI — M8.
+- Skill→efficiency mapping (which skills carry material vs time
+  gains, per activity) — resolved *empirically* at M13 by targeting a
+  complex build (T3 destroyer, Carrier) once the efficiency math
+  exists, not by pre-research. T1 = time reduction only; T3
+  components and advanced reactions have material gains.
+- T3 production mechanics: how subsystems, relics, and reverse
+  engineering actually interface with the invention family — design
+  at M8 pickup; the author's T3 production experience is thin, so
+  validate against SDE data and community documentation then.
 - Plan re-planning semantics: mid-flight adjustments (add runs, swap a
   facility) — amend in place vs. fork a new plan — M6.
