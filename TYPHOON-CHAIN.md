@@ -30,7 +30,7 @@ non-buildable terminator.
 The recipe view — every branch shown, shared intermediates repeated
 under each parent. 177 nodes.
 
-```
+```text
 - Typhoon x1 [manufacturing] (1 run)
   - Core Temperature Regulator x1 [manufacturing] (1 run)
     - Chiral Structures x100  [raw]
@@ -328,7 +328,7 @@ stated so they can be challenged:
   reactions share manufacturing slots, phases 2/3 merge into the
   same 30-slot pool and the wave counts combine.
 
-```
+```text
 ========================================================================
 TYPHOON x100 — WORK DISTRIBUTION MODEL (logic proof-out)
 ========================================================================
@@ -522,7 +522,7 @@ choice:
 Timelines (pure-copy strategy; `#` copy, `r` reaction, `m`
 manufacturing, `.` dead zone):
 
-```
+```text
 TYPHOON x10 — chain end 9.5d, dead wait 3.0d
   AIPS copy     |##################################################  | 0.0 ->  8.3d
   LSBU copy     |#########################                           | 0.0 ->  4.2d

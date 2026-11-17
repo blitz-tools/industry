@@ -8,19 +8,75 @@ on:
   push:
     branches: [main]
     # Document-only changes (planning surface, reference docs, license)
-    # don't affect code — skip the test suite for them.
+    # don't affect code — skip the test suite for them. Trigger-level
+    # skipping is safe here: nothing on push requires these checks.
     paths-ignore:
       - "**.md"
       - "docs/**"
       - "LICENSE"
+  # Pull requests always trigger: a required status check waits forever
+  # on a workflow that never ran, so the docs-only skip decision lives
+  # INSIDE the workflow (the `changes` job) — everything it gates off
+  # then reports "Skipped", which branch protection treats as passing.
   pull_request:
-    paths-ignore:
-      - "**.md"
-      - "docs/**"
-      - "LICENSE"
 
 jobs:
+  changes:
+    name: Detect changes (CI)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-26.04
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Detect non-document changes
+        id: filter
+        run: |
+          if git diff --name-only "origin/${{ github.base_ref }}...HEAD" \
+              | grep -Ev '^docs/|\.md$|^LICENSE$' | grep -q .; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  docs:
+    name: Lint docs & config
+    # Runs on every PR: cheap, and it gives documentation-only changes a
+    # real check to pass instead of an all-skipped CI run.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        # Exact version: setup-uv stopped publishing major/minor tags at v8
+        # (immutable releases only). v7+ runs on Node 24.
+        uses: astral-sh/setup-uv@v10.3.3
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Markdown lint
+        # --config explicit: the default lookup doesn't reliably find the
+        # repo-root config, and CI should never depend on lookup order.
+        run: uv run pymarkdownlnt --config .pymarkdownlnt.yml scan .
+
+      - name: YAML lint
+        run: uv run yamllint .
+
   test:
+    needs: changes
+    # Push events have no `changes` run (that job only exists on pull
+    # requests), so always() is what lets this evaluate there; on pull
+    # requests the filter decides. If the filter itself fails, this
+    # skips — and the merge blocks, because the filter check is itself
+    # required.
+    if: always() && (github.event_name != 'pull_request' || needs.changes.outputs.code == 'true')
     # Pinned: ubuntu-latest migrates to Ubuntu 26 over time; run on it
     # deliberately, not by label flip.
     runs-on: ubuntu-26.04

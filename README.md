@@ -135,6 +135,11 @@ All inside the same container:
 podman compose -f compose.dev.yml run --rm dev pytest
 podman compose -f compose.dev.yml run --rm dev ruff check .
 
+# docs and config linting (the same checks CI runs on every PR)
+podman compose -f compose.dev.yml run --rm dev uv run yamllint .
+podman compose -f compose.dev.yml run --rm dev \
+  uv run pymarkdownlnt --config .pymarkdownlnt.yml scan .
+
 # migration cycle against a throwaway database
 podman compose -f compose.dev.yml run --rm dev sh -c \
   'DATABASE_URL=sqlite+aiosqlite:////tmp/mig.db alembic upgrade head && \

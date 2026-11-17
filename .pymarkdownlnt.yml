@@ -1,0 +1,12 @@
+# PyMarkdownLint configuration. Tuned to the repo's established style:
+# everything else stays at defaults.
+plugins:
+  # Planning/reference docs wrap prose at ~90 but tables and captured
+  # golden-value lines run long by design — line length is not a defect
+  # here (same call ruff makes at 90 for code, looser for data).
+  md013:
+    enabled: false
+  # `**Landed as**`-style bold labels are the established section idiom
+  # in MILESTONES.md; they are labels, not misused headings.
+  md036:
+    enabled: false

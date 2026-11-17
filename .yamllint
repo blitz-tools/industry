@@ -1,0 +1,13 @@
+# yamllint configuration. Covers GitHub workflows and the compose files.
+extends: default
+
+rules:
+  # Long explanatory comments and URLs are deliberate in these files;
+  # line length is not a defect for YAML config.
+  line-length: disable
+  # GitHub workflows use `on:` as a trigger key, which the truthy rule
+  # would otherwise flag on every file.
+  truthy:
+    check-keys: false
+  # Compose and workflow files don't require a `---` document start.
+  document-start: disable
