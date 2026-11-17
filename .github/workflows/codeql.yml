@@ -56,12 +56,16 @@ jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
     needs: changes
-    # Push/schedule events have no `changes` run (that job only exists
-    # on pull requests), so always() is what lets this evaluate there;
-    # on pull requests the filter decides. If the filter itself fails,
-    # this skips — and the merge blocks, because the filter check is
-    # itself required.
-    if: always() && (github.event_name != 'pull_request' || needs.changes.outputs.code == 'true')
+    # always(): push/schedule events have no `changes` run (that job only
+    # exists on pull requests), and a needed-but-skipped job would skip
+    # this one too. The matrix must expand on every event — a matrix job
+    # skipped at the JOB level reports a single check run under the
+    # unexpanded template name, which starves the required per-language
+    # checks on docs-only PRs. So the legs always start and the skip
+    # decision happens at STEP level: a docs-only PR gets three fast,
+    # successful legs. A failed `changes` job gates the merge itself,
+    # since that check is required.
+    if: always()
     # Runner size impacts CodeQL analysis time. To learn more, see:
     #   https://gh.io/recommended-hardware-resources-for-running-codeql
     #   https://gh.io/supported-runners-and-hardware-resources
@@ -101,7 +105,21 @@ jobs:
             # https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning
             # https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning/codeql-code-scanning-for-compiled-languages
     steps:
+      - name: Check whether analysis should run
+        # Analysis runs for every event except docs-only pull requests
+        # (no checkout or CodeQL work for those — the leg just reports
+        # success so the per-language required checks are satisfied).
+        id: gate
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ] \
+              || [ "${{ needs.changes.outputs.code }}" = "true" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout repository
+        if: steps.gate.outputs.run == 'true'
         uses: actions/checkout@v7
 
       # Add any setup steps before running the `github/codeql-action/init`
@@ -113,6 +131,7 @@ jobs:
 
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
+        if: steps.gate.outputs.run == 'true'
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
@@ -132,7 +151,7 @@ jobs:
       # ℹ️ Command-line programs to run using the OS shell.
       # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
       - name: Run manual build steps
-        if: matrix.build-mode == 'manual'
+        if: steps.gate.outputs.run == 'true' && matrix.build-mode == 'manual'
         shell: bash
         run: |
           echo 'If you are using a "manual" build mode for one or more of the' \
@@ -143,6 +162,7 @@ jobs:
           exit 1
 
       - name: Perform CodeQL Analysis
+        if: steps.gate.outputs.run == 'true'
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{ matrix.language }}"
