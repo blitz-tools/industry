@@ -59,7 +59,7 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv sync --frozen
+        run: uv sync --frozen --group docs
 
       - name: Markdown lint
         # --config explicit: the default lookup doesn't reliably find the
@@ -68,6 +68,12 @@ jobs:
 
       - name: YAML lint
         run: uv run yamllint .
+
+      - name: Build docs site
+        # Strict: a broken link or bad config fails here, on the PR,
+        # instead of breaking the Pages deploy after merge. Zensical
+        # reads the same mkdocs.yml MkDocs would (compatibility mode).
+        run: uv run --group docs zensical build --strict
 
   test:
     needs: changes
