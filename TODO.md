@@ -16,7 +16,7 @@ Groundwork that already exists and applies broadly:
   (`app/esi/client.py`). Scope-gated calls only — scopeless calls are
   guaranteed 403s and burn ESI's error-limit budget.
 - **Registered portal scopes** (see `.env.example` `ESI_SCOPES`): character
-  + corporation variants of assets, blueprints, industry jobs, market
+  and corporation variants of assets, blueprints, industry jobs, market
   orders, wallets, projects, skills, skill queue, location.
 - **Synced industry data** (M1 + M2, PRs #12–#17): the owner-keyed
   `blueprints`, `skills`, and `industry_jobs` tables hold both sides —
