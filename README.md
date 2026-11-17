@@ -20,12 +20,11 @@ planner itself is under active development. See
 > AI-assisted software development, this project informs that choice up
 > front: you are free to not consume or contribute to it.
 
-> [!NOTE]
-> **Branch protection.** `main` is protected by a ruleset: everything
-> lands through pull requests passing required status checks — code
-> changes run the test suite and CodeQL analysis, documentation-only
-> changes run the docs/config lint job. Nothing merges ungated, and no
-> one (including the owner) bypasses the rules.
+**Branch protection.** `main` is protected by a ruleset: everything
+lands through pull requests passing required status checks — code
+changes run the test suite and CodeQL analysis, documentation-only
+changes run the docs/config lint job. Nothing merges ungated, and no
+one (including the owner) bypasses the rules.
 
 ## Where it's going
 
