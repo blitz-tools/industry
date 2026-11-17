@@ -1,6 +1,13 @@
 # yamllint configuration. Covers GitHub workflows and the compose files.
 extends: default
 
+# CI runs uv sync in the workspace, which creates .venv/ (with vendored
+# theme YAML) inside the repo; site/ is the local docs build output.
+# Neither is ours to lint.
+ignore: |
+  .venv/
+  site/
+
 rules:
   # Long explanatory comments and URLs are deliberate in these files;
   # line length is not a defect for YAML config.
