@@ -168,13 +168,6 @@ Prerequisite work for anything multi-user:
 
 ## Smaller items / ideas
 
-- **CI: upgrade actions off deprecated Node.js 20** — GitHub is
-  deprecating Node 20 on Actions runners
-  (github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners);
-  `actions/checkout@v4` and `astral-sh/setup-uv@v5` in
-  `.github/workflows/ci.yml` currently trigger the forced-Node-24
-  warning. Bump both to their current major versions (checkout v5+,
-  setup-uv v6+) and re-run the workflow to confirm the warning clears.
 - **Session persistence for region/category filters** — the character
   selection is remembered across page visits (see
   `character_filter_groups` / the `?chars=` sentinels); extend the same
