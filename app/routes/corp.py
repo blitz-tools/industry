@@ -52,6 +52,7 @@ from ..esi.universe import UniverseResolver, corporation_name
 from ..industry import corporation_blueprints, corporation_jobs
 from ..models import Character, DataSync
 from ..templates import templates
+from . import trusted_target
 
 router = APIRouter()
 
@@ -287,9 +288,7 @@ async def sync_corp_data(request: Request, db: DbDep, esi: EsiDep):
     await sync_corporation(db, esi, resolver=resolver)
 
     form = await request.form()
-    back = form.get("back") or "/corp/assets"
-    if back not in SYNC_BACK_TARGETS:
-        back = "/corp/assets"
+    back = trusted_target(form.get("back"), SYNC_BACK_TARGETS, "/corp/assets")
     return RedirectResponse(back, status_code=303)
 
 

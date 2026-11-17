@@ -1,5 +1,9 @@
 name: CI
 
+# Least privilege for the GITHUB_TOKEN this workflow gets.
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]
