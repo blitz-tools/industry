@@ -130,6 +130,13 @@ Two consequences worth stating outright:
 - **Visualization**: phase-grouped expandable views first (reusing the
   assets-page collapsible-row patterns); interactive node-graph DAG is
   its own follow-up milestone.
+- **Reference implementation** (2026-11-17): proof-out scripts in
+  `reference/` — chain expansion (M5), the time-balanced
+  scheduling/timeline model with per-character skill multipliers
+  (M4/M9), and BPO obtainment recommendations (M12) — regenerate
+  `TYPHOON-CHAIN.md`'s golden values and are the executable spec the
+  milestones graduate into the app. See `reference/README.md` for the
+  formula reference and flagged assumptions.
 
 ---
 
@@ -361,7 +368,10 @@ assignment weighting later multiplies against.*
   for the activity, overridable). Run count is bounded by the
   blueprint's max production limit (SDE
   `industryBlueprints.maxProductionLimit`) — in practice around 30
-  days of output per job, the game's job-duration ceiling.
+  days of output per job, the game's job-duration ceiling. **Run
+  math divides required units by products-per-run** (SDE
+  `industryActivityProducts.quantity` — components yield 3/run,
+  fuel blocks 40/run); runs = ⌈units ÷ products-per-run⌉.
 - Outputs per material: base quantity → adjusted for blueprint ME,
   facility/rig material bonuses, security multipliers (SDE math:
   rounding is round-half-up at the end of the multiplier chain — pin
@@ -370,8 +380,18 @@ assignment weighting later multiplies against.*
   bonus × skill modifiers from the character running it — character
   selector feeds the skills table), install cost (base input value ×
   system cost index + structure tax).
-- Character skills matter here: Industry (material waste), Advanced
-  Industry (time), facility-relevant skills. Slot-count skills and
+- **Copy-time math**: per-run copy time (SDE activity 5) for any
+  blueprint — the input M9's copy planning and M12's BPO
+  recommendations multiply against. Copy time is typically ~80% of
+  base build time per run, which is what makes copying a parallelism
+  lever with sharp diminishing returns.
+- **Skill→time multipliers live in a data table here** (like the rig
+  multipliers): which skills reduce which activities' time, whether
+  copying is affected, pinned from dogma/CCP docs at implementation.
+  The time-balanced model in `TYPHOON-CHAIN.md` (built on a ×0.68
+  manufacturing assumption) is the golden-value check.
+- Character skills matter here: Industry (time), Advanced Industry
+  (time), facility-relevant skills. Slot-count skills and
   remote-range skills are consumed in M9, not here.
 
 **Validation**: a known Typhoon BPO at ME 10 in a defined Azbel
@@ -440,6 +460,12 @@ the layered chain the distribution engine schedules on the other.*
   aggregation patterns already exist (`structure_page`).
 - Chain-level output: total materials per phase, total time, total
   install cost.
+- **Chain timeline view**: a linear (Gantt-style) rendering of the
+  resolved chain parameterized by target count — phase bars, copy
+  pipelines, and the dead zones where builds wait on inputs or BPCs
+  (the `TYPHOON-CHAIN.md` timelines as an app surface). Durations
+  come from M4's time math; the view makes the gating resource
+  visible at a glance.
 - **Raw-material acquisition table**: the chain's terminators summed
   across all components into one totals table, grouped by category —
   minerals, moon materials, PI commodities, ice products — so the
@@ -465,7 +491,9 @@ reality over time.*
 
 - Export from the planner: snapshot the resolved chain (nodes, phases,
   quantities, facility choices, the ME/TE and runs inputs) into
-  `build_plans` / `build_plan_nodes`. The snapshot is the plan of
+  `build_plans` / `build_plan_nodes`, **including the schedule** —
+  login-window length, job waves, BPC run counts, and copy-pipeline
+  state at export time. The snapshot is the plan of
   record; re-running the planner makes a *new* plan, it doesn't mutate
   an old one.
 - "Build Plans" section: list + detail views, personal and corporate
@@ -546,7 +574,9 @@ knowledge as the sanity anchor.
 ## M9 — Job orchestration: slots, skills, capsuleers
 
 *The coordination layer: who installs what, when, from where — the
-work-distribution core of the end goal.*
+work-distribution core of the end goal. A logic proof-out of the
+target behavior — Typhoon ×100 spread across the live corp roster's
+slots, with model rules and assumptions — is in `TYPHOON-CHAIN.md`.*
 
 **Scope**
 
@@ -557,6 +587,20 @@ work-distribution core of the end goal.*
   keep it in a data table like the rig multipliers.
 - Live slot occupancy: subtract synced `industry_jobs` (char + corp)
   from each character's slot ceiling per activity.
+- **Blueprint job-lock**: a blueprint (original or copy) supports
+  exactly one active job — concurrency per commodity is
+  min(slot pool, blueprint count), never slots alone. With one BPO
+  per reaction formula per character, a formula runs at most 3
+  concurrent jobs however many reaction slots are free; copying is
+  likewise one job per BPO. Slot math multiplies against blueprint
+  availability (the structural discovery of the `TYPHOON-CHAIN.md`
+  time-balanced model: reactions and copying are BPO-bound, slots
+  idle).
+- **Login-window alignment**: jobs sized to end together at window
+  boundaries (the deliver-together objective) — even-split run
+  counts, window length a plan parameter (the proof-outs used 6h).
+  Fewer, larger jobs trade install frequency against end-time
+  spread; the sizing rule is the v2 model's.
 - **Efficiency-weighted per-phase job assignment**: for each phase, a
   suggested split of its nodes' jobs across participating capsuleers.
   Eligibility first (required skills from `sde_activity_skills`,
@@ -585,6 +629,14 @@ work-distribution core of the end goal.*
   - Diminishing returns apply: 30 one-run BPCs will not beat 3
     ten-run BPCs once copy time is counted. The recommendation finds
     the balance point, informed by the slider.
+  - **Copy-vs-direct is a timed, skill-dependent decision** (rule
+    and worked example in `TYPHOON-CHAIN.md`): copy while
+    input-starved (the dead zone before a phase's inputs exist);
+    build direct from the BPO once inputs flow, if the runner's
+    skilled build time beats copy time per run (break-even
+    multiplier ≈ 0.8 for the T1 components). Low-skill characters
+    should keep copying; max-skill characters should switch — an
+    efficiency weighting the assignment engine encodes.
   - Run counts are bounded: each blueprint carries a maximum run
     limit (SDE `industryBlueprints.maxProductionLimit`) — large, in
     practice capping a single job around 30 days of output, since
@@ -602,10 +654,12 @@ work-distribution core of the end goal.*
 **Validation**: with two registered characters of differing skills,
 phase assignment respects slots and required skills, and the slider's
 two ends demonstrably move the same node's work (efficiency end: the
-more-skilled builder; throughput end: both); for a known split, the
-recommended BPC count and run counts are sane with copy lead time
-visible in the schedule; a character without the remote-install skill
-for the facility's system gets flagged, not silently assigned.
+more-skilled builder; throughput end: both); blueprint job-lock is
+respected (a formula held as one BPO per character never exceeds 3
+concurrent jobs); for a known split, the recommended BPC count and
+run counts are sane with copy lead time visible in the schedule; a
+character without the remote-install skill for the facility's system
+gets flagged, not silently assigned.
 
 ---
 
@@ -659,6 +713,16 @@ positioned to build, and what it's missing.*
   list of missing skills (who could train them) and missing
   blueprints — the same gap list both fork branches respond to
   (train, farm out) and the input the end-goal loop closes on.
+- **Blueprint asset gap analysis** (noted 2026-11-17; rules and
+  worked example in `TYPHOON-CHAIN.md`): BPO obtainment
+  recommendations from the chain resolver's phase math plus the
+  synced `blueprints` table — per commodity, minimum useful BPOs =
+  ceil(copy-queue rate ÷ input-dead-zone rate), the target-count
+  trigger where the queue starts overflowing the dead zone, the
+  slot-saturation ceiling, and the acquisition ladder with
+  days-saved per rung. All closed-form and scale-invariant in the
+  target count; cost-checked against market pricing (M10) once that
+  exists, so recommendations read as "this BPO buys N days."
 
 **Validation**: against the live roster, a fully-covered T1 target
 (e.g. the Typhoon chain) reports producible end to end; a target with
@@ -775,5 +839,12 @@ recorded.
   engineering actually interface with the invention family — design
   at M8 pickup; the author's T3 production experience is thin, so
   validate against SDE data and community documentation then.
+- Pipelining semantics: partial phase deliveries (reaction chunks
+  feeding early component builds, BPCs building as they finish
+  copying) vs. strict phase-serial deliver-together — the
+  `TYPHOON-CHAIN.md` proof-outs are deliberately serial; pipelining
+  is the known next refinement and would shrink every dead zone,
+  but complicates the scheduler and the delivery story. Decide at
+  M9 pickup whether v1 ships serial-only.
 - Plan re-planning semantics: mid-flight adjustments (add runs, swap a
   facility) — amend in place vs. fork a new plan — M6.
