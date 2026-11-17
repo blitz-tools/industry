@@ -21,7 +21,9 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest migrates to Ubuntu 26 over time; run on it
+    # deliberately, not by label flip.
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v4
 
