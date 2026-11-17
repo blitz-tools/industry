@@ -4,6 +4,16 @@ Web application interfacing with the [EVE Online ESI API](https://esi.evetech.ne
 Currently a scaffold implementing EVE SSO authorization — the foundation for a
 future asset manager and industry planner.
 
+> [!IMPORTANT]
+> **How this project is built.** This repository is developed with an
+> agentic SDLC: the human acts as product owner — providing the vision,
+> priorities, and domain understanding of how the system should work —
+> and AI agents act as the junior developers who implement solutions in
+> priority order. Every change is reviewed and approved by the product
+> owner before it is merged. If you have a fundamental objection to
+> AI-assisted software development, this project informs that choice up
+> front: you are free to not consume or contribute to it.
+
 ## How it works
 
 - **EVE SSO is the only login.** There are no local accounts. Signing in sends
