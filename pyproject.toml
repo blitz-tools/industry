@@ -26,6 +26,14 @@ dev = [
     "pymarkdownlnt>=0.9.12",
     "yamllint>=1.35",
 ]
+docs = [
+    "zensical>=0.1",
+    # Fallback build path: the project reads the same mkdocs.yml under
+    # either tool (Zensical compatibility mode), so MkDocs + Material
+    # stay installable as the escape hatch if Zensical misbehaves.
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

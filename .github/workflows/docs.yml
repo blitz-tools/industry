@@ -1,0 +1,58 @@
+name: Docs
+
+# Builds and publishes the documentation site to GitHub Pages whenever
+# its source changes on main. PR-side checking (markdown lint + strict
+# mkdocs build) lives in CI's "Lint docs & config" job, so broken sites
+# block merge rather than reaching this deploy.
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        # Exact version: setup-uv stopped publishing major/minor tags at v8
+        # (immutable releases only). v7+ runs on Node 24.
+        uses: astral-sh/setup-uv@v10.3.3
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --group docs
+
+      - name: Build site
+        run: uv run --group docs zensical build --strict
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-26.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

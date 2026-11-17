@@ -1,0 +1,56 @@
+# Read by both build tools: Zensical (primary, `zensical build`) and
+# MkDocs + Material (fallback, `mkdocs build`) — Zensical compatibility
+# mode keeps the two interchangeable.
+site_name: industry
+site_description: A self-hosted EVE Online industry planner
+site_url: https://blitz-tools.github.io/industry/
+repo_url: https://github.com/blitz-tools/industry
+repo_name: blitz-tools/industry
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+  palette:
+    # Light/dark toggle; respects the OS preference by default.
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.superfences
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Administration:
+      - Installation: admin/installation.md
+      - SDE data: admin/sde-data.md
+      - Security: admin/security.md
+  - Development:
+      - Getting started: development/getting-started.md
+      - Testing and linting: development/testing.md
+      - Workflow: development/workflow.md
+      - Architecture: development/architecture.md
+  - User guide:
+      - Characters and the roster: user-guide/characters.md
+      - Assets: user-guide/assets.md
+      - Blueprints, skills, and jobs: user-guide/character-data.md
+      - Corporation: user-guide/corporation.md

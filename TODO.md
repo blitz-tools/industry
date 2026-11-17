@@ -46,28 +46,10 @@ Groundwork that already exists and applies broadly:
 
 ## In queue
 
-### Documentation site (mkdocs + GitHub Pages)
-
-A documentation site published via GitHub Pages, sourced from a `/docs`
-folder in the repo. README.md stays a clean, concise overview that links
-to the site.
-
-- **Tooling**: mkdocs (material theme if it earns its weight), a GitHub
-  Actions workflow deploying on pushes to `main` via
-  `actions/deploy-pages` — same review flow as code changes.
-- **Sections**:
-  - *Installation & setup* — clone, `.env`, EVE SSO application
-    registration (callback URL, scope list), container startup, first
-    login, SDE import (`python -m app.sde import`).
-  - *Development process* — the containerized workflow: podman compose,
-    tests/lint/migrations in-container, the `.dev-reload-paused` marker,
-    branch → PR → CI → merge with product-owner review.
-  - *User guide* — characters and re-auth, roster, asset browsing
-    (filters, structure panels), the Corporation section (main
-    character, role gate, assets/blueprints/jobs pages), and the
-    planner as it lands (M4+).
-- Keep pages near the code they document and update them alongside
-  milestone work so they drift slowly.
+*(Documentation site landed 2026-11-17: mkdocs-material under `docs/`,
+deployed to GitHub Pages by the `Docs` workflow; README links to the
+site. Keep pages near the code they document and update them alongside
+milestone work so they drift slowly.)*
 
 ---
 

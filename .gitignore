@@ -17,3 +17,6 @@ data/
 .pytest_cache/
 .ruff_cache/
 .dev-reload-paused
+
+# Docs build output
+site/

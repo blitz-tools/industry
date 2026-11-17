@@ -1,0 +1,56 @@
+# Architecture
+
+## Three data layers
+
+Every feature is a join across exactly these layers. Keeping the split
+crisp is what lets T2/T3 invention and reactions arrive later as *data
+and resolver extensions* instead of schema rewrites.
+
+| Layer | Source | Nature | Examples |
+|---|---|---|---|
+| **Static (recipes)** | EVE SDE, imported | Write-once per release | blueprint → materials, products, required skills, activity durations |
+| **Dynamic (world state)** | ESI, ETag-cached sync | Refreshed in background | owned blueprints (ME/TE/runs), skills, industry jobs, assets |
+| **User state** | This app | User-managed CRUD | main character, structures, build plans |
+
+Two consequences worth stating outright:
+
+- **ESI cannot answer "what does this blueprint build from."** The
+  production chain lives in the SDE. ESI supplies what the SDE can't:
+  which blueprints you own, who you are, what's installed, where things
+  sit, and what it costs.
+- **The schema models all industry activities from day one** —
+  manufacturing, copying, invention, reactions, and T3 reverse
+  engineering — via a generic activity dimension. V1 resolves the T1
+  manufacturing + reaction chain; invention/T2 and T3 land incrementally
+  without migrations that retrofit activity types.
+
+## The SDE mirror
+
+The `sde_*` namespace is a verbatim mirror of the fuzzwork SQLite dump —
+no alembic migration, no ORM models, drop-and-recreate per release.
+Interpreting the data (joins, dedup, labels) belongs to the consuming
+query layer, never the import. See [SDE data](../admin/sde-data.md).
+
+## Sync machinery
+
+- **Owner-keyed tables**: `assets`, `blueprints`, `industry_jobs`, and
+  their sync-status records carry `owner_type`/`owner_id`, so
+  corporation data reuses the character machinery unchanged.
+- **Per-kind sync status**: each data kind (character blueprints, skills,
+  jobs; corp assets, blueprints, jobs) has its own scope gate and
+  recorded outcome, rendered as sync-state indicators on the pages.
+- **ESI client**: ETag-cached GETs with per-character token refresh,
+  rate-limit handling, and scope-gated calls only — scopeless calls are
+  guaranteed 403s and burn ESI's error-limit budget.
+- **Universe resolver**: type, location, and structure names resolve at
+  sync time through a write-once cache; location ids that arrive without
+  a usable type classify by id range (stations below 10¹² answer on the
+  public stations endpoint, structures above it on the scoped structures
+  endpoint) and park as restricted when unresolvable.
+
+## Page-render purity
+
+Page renders never touch ESI. Everything the pages show resolves through
+the background syncs into database tables first; views are pure database
+reads. This keeps page loads fast and predictable, and keeps ESI failure
+modes out of the rendering path.
