@@ -14,8 +14,18 @@ name: "CodeQL Advanced"
 on:
   push:
     branches: [ "main" ]
+    # Document-only changes (planning surface, reference docs, license)
+    # don't affect code — skip analysis for them.
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "LICENSE"
   pull_request:
     branches: [ "main" ]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "LICENSE"
   schedule:
     - cron: '32 13 * * 4'
 
