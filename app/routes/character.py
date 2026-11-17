@@ -33,6 +33,7 @@ from ..industry import (
 )
 from ..models import Character
 from ..templates import templates
+from . import trusted_target
 
 router = APIRouter()
 
@@ -228,16 +229,19 @@ async def sync_character_data(request: Request, db: DbDep, esi: EsiDep):
     await sync_all_characters(db, esi, characters, resolver=resolver)
 
     form = await request.form()
-    back = form.get("back") or "/blueprints"
-    if back not in SYNC_BACK_TARGETS:
-        back = "/blueprints"
+    back = trusted_target(form.get("back"), SYNC_BACK_TARGETS, "/blueprints")
     # Carry the page's own state back: the character filter and the jobs
     # history toggle (a sync that silently reverts the view reads as data
-    # loss).
+    # loss). The filter re-derives from the tracked characters so only a
+    # known id is threaded through — same trusted-constant rule as back.
     params = []
-    char = form.get("char")
-    if char is not None and char.strip().isdigit():
-        params.append(("char", str(int(char))))
+    raw_char = (form.get("char") or "").strip()
+    char = next(
+        (c.character_id for c in characters if str(c.character_id) == raw_char),
+        None,
+    )
+    if char is not None:
+        params.append(("char", str(char)))
     if form.get("all") == "1":
         params.append(("all", "1"))
     target = back + ("?" + urlencode(params) if params else "")
