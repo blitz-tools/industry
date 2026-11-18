@@ -1,0 +1,1003 @@
+/* ---------------------------------------------------------------------------
+ * Build planner UI mockups — shared stylesheet (MOCKUP ONLY)
+ *
+ * Design tokens and component shapes are copied from the app's real
+ * app/static/style.css so the wireframes read like the shipped UI. The
+ * source of truth for app styling stays there; everything under
+ * design/mockups/ is throwaway wireframe material for iteration.
+ *
+ * New components proposed by these mockups (no app equivalent yet):
+ *   .meter          thin material-availability bar
+ *   .stage-chip     Purchase ⇄ Build toggle per chain stage
+ *   .stage-state    Missing inputs / Ready to build / In progress /
+ *                   Ready to Deliver / Stage Complete
+ *   .activity-tag   manufacture / reaction / copy / invention marker
+ *   .slot-grid      per-character job slot tiles
+ *   .chain-flow     compact reverse-chain phase strip
+ *   .autocomplete   blueprint search dropdown
+ *   .anno           dashed design-note callout (wireframe scaffolding,
+ *                   never ships)
+ * ------------------------------------------------------------------------ */
+
+/* Molokai-derived tokens (tomasr/molokai) — verbatim from the app. */
+:root {
+  --bg: #1b1d1e;
+  --surface: #232526;
+  --panel: #232526;
+  --line: #293739;
+  --hover: #403d3d;
+  --text: #f8f8f2;
+  --muted: #7e8e91;
+  --faint: #465457;
+  --green: #a6e22e;
+  --cyan: #66d9ef;
+  --yellow: #e6db74;
+  --pink: #f92672;
+  --purple: #ae81ff;
+
+  --sidebar-width: 220px;
+  --radius: 6px;
+  --panel-issue: #2c2a1f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+  background: var(--bg);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+a {
+  color: var(--cyan);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* --- Sidebar chrome (simplified copy of the app's) --------------------- */
+
+.sidebar {
+  position: fixed;
+  inset-block: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+}
+
+.brand {
+  padding: 1.25rem 1.25rem 1rem;
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+  color: var(--green);
+}
+
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 0.5rem;
+}
+
+.sidebar nav a {
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid transparent;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--muted);
+}
+
+.sidebar nav a:hover {
+  background: var(--hover);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.sidebar nav a.active {
+  border-left-color: var(--green);
+  color: var(--green);
+}
+
+.nav-group {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-group-label {
+  padding: 0.5rem 0.75rem 0.15rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+/* --- Content area ------------------------------------------------------ */
+
+.content {
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+  max-width: 84rem;
+}
+
+.content h1 {
+  margin: 0 0 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 650;
+}
+
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.page-header h1 {
+  margin: 0;
+}
+
+.page-header .actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* --- Cards, buttons, chips, badges (app shapes) ------------------------- */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.card + .card {
+  margin-top: 1.25rem;
+}
+
+/* Cards that need popouts (autocomplete dropdown) escape the clip. */
+.card.overflow-visible {
+  overflow: visible;
+}
+
+.card-body {
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.card .card-sub {
+  margin: 0.15rem 0 0.75rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+button,
+.button {
+  display: inline-block;
+  padding: 0.45rem 1rem;
+  border: 1px solid var(--green);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--green);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+button:hover,
+.button:hover {
+  background: var(--green);
+  color: var(--bg);
+  text-decoration: none;
+}
+
+button.primary {
+  font-size: 1.05rem;
+  padding: 0.6rem 1.75rem;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--faint);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  border-color: var(--green);
+  background: transparent;
+  color: var(--green);
+  text-decoration: none;
+}
+
+.chip-button {
+  padding: 0.05rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.chip-button:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: transparent;
+}
+
+.chip-button.selected {
+  border-color: var(--green);
+  background: var(--green);
+  color: var(--bg);
+}
+
+/* Badges: blueprint original/copy markers, ownership, plan state. */
+.badge {
+  display: inline-block;
+  padding: 0.05rem 0.3rem;
+  border: 1px solid;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.badge.bpo {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.badge.bpc {
+  border-color: var(--purple);
+  color: var(--purple);
+}
+
+.badge.owned {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.badge.missing {
+  border-color: var(--pink);
+  color: var(--pink);
+}
+
+.badge.plan-state {
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+
+.badge.plan-state.active {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+/* --- Stat tiles (Dashboard shape) --------------------------------------- */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 1.25rem;
+  margin: 0 0 1.5rem;
+}
+
+.stat {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+}
+
+.stat-value {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+/* --- Tables (asset-table shape) ----------------------------------------- */
+
+.asset-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.asset-table th {
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+.asset-table td {
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.asset-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.asset-table .qty {
+  color: var(--yellow);
+}
+
+.asset-table .muted {
+  color: var(--muted);
+}
+
+/* Category header row inside a materials table. */
+.asset-table .group-row td {
+  padding-top: 0.75rem;
+  color: var(--cyan);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.type-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 3px;
+  vertical-align: -0.45rem;
+  margin-right: 0.4rem;
+}
+
+.type-icon-lg {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+}
+
+/* --- Search + autocomplete (new) ---------------------------------------- */
+
+.search-wrap {
+  position: relative;
+  max-width: 36rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.05rem;
+}
+
+.search-input:focus {
+  border-color: var(--cyan);
+  outline: none;
+}
+
+.autocomplete {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 10px 28px rgb(0 0 0 / 55%);
+}
+
+.autocomplete-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+
+.autocomplete-row:hover,
+.autocomplete-row.active {
+  background: var(--hover);
+}
+
+.autocomplete-row img {
+  width: 32px;
+  height: 32px;
+  border-radius: 3px;
+}
+
+.autocomplete-row .ac-name {
+  color: var(--text);
+}
+
+.autocomplete-row .ac-sub {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.autocomplete-row .ac-right {
+  margin-left: auto;
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.autocomplete-footer {
+  padding: 0.35rem 0.75rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+/* --- Target count stepper (new) ----------------------------------------- */
+
+.stepper {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.stepper button {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 0.3rem 0.8rem;
+}
+
+.stepper button:hover {
+  background: transparent;
+  color: var(--green);
+}
+
+.stepper .stepper-value {
+  min-width: 5rem;
+  text-align: center;
+  padding: 0.3rem 0.5rem;
+  border-inline: 1px solid var(--line);
+  font-size: 1.1rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Meter: thin material-availability bar (new) ------------------------ */
+
+.meter-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 7rem;
+}
+
+.meter {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--green);
+}
+
+.meter-fill.warn {
+  background: var(--yellow);
+}
+
+.meter-fill.low {
+  background: var(--pink);
+}
+
+.meter-pct {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Activity tag (new): which industry activity a job/stage runs ------- */
+
+.activity-tag {
+  display: inline-block;
+  padding: 0.02rem 0.4rem;
+  border: 1px solid;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.activity-tag.mfg {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.activity-tag.rxn {
+  border-color: var(--purple);
+  color: var(--purple);
+}
+
+.activity-tag.copy {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.activity-tag.inv {
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+
+/* --- Stage chip: Purchase ⇄ Build toggle (new) -------------------------- */
+
+.stage-chip {
+  display: inline-block;
+  padding: 0.05rem 0.55rem;
+  border: 1px solid;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Cyan outline = currently marked for market purchase. */
+.stage-chip.purchase {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.stage-chip.purchase:hover {
+  background: color-mix(in srgb, var(--cyan) 15%, transparent);
+}
+
+/* Green filled = planned to build in-corp. */
+.stage-chip.build {
+  border-color: var(--green);
+  background: color-mix(in srgb, var(--green) 15%, transparent);
+  color: var(--green);
+}
+
+.stage-chip.build:hover {
+  background: color-mix(in srgb, var(--green) 25%, transparent);
+}
+
+/* --- Stage state (new): where a chain stage sits right now -------------- */
+
+.stage-state {
+  display: inline-block;
+  padding: 0.05rem 0.55rem;
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.stage-state.missing {
+  border-color: var(--pink);
+  color: var(--pink);
+}
+
+.stage-state.ready {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.stage-state.running {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.stage-state.deliver {
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+
+.stage-state.complete {
+  border-color: var(--muted);
+  color: var(--muted);
+}
+
+/* --- Chain flow: compact reverse-chain phase strip (new) ---------------- */
+
+.chain-flow {
+  display: flex;
+  align-items: stretch;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.chain-phase {
+  flex: 1 1 10rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.chain-phase .phase-label {
+  color: var(--muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.chain-phase .phase-name {
+  font-weight: 650;
+  font-size: 0.9rem;
+}
+
+.chain-phase .phase-meta {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.chain-phase .phase-tags {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.chain-arrow {
+  align-self: center;
+  color: var(--faint);
+  font-size: 1.1rem;
+}
+
+/* --- Phase tree: expandable stage rows (corp-row shape) ------------------ */
+
+.phase-row {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  margin-bottom: 0.5rem;
+}
+
+.phase-row > summary {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 0.6rem 0.9rem;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.phase-row > summary::-webkit-details-marker {
+  display: none;
+}
+
+.phase-row > summary::before {
+  content: "▸";
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+
+.phase-row[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.phase-row > summary:hover {
+  background: var(--hover);
+}
+
+.phase-row .phase-title {
+  font-weight: 650;
+}
+
+.phase-row .phase-count {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.phase-row .summary-right {
+  margin-left: auto;
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.phase-body {
+  padding: 0 0.9rem 0.6rem;
+}
+
+.node-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 0.4rem 0.3rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.9rem;
+}
+
+.node-row .node-name {
+  min-width: 16rem;
+}
+
+.node-row .node-qty {
+  color: var(--yellow);
+  font-variant-numeric: tabular-nums;
+}
+
+.node-row .node-runs {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.node-row .node-right {
+  margin-left: auto;
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.node-row.purchased {
+  color: var(--muted);
+}
+
+.node-row.purchased .node-name {
+  color: var(--muted);
+}
+
+/* --- Job slot tiles (new) ----------------------------------------------- */
+
+.char-card-jobs {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.char-card-jobs + .char-card-jobs {
+  margin-top: 1rem;
+}
+
+.char-head {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.char-head img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--line);
+}
+
+.char-head .char-name {
+  font-weight: 650;
+}
+
+.char-head .char-slots {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.slot-group-label {
+  margin: 0.75rem 0 0.4rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 0.5rem;
+}
+
+.slot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-height: 3.6rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  font-size: 0.78rem;
+}
+
+.slot .slot-head {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.slot .slot-head img {
+  width: 24px;
+  height: 24px;
+  border-radius: 3px;
+}
+
+.slot .slot-name {
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slot .slot-meta {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.slot .slot-countdown {
+  color: var(--cyan);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+}
+
+.slot.idle {
+  border-style: dashed;
+  justify-content: center;
+  color: var(--faint);
+  text-align: center;
+}
+
+.slot.idle .next-up {
+  text-align: left;
+}
+
+.slot.ready {
+  border-color: var(--green);
+}
+
+.slot.running {
+  border-color: var(--cyan);
+}
+
+.slot.deliverable {
+  border-color: var(--yellow);
+}
+
+.slot.done {
+  border-color: var(--faint);
+  color: var(--muted);
+}
+
+/* Job progress fill inside a running slot (meter reuse). */
+.slot .meter {
+  margin-top: 0.1rem;
+}
+
+/* "Next up" tail on a slot: the queued job for when delivery completes. */
+.next-up {
+  border-top: 1px dashed var(--line);
+  margin-top: 0.3rem;
+  padding-top: 0.3rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.next-up .next-label {
+  color: var(--faint);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-right: 0.25rem;
+}
+
+/* --- Wireframe annotations (never ship) --------------------------------- */
+
+.anno {
+  border: 1px dashed var(--yellow);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+  color: var(--yellow);
+  background: color-mix(in srgb, var(--yellow) 5%, transparent);
+  font-size: 0.82rem;
+}
+
+.anno + .anno {
+  margin-top: 0.5rem;
+}
+
+.anno .anno-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-right: 0.4rem;
+  color: color-mix(in srgb, var(--yellow) 70%, var(--muted));
+}
+
+/* --- Misc --------------------------------------------------------------- */
+
+.meta-line {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 1rem 0;
+}
+
+.pool-picker {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.pool-picker select {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+}

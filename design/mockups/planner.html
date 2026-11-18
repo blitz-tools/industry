@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Planner — wireframe</title>
+  <link rel="stylesheet" href="mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">industry</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/mockups/planner.html</div>
+</aside>
+
+<main class="content">
+  <h1>Build Planner</h1>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    Both search states are shown stacked — typing state above, selected state
+    below. In the real page the dropdown closes on selection and the rest of
+    the form appears.
+  </div>
+
+  <!-- 1 · Search -->
+  <section class="card overflow-visible" style="margin-top: 1.25rem;">
+    <div class="card-body">
+      <h2>1 · Find a blueprint</h2>
+      <p class="card-sub">Search the SDE catalog (5,135 blueprints) or match only what the corp owns.</p>
+
+      <div style="display: flex; gap: 0.75rem; align-items: flex-start; flex-wrap: wrap;">
+        <div class="search-wrap">
+          <input class="search-input" type="text" value="typh" aria-label="Search blueprints">
+          <div class="autocomplete">
+            <div class="autocomplete-row active">
+              <img src="https://images.evetech.net/types/998/bpc?size=32" alt="Typhoon Blueprint">
+              <div>
+                <div class="ac-name">Typhoon Blueprint</div>
+                <div class="ac-sub">Manufacturing · Typhoon ×1/run · max 10 runs/job</div>
+              </div>
+              <div class="ac-right">
+                <span class="badge owned">Owned · BPC ×10</span>
+              </div>
+            </div>
+            <div class="autocomplete-row">
+              <img src="https://images.evetech.net/types/32312/bp?size=32" alt="Typhoon Fleet Issue Blueprint">
+              <div>
+                <div class="ac-name">Typhoon Fleet Issue Blueprint</div>
+                <div class="ac-sub">Manufacturing · Typhoon Fleet Issue ×1/run · max 10 runs/job</div>
+              </div>
+              <div class="ac-right">
+                <span class="badge missing">Not owned</span>
+              </div>
+            </div>
+            <div class="autocomplete-footer">2 matches · icons and ownership from the live blueprints table</div>
+          </div>
+        </div>
+        <div>
+          <button class="chip-button selected" type="button">Match From Inventory</button>
+        </div>
+      </div>
+
+      <div class="anno" style="margin-top: 12rem;">
+        <span class="anno-label">wireframe</span>
+        Autocomplete lists every matching blueprint with its icon; an
+        <b>Owned</b> badge appears when a usable copy or original sits in the
+        inventory pool. With <b>Match From Inventory</b> on, results filter to
+        owned blueprints only. Dropdown height caps with scroll.
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · Target -->
+  <section class="card">
+    <div class="card-body">
+      <h2>2 · Target build</h2>
+
+      <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <img class="type-icon-lg" src="https://images.evetech.net/types/998/bpc?size=64" alt="Typhoon Blueprint">
+        <div>
+          <div><b>Typhoon Blueprint</b> <span class="badge bpc">BPC ×10</span></div>
+          <div class="meta-line">Builds <img class="type-icon" src="https://images.evetech.net/types/644/icon?size=32" alt=""> Typhoon ×1 per run · max 10 runs per job</div>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 0.75rem; align-items: center;">
+          <span class="meta-line">Target count</span>
+          <div class="stepper">
+            <button type="button" aria-label="Decrease">−</button>
+            <span class="stepper-value">10</span>
+            <button type="button" aria-label="Increase">+</button>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <h2 style="font-size: 0.95rem;">Inputs at target ×10</h2>
+      <p class="card-sub">Direct inputs of the selected blueprint. The chain behind the components resolves at Calculate.</p>
+
+      <table class="asset-table">
+        <thead>
+          <tr>
+            <th>Input</th>
+            <th>Category</th>
+            <th class="num">Required</th>
+            <th>Blueprint</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="group-row"><td colspan="4">Components</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/57479/icon?size=32" alt="">Core Temperature Regulator</td>
+            <td class="muted">Component</td>
+            <td class="num qty">10</td>
+            <td><span class="badge owned">BPO</span> <span class="muted">ME 10 / TE 20</span></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/57486/icon?size=32" alt="">Life Support Backup Unit</td>
+            <td class="muted">Component</td>
+            <td class="num qty">750</td>
+            <td><span class="badge owned">BPO</span> <span class="muted">ME 10 / TE 20</span></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/57478/icon?size=32" alt="">Auto-Integrity Preservation Seal</td>
+            <td class="muted">Component</td>
+            <td class="num qty">1,500</td>
+            <td><span class="badge owned">BPO ×2</span> <span class="muted">ME 10 / TE 16</span></td>
+          </tr>
+          <tr class="group-row"><td colspan="4">Minerals</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/40/icon?size=32" alt="">Megacyte</td>
+            <td class="muted">Mineral</td>
+            <td class="num qty">19,500</td>
+            <td class="muted">—</td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/39/icon?size=32" alt="">Zydrine</td>
+            <td class="muted">Mineral</td>
+            <td class="num qty">39,000</td>
+            <td class="muted">—</td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/38/icon?size=32" alt="">Nocxium</td>
+            <td class="muted">Mineral</td>
+            <td class="num qty">156,000</td>
+            <td class="muted">—</td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/37/icon?size=32" alt="">Isogen</td>
+            <td class="muted">Mineral</td>
+            <td class="num qty">1,300,000</td>
+            <td class="muted">—</td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/36/icon?size=32" alt="">Mexallon</td>
+            <td class="muted">Mineral</td>
+            <td class="num qty">3,900,000</td>
+            <td class="muted">—</td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/35/icon?size=32" alt="">Pyerite</td>
+            <td class="muted">Mineral</td>
+            <td class="num qty">26,000,000</td>
+            <td class="muted">—</td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/34/icon?size=32" alt="">Tritanium</td>
+            <td class="muted">Mineral</td>
+            <td class="num qty">52,000,000</td>
+            <td class="muted">—</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        Adjusting the target count re-computes this table live. Component rows
+        carry their blueprint's best owned ME/TE as a hint of what the chain
+        math will use.
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Owned copies overlay -->
+  <section class="card">
+    <div class="card-body">
+      <h2>3 · Owned copies of Typhoon Blueprint</h2>
+      <p class="card-sub">Every usable blueprint in the pool for this type — same blueprint can appear many times, each with its own location and ME/TE.</p>
+
+      <table class="asset-table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th class="num">Runs</th>
+            <th>ME / TE</th>
+            <th>Location</th>
+            <th>Owner</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge bpc">BPC</span></td>
+            <td class="num qty">9</td>
+            <td class="num">10 / 18</td>
+            <td class="muted">Corp hangar · Amamake</td>
+            <td class="muted">blitz and blitz holdings</td>
+          </tr>
+          <tr>
+            <td><span class="badge bpc">BPC</span></td>
+            <td class="num qty">8</td>
+            <td class="num">10 / 18</td>
+            <td class="muted">Corp hangar · Amamake</td>
+            <td class="muted">blitz and blitz holdings</td>
+          </tr>
+          <tr>
+            <td><span class="badge bpc">BPC</span></td>
+            <td class="num qty">5</td>
+            <td class="num">8 / 10</td>
+            <td class="muted">Corp hangar · Amamake</td>
+            <td class="muted">blitz and blitz holdings</td>
+          </tr>
+          <tr>
+            <td><span class="badge bpc">BPC</span></td>
+            <td class="num qty">3</td>
+            <td class="num">10 / 20</td>
+            <td class="muted">Corp hangar · Amamake</td>
+            <td class="muted">blitz and blitz holdings</td>
+          </tr>
+          <tr>
+            <td><span class="badge bpc">BPC</span></td>
+            <td class="num qty">1</td>
+            <td class="num">10 / 20</td>
+            <td class="muted">Corp hangar · Amamake</td>
+            <td class="muted">blitz and blitz holdings</td>
+          </tr>
+          <tr>
+            <td class="muted" colspan="5">+ 5 more copies · 26 runs — 10 BPCs / 52 runs total in pool</td>
+          </tr>
+          <tr>
+            <td colspan="5"><span class="badge missing">No original owned</span> <span class="muted">copying unavailable for this type — the plan draws from owned BPCs</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Calculate bar -->
+  <section class="card">
+    <div class="card-body" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+      <div class="meta-line">
+        Typhoon ×10 · 3 components · 7 minerals · deeper chain resolves on calculate
+      </div>
+      <button class="primary" type="button">Calculate</button>
+    </div>
+  </section>
+
+  <p class="meta-line" style="margin-top: 1rem;">
+    Calculate resolves the full reverse chain and opens the build plan →
+    <a href="build-plan.html">build-plan.html</a> (fresh) ·
+    <a href="build-plan-active.html">build-plan-active.html</a> (mid-flight)
+  </p>
+</main>
+
+</body>
+</html>

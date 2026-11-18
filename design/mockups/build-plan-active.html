@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Plan — Typhoon ×10 — day 1.6 — wireframe</title>
+  <link rel="stylesheet" href="mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">industry</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/mockups/build-plan-active.html</div>
+</aside>
+
+<main class="content">
+  <div class="page-header">
+    <h1><img class="type-icon" style="width:32px;height:32px;" src="https://images.evetech.net/types/644/icon?size=32" alt=""> Build Plan — Typhoon ×10</h1>
+    <div class="actions">
+      <span class="badge plan-state active">Active</span>
+      <span class="pool-picker">Pool
+        <select aria-label="Inventory pool">
+          <option selected>blitz and blitz holdings (corp)</option>
+          <option>Personal — schlepzrage</option>
+          <option>Corp + personal</option>
+        </select>
+      </span>
+      <button class="icon-button" type="button" title="Re-run planner" aria-label="Re-run planner">⟳</button>
+      <button class="icon-button" type="button" title="Export plan" aria-label="Export plan">⭳</button>
+    </div>
+  </div>
+
+  <p class="meta-line" style="margin: 0 0 1rem;">Day 1.6 of 9.5 · assets synced 12 min ago · jobs correlated from ESI industry jobs</p>
+
+  <!-- Summary tiles -->
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">1.6 d</p>
+      <p class="stat-label">Elapsed of 9.5 d chain</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--muted);">4 / 4</p>
+      <p class="stat-label">Fuel-block jobs delivered (phase 4 complete)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--cyan);">58%</p>
+      <p class="stat-label">Phase 3 reactions — 1 d 2 h to delivery</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--cyan);">19%</p>
+      <p class="stat-label">AIPS copy — critical path, 6 d 17 h left</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">14 jobs</p>
+      <p class="stat-label">Running (12 reaction · 2 copy)</p>
+    </div>
+  </div>
+
+  <!-- Reverse product chain -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse product chain</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Same plan as the fresh view, mid-flight: stage states advance as jobs deliver. Same Purchase ⇄ Build chips, still live-editable.</p>
+
+  <div class="chain-flow">
+    <div class="chain-phase">
+      <span class="phase-label">Phase 4</span>
+      <span class="phase-name">Fuel blocks</span>
+      <span class="phase-meta">4 nodes · manufacturing</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state complete">✓ Stage Complete</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 3</span>
+      <span class="phase-name">Reaction intermediates</span>
+      <span class="phase-meta">5 nodes · reactions</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state running">In progress · 58%</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 2</span>
+      <span class="phase-name">Reaction intermediates</span>
+      <span class="phase-meta">2 nodes · reactions</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 1</span>
+      <span class="phase-name">Components</span>
+      <span class="phase-meta">3 nodes · manufacturing</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 0</span>
+      <span class="phase-name">Typhoon ×10</span>
+      <span class="phase-meta">1 node · manufacturing</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    <b>In progress</b> (cyan) is added as a fifth stage state beyond the four
+    described (Missing inputs / Ready to build / Ready to Deliver / Stage
+    Complete) — a phase with running jobs needs a distinct read. Flag for
+    discussion.
+  </div>
+
+  <!-- Phase tree -->
+  <details class="phase-row" open style="margin-top: 1rem;">
+    <summary>
+      <span class="phase-title">Phase 4 — Fuel blocks</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">4 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state complete">✓ Stage Complete</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4247/icon?size=32" alt="">
+        <span class="node-name">Helium Fuel Block</span>
+        <span class="node-qty">×150</span>
+        <span class="node-runs">4 runs</span>
+        <span class="node-right">
+          <span class="stage-state complete">Delivered ✓ 150 / 150</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4051/icon?size=32" alt="">
+        <span class="node-name">Nitrogen Fuel Block</span>
+        <span class="node-qty">×150</span>
+        <span class="node-runs">4 runs</span>
+        <span class="node-right">
+          <span class="stage-state complete">Delivered ✓ 150 / 150</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4312/icon?size=32" alt="">
+        <span class="node-name">Oxygen Fuel Block</span>
+        <span class="node-qty">×400</span>
+        <span class="node-runs">10 runs</span>
+        <span class="node-right">
+          <span class="stage-state complete">Delivered ✓ 400 / 400</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4246/icon?size=32" alt="">
+        <span class="node-name">Hydrogen Fuel Block</span>
+        <span class="node-qty">×350</span>
+        <span class="node-runs">9 runs</span>
+        <span class="node-right">
+          <span class="stage-state complete">Delivered ✓ 350 / 350</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row" open>
+    <summary>
+      <span class="phase-title">Phase 3 — Reaction intermediates</span>
+      <span class="activity-tag rxn">reaction</span>
+      <span class="phase-count">5 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state running">In progress · 58%</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/16659/icon?size=32" alt="">
+        <span class="node-name">Carbon Polymers</span>
+        <span class="node-qty">×6,000</span>
+        <span class="node-runs">30 runs · 3 jobs</span>
+        <span class="node-right">
+          <span class="stage-state running">Running · 1 d 2 h</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/16661/icon?size=32" alt="">
+        <span class="node-name">Sulfuric Acid</span>
+        <span class="node-qty">×6,000</span>
+        <span class="node-runs">30 runs · 3 jobs</span>
+        <span class="node-right">
+          <span class="stage-state running">Running · 1 d 2 h</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57453/icon?size=32" alt="">
+        <span class="node-name">Carbon Fiber</span>
+        <span class="node-qty">×14,000</span>
+        <span class="node-runs">70 runs · 3 jobs</span>
+        <span class="node-right">
+          <span class="stage-state running">Running · 1 d 2 h</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57455/icon?size=32" alt="">
+        <span class="node-name">Thermosetting Polymer</span>
+        <span class="node-qty">×14,000</span>
+        <span class="node-runs">70 runs · 3 jobs</span>
+        <span class="node-right">
+          <span class="stage-state running">Running · 1 d 2 h</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row purchased">
+        <img class="type-icon" src="https://images.evetech.net/types/57454/icon?size=32" alt="">
+        <span class="node-name">Oxy-Organic Solvents</span>
+        <span class="node-qty">×100</span>
+        <span class="node-runs">10 runs</span>
+        <span class="node-right">
+          <span class="stage-state deliver">Arriving day 2 · contract</span>
+          <span class="stage-chip purchase">Purchase</span>
+        </span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row">
+    <summary>
+      <span class="phase-title">Phase 2 — Reaction intermediates</span>
+      <span class="activity-tag rxn">reaction</span>
+      <span class="phase-count">2 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57456/icon?size=32" alt="">
+        <span class="node-name">Pressurized Oxidizers</span>
+        <span class="node-qty">×5,000</span>
+        <span class="node-runs">25 runs</span>
+        <span class="node-right">
+          <span class="badge owned">BPO</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57457/icon?size=32" alt="">
+        <span class="node-name">Reinforced Carbon Fiber</span>
+        <span class="node-qty">×12,500</span>
+        <span class="node-runs">63 runs</span>
+        <span class="node-right">
+          <span class="badge owned">BPO</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row">
+    <summary>
+      <span class="phase-title">Phase 1 — Components</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">3 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57479/icon?size=32" alt="">
+        <span class="node-name">Core Temperature Regulator</span>
+        <span class="node-qty">×10</span>
+        <span class="node-runs">10 runs</span>
+        <span class="node-right">
+          <span class="stage-state deliver">BPC ready to deliver</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57486/icon?size=32" alt="">
+        <span class="node-name">Life Support Backup Unit</span>
+        <span class="node-qty">×750</span>
+        <span class="node-runs">250 runs</span>
+        <span class="node-right">
+          <span class="stage-state running">Copying BPC 1/2 · 38%</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57478/icon?size=32" alt="">
+        <span class="node-name">Auto-Integrity Preservation Seal</span>
+        <span class="node-qty">×1,500</span>
+        <span class="node-runs">500 runs</span>
+        <span class="node-right">
+          <span class="stage-state running">Copying BPC 1/3 · 19%</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row">
+    <summary>
+      <span class="phase-title">Phase 0 — Target</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">1 node</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/644/icon?size=32" alt="">
+        <span class="node-name">Typhoon</span>
+        <span class="node-qty">×10</span>
+        <span class="node-runs">10 runs</span>
+        <span class="node-right">
+          <span class="badge owned">BPC 9 + 1 runs</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+    </div>
+  </details>
+
+  <!-- Blueprint copy plan -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Blueprint copy plan — in flight</h2>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Commodity</th>
+        <th class="num">BPCs</th>
+        <th>Run counts</th>
+        <th style="min-width: 10rem;">Progress</th>
+        <th>Ready by</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57478/icon?size=32" alt="">Auto-Integrity Preservation Seal</td>
+        <td class="num qty">3</td>
+        <td>2 × 167, 1 × 166</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 19%"></div></div><span class="meter-pct">BPC 1/3 · 19% · 6 d 17 h left</span></div></td>
+        <td class="muted">day 8.3 — critical path</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57486/icon?size=32" alt="">Life Support Backup Unit</td>
+        <td class="num qty">2</td>
+        <td>2 × 125</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 38%"></div></div><span class="meter-pct">BPC 1/2 · 38% · 2 d 14 h left</span></div></td>
+        <td class="muted">day 4.2</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57479/icon?size=32" alt="">Core Temperature Regulator</td>
+        <td class="num qty">1</td>
+        <td>1 × 10</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill" style="width: 100%"></div></div><span class="meter-pct">done day 0.7</span></div></td>
+        <td><span class="stage-state deliver">Ready to Deliver</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/644/icon?size=32" alt="">Typhoon</td>
+        <td class="num muted">—</td>
+        <td class="muted">covered by owned BPCs (9 + 1 runs)</td>
+        <td class="muted">ready now</td>
+        <td class="muted">—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Raw materials -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Raw materials — acquisition</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Fuel-block inputs are partially consumed; reaction inputs (moon materials) are committed to running jobs. Abbreviated to the rows that moved since the fresh view.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Material</th>
+        <th class="num">Required</th>
+        <th class="num">Available</th>
+        <th style="min-width: 10rem;">Coverage</th>
+        <th>Acquire via</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="group-row"><td colspan="5">Moved since calculation</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/16633/icon?size=32" alt="">Hydrocarbons</td>
+        <td class="num qty">30,000</td>
+        <td class="num">9,800</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 33%"></div></div><span class="meter-pct">33% · rest committed to running jobs</span></div></td>
+        <td class="muted">Moon mining / market</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/16634/icon?size=32" alt="">Atmospheric Gases</td>
+        <td class="num qty">30,000</td>
+        <td class="num">2,100</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 7%"></div></div><span class="meter-pct">7% · rest committed</span></div></td>
+        <td class="muted">Moon mining / market</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/16273/icon?size=32" alt="">Liquid Ozone</td>
+        <td class="num qty">14,000</td>
+        <td class="num">8,200</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 59%"></div></div><span class="meter-pct">59%</span></div></td>
+        <td class="muted">Ice mining / market</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/16275/icon?size=32" alt="">Strontium Clathrates</td>
+        <td class="num qty">800</td>
+        <td class="num">310</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 39%"></div></div><span class="meter-pct">39%</span></div></td>
+        <td class="muted">Ice mining / market</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/9832/icon?size=32" alt="">Coolant</td>
+        <td class="num qty">360</td>
+        <td class="num">180</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 50%"></div></div><span class="meter-pct">50%</span></div></td>
+        <td class="muted">Planetary industry</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/3645/icon?size=32" alt="">Water</td>
+        <td class="num qty">1,000</td>
+        <td class="num">640</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 64%"></div></div><span class="meter-pct">64%</span></div></td>
+        <td class="muted">Planetary industry</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/2401/icon?size=32" alt="">Chiral Structures</td>
+        <td class="num qty">1,000</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — blocks CTR builds</span></div></td>
+        <td class="muted">Planetary industry</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Job allocation -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — in flight</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Running jobs show status and time-to-delivery; busy slots queue their next job. Jobs correlate from synced ESI industry jobs.</p>
+
+  <!-- schlepzrage -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124139810/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">schlepzrage <span class="badge bpo" style="margin-left: 0.4rem;">Main</span></div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 5 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Science slots (copying)</div>
+    <div class="slot-grid">
+      <div class="slot running">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/57515/bp?size=32" alt="">
+          <span class="slot-name">AIPS copy · BPC 1/3</span>
+          <span class="activity-tag copy">copy</span>
+        </div>
+        <span class="slot-meta">167 runs · Amamake - Police Weapons Facility</span>
+        <span class="slot-countdown">6 d 17 h to delivery</span>
+        <div class="meter"><div class="meter-fill" style="width: 19%"></div></div>
+        <div class="next-up"><span class="next-label">next up</span>BPC 2/3 × 167 runs</div>
+      </div>
+      <div class="slot idle">+ 9 idle</div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots</div>
+    <div class="slot-grid">
+      <div class="slot done">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/4247/icon?size=32" alt="">
+          <span class="slot-name">Helium Fuel Block ×4</span>
+          <span class="activity-tag mfg">manufacture</span>
+        </div>
+        <span class="slot-meta">Delivered · day 0.3 · Amamake - 5 times nearly AT winners</span>
+      </div>
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>LSBU ×125 runs — waiting on BPC (day 4.2)</div>
+        <div class="next-up"><span class="next-label">then</span>AIPS ×167 runs — waiting on BPC (day 8.3)</div>
+      </div>
+      <div class="slot idle">+ 8 idle</div>
+    </div>
+
+    <div class="slot-group-label">Reaction slots</div>
+    <div class="slot-grid">
+      <div class="slot running">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/16659/icon?size=32" alt="">
+          <span class="slot-name">Carbon Polymers ×10</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">Amamake - Reactions &amp; Reprocessing</span>
+        <span class="slot-countdown">1 d 2 h to delivery</span>
+        <div class="meter"><div class="meter-fill" style="width: 58%"></div></div>
+        <div class="next-up"><span class="next-label">next up</span>RCF ×21 runs (phase 2)</div>
+      </div>
+      <div class="slot running">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/16661/icon?size=32" alt="">
+          <span class="slot-name">Sulfuric Acid ×10</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">Amamake - Reactions &amp; Reprocessing</span>
+        <span class="slot-countdown">1 d 2 h to delivery</span>
+        <div class="meter"><div class="meter-fill" style="width: 58%"></div></div>
+      </div>
+      <div class="slot running">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/57453/icon?size=32" alt="">
+          <span class="slot-name">Carbon Fiber ×24</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">Amamake - Reactions &amp; Reprocessing</span>
+        <span class="slot-countdown">1 d 2 h to delivery</span>
+        <div class="meter"><div class="meter-fill" style="width: 58%"></div></div>
+      </div>
+      <div class="slot running">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/57455/icon?size=32" alt="">
+          <span class="slot-name">Thermosetting Polymer ×24</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">Amamake - Reactions &amp; Reprocessing</span>
+        <span class="slot-countdown">1 d 2 h to delivery</span>
+        <div class="meter"><div class="meter-fill" style="width: 58%"></div></div>
+        <div class="next-up"><span class="next-label">next up</span>PO ×9 runs (phase 2)</div>
+      </div>
+      <div class="slot idle">+ 6 idle</div>
+    </div>
+  </section>
+
+  <!-- Octavia Arbitrage -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124297138/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">Octavia Arbitrage</div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 5 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Science slots (copying)</div>
+    <div class="slot-grid">
+      <div class="slot running">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/57523/bp?size=32" alt="">
+          <span class="slot-name">LSBU copy · BPC 1/2</span>
+          <span class="activity-tag copy">copy</span>
+        </div>
+        <span class="slot-meta">125 runs · Amamake - Police Weapons Facility</span>
+        <span class="slot-countdown">2 d 14 h to delivery</span>
+        <div class="meter"><div class="meter-fill" style="width: 38%"></div></div>
+        <div class="next-up"><span class="next-label">next up</span>BPC 2/2 × 125 runs</div>
+      </div>
+      <div class="slot idle">+ 9 idle</div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots</div>
+    <div class="slot-grid">
+      <div class="slot done">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/4312/icon?size=32" alt="">
+          <span class="slot-name">Oxygen Fuel Block ×10</span>
+          <span class="activity-tag mfg">manufacture</span>
+        </div>
+        <span class="slot-meta">Delivered · day 0.3 · Amamake - 5 times nearly AT winners</span>
+      </div>
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>LSBU ×125 runs — waiting on BPC (day 4.2)</div>
+      </div>
+      <div class="slot idle">+ 8 idle</div>
+    </div>
+
+    <div class="slot-group-label">Reaction slots</div>
+    <div class="slot-grid">
+      <div class="slot running">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/16659/icon?size=32" alt="">
+          <span class="slot-name">Carbon Polymers ×10</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">Amamake - Reactions &amp; Reprocessing</span>
+        <span class="slot-countdown">1 d 2 h to delivery</span>
+        <div class="meter"><div class="meter-fill" style="width: 58%"></div></div>
+      </div>
+      <div class="slot running">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/16661/icon?size=32" alt="">
+          <span class="slot-name">Sulfuric Acid ×10</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">Amamake - Reactions &amp; Reprocessing</span>
+        <span class="slot-countdown">1 d 2 h to delivery</span>
+        <div class="meter"><div class="meter-fill" style="width: 58%"></div></div>
+        <div class="next-up"><span class="next-label">next up</span>RCF ×21 runs (phase 2)</div>
+      </div>
+      <div class="slot running">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/57453/icon?size=32" alt="">
+          <span class="slot-name">Carbon Fiber ×23</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">Amamake - Reactions &amp; Reprocessing</span>
+        <span class="slot-countdown">1 d 2 h to delivery</span>
+        <div class="meter"><div class="meter-fill" style="width: 58%"></div></div>
+      </div>
+      <div class="slot running">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/57455/icon?size=32" alt="">
+          <span class="slot-name">Thermosetting Polymer ×23</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">Amamake - Reactions &amp; Reprocessing</span>
+        <span class="slot-countdown">1 d 2 h to delivery</span>
+        <div class="meter"><div class="meter-fill" style="width: 58%"></div></div>
+        <div class="next-up"><span class="next-label">next up</span>PO ×8 runs (phase 2)</div>
+      </div>
+      <div class="slot idle">+ 6 idle</div>
+    </div>
+  </section>
+
+  <!-- theblitzrage I -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2123535366/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">theblitzrage I</div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 5 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Science slots (copying)</div>
+    <div class="slot-grid">
+      <div class="slot deliverable">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/57516/bp?size=32" alt="">
+          <span class="slot-name">CTR copy · BPC 1/1</span>
+          <span class="activity-tag copy">copy</span>
+        </div>
+        <span class="slot-meta">10 runs · Amamake - Police Weapons Facility</span>
+        <span class="slot-meta" style="color: var(--yellow);">Ready to Deliver — finished day 0.7</span>
+      </div>
+      <div class="slot idle">+ 9 idle</div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots</div>
+    <div class="slot-grid">
+      <div class="slot done">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/4246/icon?size=32" alt="">
+          <span class="slot-name">Hydrogen Fuel Block ×9</span>
+          <span class="activity-tag mfg">manufacture</span>
+        </div>
+        <span class="slot-meta">Delivered · day 0.3 · Amamake - 5 times nearly AT winners</span>
+      </div>
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>Typhoon ×10 runs — waiting on components</div>
+      </div>
+      <div class="slot idle">+ 8 idle</div>
+    </div>
+
+    <div class="slot-group-label">Reaction slots</div>
+    <div class="slot-grid">
+      <div class="slot running">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/16659/icon?size=32" alt="">
+          <span class="slot-name">Carbon Polymers ×10</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">Amamake - Reactions &amp; Reprocessing</span>
+        <span class="slot-countdown">1 d 2 h to delivery</span>
+        <div class="meter"><div class="meter-fill" style="width: 58%"></div></div>
+      </div>
+      <div class="slot running">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/16661/icon?size=32" alt="">
+          <span class="slot-name">Sulfuric Acid ×10</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">Amamake - Reactions &amp; Reprocessing</span>
+        <span class="slot-countdown">1 d 2 h to delivery</span>
+        <div class="meter"><div class="meter-fill" style="width: 58%"></div></div>
+      </div>
+      <div class="slot running">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/57453/icon?size=32" alt="">
+          <span class="slot-name">Carbon Fiber ×23</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">Amamake - Reactions &amp; Reprocessing</span>
+        <span class="slot-countdown">1 d 2 h to delivery</span>
+        <div class="meter"><div class="meter-fill" style="width: 58%"></div></div>
+        <div class="next-up"><span class="next-label">next up</span>RCF ×21 runs (phase 2)</div>
+      </div>
+      <div class="slot running">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/57455/icon?size=32" alt="">
+          <span class="slot-name">Thermosetting Polymer ×23</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">Amamake - Reactions &amp; Reprocessing</span>
+        <span class="slot-countdown">1 d 2 h to delivery</span>
+        <div class="meter"><div class="meter-fill" style="width: 58%"></div></div>
+        <div class="next-up"><span class="next-label">next up</span>PO ×8 runs (phase 2)</div>
+      </div>
+      <div class="slot idle">+ 6 idle</div>
+    </div>
+  </section>
+
+  <p class="meta-line" style="margin-top: 1.25rem;">
+    Slot states: running (cyan, countdown + progress), ready to deliver
+    (yellow), delivered (dimmed), idle with next-up queue.
+    <a href="planner.html">← planner</a> ·
+    <a href="build-plan.html">fresh build plan</a>
+  </p>
+</main>
+
+</body>
+</html>
