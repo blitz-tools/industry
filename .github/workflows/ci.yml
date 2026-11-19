@@ -76,6 +76,10 @@ jobs:
         run: uv run --group docs zensical build --strict
 
   test:
+    # Display name (the status-check context the ruleset requires):
+    # the job covers lint, tests, and the migration cycle, so "test"
+    # alone undersold it.
+    name: Lint, test & migrations
     needs: changes
     # Push events have no `changes` run (that job only exists on pull
     # requests), so always() is what lets this evaluate there; on pull
