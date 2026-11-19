@@ -48,6 +48,12 @@ component set — the convention's new-component rule applies).
 Order (chain sets by escalating complexity, then the surfaces — the
 three surface mockups are independent and can slot anywhere):
 
+The **wave-progress bar** (added in the 2026-11-19 refinement pass) is
+part of the standard chain-set pages from here on — every set's
+build-plan pages carry it. A future set whose plan uses pipelining
+should exercise its multi-row Gantt form (the serial bar is the
+single-row case of that shape).
+
 1. **Refinement pass** — `typhoon/` + `charon/` updated for the
    world-state sync band: contract availability backed by local
    synced tables (The Forge-only staged scope, sync freshness),

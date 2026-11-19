@@ -20,14 +20,14 @@ everything else is self-contained.
 | File | Shows |
 |---|---|
 | `planner.html` | Search + autocomplete (with icons, Owned badges), target count stepper, inputs overview, Match From Inventory, owned-copies overlay (BPO/BPC · location · ME/TE), Calculate |
-| `build-plan.html` | Freshly calculated plan: reverse chain (phase strip + expandable tree, Purchase ⇄ Build chips, stage states), required blueprints, copy plan, raw-material meters, wave-1 job allocation |
-| `build-plan-active.html` | The same plan mid-flight (day 1.6 of 9.5): stage states advanced, running jobs with time-to-delivery, next-up queues, ready-to-deliver slots, copy progress |
+| `build-plan.html` | Freshly calculated plan: wave-progress bar, reverse chain (phase strip + expandable tree, Purchase ⇄ Build chips, stage states), required blueprints, copy plan, raw-material meters, wave-1 job allocation |
+| `build-plan-active.html` | The same plan mid-flight (day 1.6 of 9.5): wave-progress bar at 17%, stage states advanced, running jobs with time-to-delivery, next-up queues, ready-to-deliver slots, copy progress |
 
 `mockups.css` holds the shared styles — design tokens and component shapes
 copied from `app/static/style.css` (the styling source of truth), plus the
 new components these mockups propose: `.meter`, `.stage-chip`,
 `.stage-state`, `.activity-tag`, `.slot-grid`, `.chain-flow`,
-`.autocomplete`. Dashed yellow `.anno` boxes are wireframe annotations and
+`.autocomplete`, `.sync-source`, `.wave-bar`. Dashed yellow `.anno` boxes are wireframe annotations and
 would never ship.
 
 ## Data provenance
@@ -43,7 +43,11 @@ Everything is real, pulled 2026-11-17 from the live dev database:
   formulas), character names, and structure names come from the synced
   `blueprints` / `characters` / `universe_locations` tables.
 - Material *availability* numbers are invented for the meter demo — the
-  pool-measurement math is M5 scope.
+  pool-measurement math is M5 scope. The market-average figures on the
+  acquisition table are likewise illustrative; M15's price sync is the
+  future source. The wave-progress bar's schedule decomposition (wave
+  boundaries, durations, dead zones) is illustrative too — the real
+  waves are the M9 scheduler's output.
 
 ## Iteration
 

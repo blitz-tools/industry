@@ -74,6 +74,48 @@
     </div>
   </div>
 
+  <!-- Wave progress -->
+  <div class="wave-bar">
+    <div class="wave-header">
+      <span class="wave-title">Wave progress — day 0 of 9.5 · 0%</span>
+      <button class="legend-tab" type="button">legend ›</button>
+    </div>
+    <div class="wave-track">
+      <div class="wave-seg ahead" style="width: 1.6%;" title="W1 — fuel blocks + copy installs · day 0–0.15"></div>
+      <div class="wave-seg ahead" style="width: 26.8%;" title="W2 — R4 reactions · day 0.15–2.7"></div>
+      <div class="wave-seg dead" style="width: 4.2%;" title="Dead 0.4 d — advanced-reaction inputs"></div>
+      <div class="wave-seg ahead" style="width: 17.9%;" title="W3 — advanced reactions (PO / RCF) · day 3.1–4.8"></div>
+      <div class="wave-seg dead" style="width: 36.8%;" title="Dead 3.5 d — component inputs; the AIPS copy pipeline is the critical path (BPCs land day 8.3)"></div>
+      <div class="wave-seg ahead" style="width: 7.4%;" title="W4 — components (AIPS / LSBU / CTR) · day 8.3–9.0"></div>
+      <div class="wave-seg ahead" style="width: 5.3%;" title="W5 — Typhoon ×10 builds · day 9.0–9.5"></div>
+      <div class="now-line" style="left: 0;"></div>
+      <div class="now-caption" style="left: 0;">now · day 0</div>
+    </div>
+    <div class="wave-ticks">
+      <span class="tick" style="width: 1.6%;">W1</span>
+      <span class="tick" style="width: 26.8%;">W2</span>
+      <span class="tick" style="width: 4.2%;"></span>
+      <span class="tick" style="width: 17.9%;">W3</span>
+      <span class="tick" style="width: 36.8%;"></span>
+      <span class="tick" style="width: 7.4%;">W4</span>
+      <span class="tick tick-end" style="width: 5.3%;"><span>W5 · ships</span><span>100%</span></span>
+    </div>
+
+    <div class="anno" style="margin-top: 1.75rem;">
+      <span class="anno-label">wireframe</span>
+      Segments are sized by each wave's share of the plan's total duration
+      (serial deliver-together model — a pipelined plan grows Gantt rows
+      under the same now-line). The Typhoon's story reads at a glance: the
+      largest single segment is the <b>dead zone where components wait on
+      the AIPS copy pipeline</b> — the critical path — not any build wave.
+      <b>Hover a segment for the wave detail</b> (the browser tooltip
+      stands in for the real page's rich popover). The legend tab toggles
+      the panel — collapsed by default, shown expanded on the Charon
+      active view to illustrate. Wave decomposition is illustrative
+      schedule data; the real waves are the M9 scheduler's output.
+    </div>
+  </div>
+
   <!-- Reverse product chain -->
   <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse product chain</h2>
   <p class="meta-line" style="margin: 0 0 0.75rem;">Raw materials on the left, target on the right. Each node chip toggles Purchase ⇄ Build — purchased nodes drop out of the job allocation, count toward acquisition instead of the phase state and percent, and their inputs leave the raw-material math (the commodity itself is acquired instead). Phase rows carry a bulk toggle that sets every node at once.</p>
@@ -356,8 +398,9 @@
     chain edit — its reaction jobs drop out of the allocation below, it no
     longer counts toward the phase 2 state or percent, its reaction inputs
     leave the raw-material math, and the commodity itself (×100) would land
-    in the acquisition table with an isk cost once market pricing (M10)
-    exists. Clicking the chip toggles back to <b>Build</b> and recalculates;
+    in the acquisition table with an isk figure from the synced market
+    prices (M15) — the buy-vs-react verdict itself stays M10's analysis.
+    Clicking the chip toggles back to <b>Build</b> and recalculates;
     the phase row's <b>Purchase all</b> bulk toggle sets every node in the
     phase at once.
   </div>
@@ -403,7 +446,9 @@
     <span class="badge missing">Missing</span> (pink, as in the planner
     search) — and a missing blueprint defaults to acquiring BPCs off
     contract, backfilled to the plan's run counts (buy the commodity
-    outright as the alternative — an economy-of-scale call for M10/M12).
+    outright as the alternative — an economy-of-scale call for M10/M12);
+    availability is answered from the synced contracts tables (The Forge
+    alone in the staged rollout).
     The Typhoon row is the one real nuance — BPC-only: usable, but nothing
     to copy from.
   </div>
@@ -479,35 +524,35 @@
         <td class="num qty">52,000,000</td>
         <td class="num">26,400,000</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 51%"></div></div><span class="meter-pct">51%</span></div></td>
-        <td class="muted">Mining / market</td>
+        <td class="muted">Mining / market · avg 2.7 isk</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/35/icon?size=32" alt="">Pyerite</td>
         <td class="num qty">26,000,000</td>
         <td class="num">19,700,000</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 76%"></div></div><span class="meter-pct">76%</span></div></td>
-        <td class="muted">Mining / market</td>
+        <td class="muted">Mining / market · avg 6.4 isk</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/37/icon?size=32" alt="">Isogen</td>
         <td class="num qty">1,300,000</td>
         <td class="num">610,000</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 47%"></div></div><span class="meter-pct">47%</span></div></td>
-        <td class="muted">Mining / market</td>
+        <td class="muted">Mining / market · avg 132 isk</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/39/icon?size=32" alt="">Zydrine</td>
         <td class="num qty">39,000</td>
         <td class="num">12,700</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 33%"></div></div><span class="meter-pct">33%</span></div></td>
-        <td class="muted">Mining / market</td>
+        <td class="muted">Mining / market · avg 1.9k isk</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/40/icon?size=32" alt="">Megacyte</td>
         <td class="num qty">19,500</td>
         <td class="num">9,900</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 51%"></div></div><span class="meter-pct">51%</span></div></td>
-        <td class="muted">Mining / market</td>
+        <td class="muted">Mining / market · avg 4.1k isk</td>
       </tr>
       <tr class="group-row"><td colspan="5">Moon materials</td></tr>
       <tr>
@@ -515,7 +560,7 @@
         <td class="num qty">30,000</td>
         <td class="num">21,500</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 72%"></div></div><span class="meter-pct">72%</span></div></td>
-        <td class="muted">Moon mining / market</td>
+        <td class="muted">Moon mining / market · avg 310 isk</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/16634/icon?size=32" alt="">Atmospheric Gases</td>
@@ -529,7 +574,7 @@
         <td class="num qty">10,000</td>
         <td class="num">3,200</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 32%"></div></div><span class="meter-pct">32%</span></div></td>
-        <td class="muted">Moon mining / market</td>
+        <td class="muted">Moon mining / market · avg 290 isk</td>
       </tr>
       <tr class="group-row"><td colspan="5">PI commodities</td></tr>
       <tr>
@@ -566,7 +611,7 @@
         <td class="num qty">14,000</td>
         <td class="num">11,900</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 85%"></div></div><span class="meter-pct">85%</span></div></td>
-        <td class="muted">Ice mining / market</td>
+        <td class="muted">Ice mining / market · avg 460 isk</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/16275/icon?size=32" alt="">Strontium Clathrates</td>
@@ -579,6 +624,15 @@
   </table>
 
   <p class="meta-line" style="margin: 0.5rem 0 0;">15 types fully covered — hidden in this view; "Show all 29 types" lists them.</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Market-average figures come from M15's synced price data (global
+    adjusted/average) — the values shown are illustrative. Regional
+    order books join with the staged rollout (The Forge first);
+    isk-cost totals and build-vs-buy verdicts are M10's analysis over
+    this data.
+  </div>
 
   <!-- Job allocation -->
   <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — wave 1</h2>

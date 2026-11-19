@@ -4,7 +4,7 @@
  * Design tokens and component shapes are copied from the app's real
  * app/static/style.css so the wireframes read like the shipped UI. The
  * source of truth for app styling stays there; everything under
- * design/mockups/ is throwaway wireframe material for iteration.
+ * design/ is throwaway wireframe material for iteration.
  *
  * New components proposed by these mockups (no app equivalent yet):
  *   .meter          thin material-availability bar
@@ -17,6 +17,14 @@
  *   .slot-grid      per-character job slot tiles
  *   .chain-flow     compact reverse-chain phase strip
  *   .autocomplete   blueprint search dropdown
+ *   .sync-source    synced-data provenance line — which world-state
+ *                   table a card reads, its hub set, and freshness
+ *                   (M15; never live ESI on the request path)
+ *   .wave-bar       schedule progress by wave — segments sized by each
+ *                   wave's share of total plan duration, hatched dead
+ *                   zones between waves, dashed now-line piercing the
+ *                   bar; a pipelined plan grows Gantt rows under the
+ *                   same now-line
  *   .anno           dashed design-note callout (wireframe scaffolding,
  *                   never ships)
  * ------------------------------------------------------------------------ */
@@ -1016,11 +1024,219 @@ button.primary {
   color: color-mix(in srgb, var(--yellow) 70%, var(--muted));
 }
 
+/* --- Wave progress bar ----------------------------------------------------
+ * Serial deliver-together model: segment widths are each wave's share of
+ * the plan's total duration, dead zones get their own hatched segments,
+ * and the dashed now-line pierces the bar with a short overhang. When
+ * pipelining lands, the same component grows one row per wave (Gantt)
+ * with the now-line spanning all rows. Wave detail is hover-only
+ * (native title tooltips here; a rich popover in the real page). */
+
+.wave-bar {
+  position: relative;
+  margin: 0 0 1.5rem;
+}
+
+.wave-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.wave-title {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.legend-tab {
+  font-size: 0.75rem;
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.1rem 0.5rem;
+  cursor: pointer;
+}
+
+.legend-tab:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.wave-track {
+  position: relative;
+  display: flex;
+  height: 1.4rem;
+  border: 1px solid var(--faint);
+  border-radius: var(--radius);
+  overflow: visible; /* let the now-line pierce the border */
+}
+
+.wave-seg {
+  position: relative;
+  height: 100%;
+  border-right: 1px solid var(--bg);
+  cursor: help;
+}
+
+.wave-seg:last-of-type {
+  border-right: none;
+}
+
+.wave-seg:hover {
+  outline: 1px solid var(--cyan);
+}
+
+.wave-seg.done {
+  background: rgba(102, 217, 239, 0.5);
+}
+
+.wave-seg.current,
+.wave-seg.ahead {
+  background: rgba(102, 217, 239, 0.07);
+}
+
+.wave-seg.dead {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent, transparent 3px,
+    rgba(126, 142, 145, 0.4) 3px, rgba(126, 142, 145, 0.4) 5px
+  );
+}
+
+/* Partial fill inside the current wave (elapsed share of that wave);
+ * reused by the legend's current-wave swatch. */
+.seg-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(102, 217, 239, 0.5);
+}
+
+/* Dashed now-line: pierces the track with a one-row overhang top and
+ * bottom; the caption hangs below the tick row. */
+.now-line {
+  position: absolute;
+  top: -7px;
+  bottom: -7px;
+  width: 0;
+  border-left: 2px dashed var(--yellow);
+  z-index: 2;
+}
+
+.now-caption {
+  position: absolute;
+  top: calc(100% + 26px);
+  transform: translateX(-50%);
+  color: var(--yellow);
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.wave-ticks {
+  display: flex;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.wave-ticks .tick {
+  white-space: nowrap;
+}
+
+.wave-ticks .tick-end {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Legend panel: collapsed by default, toggled by the chevron tab. */
+.wave-legend {
+  display: none;
+  margin-top: 1.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.wave-legend.open {
+  display: block;
+}
+
+.wave-legend .legend-title {
+  color: var(--text);
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.wave-legend .legend-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.25rem 0;
+}
+
+.wave-legend .swatch {
+  position: relative;
+  width: 1.4rem;
+  height: 0.8rem;
+  border: 1px solid var(--faint);
+  border-radius: 2px;
+  flex: none;
+}
+
+.wave-legend .swatch.done {
+  background: rgba(102, 217, 239, 0.5);
+}
+
+.wave-legend .swatch.current,
+.wave-legend .swatch.ahead {
+  background: rgba(102, 217, 239, 0.07);
+}
+
+.wave-legend .swatch.dead {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent, transparent 3px,
+    rgba(126, 142, 145, 0.4) 3px, rgba(126, 142, 145, 0.4) 5px
+  );
+}
+
+.wave-legend .swatch.now {
+  width: 0;
+  border: none;
+  border-left: 2px dashed var(--yellow);
+  border-radius: 0;
+  height: 0.9rem;
+}
+
 /* --- Misc --------------------------------------------------------------- */
 
 .meta-line {
   color: var(--muted);
   font-size: 0.85rem;
+}
+
+/* Synced-data provenance — green dot means the sync is fresh. */
+.sync-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.sync-source::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  flex: none;
 }
 
 .divider {

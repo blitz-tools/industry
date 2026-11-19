@@ -76,6 +76,46 @@
     </div>
   </div>
 
+  <!-- Wave progress -->
+  <div class="wave-bar">
+    <div class="wave-header">
+      <span class="wave-title">Wave progress — day 1.6 of 9.5 · 17%</span>
+      <button class="legend-tab" type="button">legend ›</button>
+    </div>
+    <div class="wave-track">
+      <div class="wave-seg done" style="width: 1.6%;" title="W1 — fuel blocks + copy installs · day 0–0.15 · delivered day 0.15"></div>
+      <div class="wave-seg current" style="width: 26.8%;" title="W2 — R4 reactions · day 0.15–2.7 · 12 jobs running">
+        <div class="seg-fill" style="width: 57%;"></div>
+      </div>
+      <div class="wave-seg dead" style="width: 4.2%;" title="Dead 0.4 d — advanced-reaction inputs"></div>
+      <div class="wave-seg ahead" style="width: 17.9%;" title="W3 — advanced reactions (PO / RCF) · day 3.1–4.8"></div>
+      <div class="wave-seg dead" style="width: 36.8%;" title="Dead 3.5 d — component inputs; the AIPS copy pipeline is the critical path (BPCs land day 8.3)"></div>
+      <div class="wave-seg ahead" style="width: 7.4%;" title="W4 — components (AIPS / LSBU / CTR) · day 8.3–9.0"></div>
+      <div class="wave-seg ahead" style="width: 5.3%;" title="W5 — Typhoon ×10 builds · day 9.0–9.5"></div>
+      <div class="now-line" style="left: 16.8%;"></div>
+      <div class="now-caption" style="left: 16.8%;">now · day 1.6</div>
+    </div>
+    <div class="wave-ticks">
+      <span class="tick" style="width: 1.6%;">W1</span>
+      <span class="tick" style="width: 26.8%;">W2</span>
+      <span class="tick" style="width: 4.2%;"></span>
+      <span class="tick" style="width: 17.9%;">W3</span>
+      <span class="tick" style="width: 36.8%;"></span>
+      <span class="tick" style="width: 7.4%;">W4</span>
+      <span class="tick tick-end" style="width: 5.3%;"><span>W5 · ships</span><span>100%</span></span>
+    </div>
+
+    <div class="anno" style="margin-top: 1.75rem;">
+      <span class="anno-label">wireframe</span>
+      Same bar as the fresh view, mid-flight: W1 delivered, W2 (the R4
+      reaction wave) 57% through — the phase-2 tile above reads 58% as the
+      worst-child rollup, waves and phases measure different things — and
+      the now-line at day 1.6 of 9.5 with the AIPS-copy dead zone still
+      ahead. Legend collapsed (default) — the Charon active view shows it
+      expanded. Hover a segment for the wave detail.
+    </div>
+  </div>
+
   <!-- Reverse product chain -->
   <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse product chain</h2>
   <p class="meta-line" style="margin: 0 0 0.75rem;">Same plan as the fresh view, mid-flight: stage states advance as jobs deliver. Phase summaries roll up from children — worst child wins. Same Purchase ⇄ Build chips, still live-editable.</p>
