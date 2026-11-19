@@ -36,11 +36,14 @@ recommends how many copies to make from owned BPOs and each one's run
 count, so jobs install simultaneously across slots — a single
 max-run job is always the most material-efficient but slowest, so
 more slots are bought at a material cost. A **profit-vs-throughput
-control** (plan-level slider) biases the distribution: the efficiency
-end concentrates work on the builders and job splits whose skills and
-run counts reduce input-material requirements (most profit per
-build); the throughput end fills every available slot to produce as
-many final targets as possible in the shortest time.
+control** (plan-level, **three positions**, 2026-11-18) sets the
+plan's posture: **profit** concentrates work on the builders and job
+splits whose skills and run counts reduce input-material requirements
+(most profit per build, everything in-corp); **balanced** farms chain
+portions out to friends at below-market rates — the same wall-time
+win as purchasing at lower cost; **throughput** purchases whatever
+shortens wall time and fills every available slot to produce as many
+final targets as possible in the shortest time.
 
 The system closes the loop on the roster itself. Capability analysis
 matches the corp's synced skills and owned blueprints against the
@@ -148,6 +151,10 @@ Two consequences worth stating outright:
   and count toward the acquisition side instead. Purchase ⇄ Build is
   node-level in the data model (purchase decisions are per-commodity)
   with a phase-level bulk toggle recovering stage-level ergonomics.
+  Pre-calculation purchase intent is deliberately rejected
+  (2026-11-18): the marking flow lives on the calculated plan — the
+  same node-marking mechanism M14's farming reuses — so
+  calculation-time inputs stay minimal.
   (M5/M6.)
 - **Next-up assignment** (2026-11-18): each queued job is assigned to
   exactly one character — the spec's definite "the next job that should
@@ -176,6 +183,24 @@ Two consequences worth stating outright:
   requests are the surface: an early wave requests the blueprint copies
   later phases need, and a later wave's job request simply uses the BPO
   directly where a copy was unnecessary. (M9.)
+- **Purchase-vs-copy crossover** (2026-11-18, from the ×10 simulation):
+  purchasing a node (or phase) wins on wall time whenever procurement
+  lead time < the node's copy-queue overflow + build time. For the
+  Typhoon chain the AIPS copy queue ÷ reaction dead zone = 1.56 at
+  every target count, so the copy pipeline is the constraint at any N
+  — there is no scale at which copying catches up, and purchasing
+  phase 4 collapses phases 1–3 out of the math entirely (their
+  outputs lose their only consumers). The time side is closed-form;
+  whether to pay is the slider's job (the isk side needs M10). The
+  waves carry the outcome — no dedicated UI, per the copy-vs-direct
+  presentation decision above.
+- **Slider is three positions, not a continuous bias** (2026-11-18):
+  **profit** (left — build in-corp at maximum efficiency), **balanced**
+  (middle — farming: farm chain portions to friends at below-market
+  rates; the same wall-time win as purchasing at lower cost), and
+  **throughput** (right — purchase whatever shortens wall time). Three
+  discrete plan postures; supersedes the two-ended continuous-slider
+  wording in the end goal and M9. (M9/M14.)
 
 ---
 
@@ -648,12 +673,15 @@ slots, with model rules and assumptions — is in `TYPHOON-CHAIN.md`.*
   skill sets build a given component more efficiently get higher
   weight for that component's nodes. Suggestions are user-editable
   before export.
-- **Profit-vs-throughput control**: a plan-level weighting between
-  the two ends of the end-goal slider — concentrate work on the
-  builders whose skills reduce input materials (profit), or fill
-  every available build slot to minimize time-to-completion of what
-  the next stage needs (throughput). One slider for the whole chain
-  to start; per-stage control is a possible later refinement.
+- **Profit-vs-throughput control**: the plan-level slider, **three
+  positions** (2026-11-18) — **profit**: efficiency-weighted
+  assignment, concentrate work on the builders whose skills reduce
+  input materials, everything in-corp; **balanced**: farming — farm
+  chain portions out to friends at below-market rates; **throughput**:
+  purchase whatever shortens wall time and fill every available build
+  slot to minimize time-to-completion of what the next stage needs.
+  One slider for the whole chain to start; per-stage control is a
+  possible later refinement.
 - **Copy & BPC planning**: the mechanism for parallel installation —
   the planner recommends how many BPCs to copy from the owned BPOs
   and each copy's run count, so the jobs spread across multiple slots
@@ -677,6 +705,12 @@ slots, with model rules and assumptions — is in `TYPHOON-CHAIN.md`.*
     multiplier ≈ 0.8 for the T1 components). Low-skill characters
     should keep copying; max-skill characters should switch — an
     efficiency weighting the assignment engine encodes.
+    **Seesaw edge case** (2026-11-18, from the ×10 simulation):
+    purchasing upstream shrinks T_in, evaporating the dead zone that
+    makes copying free — an upstream purchase can flip the
+    copy-vs-direct verdict for downstream nodes (the overflow grows
+    as the dead zone shrinks). Every Purchase ⇄ Build toggle is
+    therefore a full chain re-derivation, never a local patch.
   - Run counts are bounded: each blueprint carries a maximum run
     limit (SDE `industryBlueprints.maxProductionLimit`) — large, in
     practice capping a single job around 30 days of output, since
@@ -803,7 +837,10 @@ already synced.
 *External distribution: farm chain portions out to friends as paid
 contracts. Depends on M6 (plans), M10 (market pricing), M12 (the gap
 report says what to farm), and the multi-user platform track (TODO) —
-other capsuleers must be able to log in.*
+other capsuleers must be able to log in. Farming is the plan-level
+slider's balanced middle position (2026-11-18): the same wall-time win
+as purchasing components, at below-market cost — the framing that
+connects this fork branch to the posture control in the end goal.*
 
 **Scope**
 
