@@ -86,7 +86,8 @@ Context: `UniverseLocation` already stores player structures seen in
 asset sync (`kind="structure"`, `system_id`, `region_id`); this is a new
 user-facing table on top, not a change to sync. A new "Structures" admin
 page with CRUD. System cost indices come from public
-`/industry/systems/` (cacheable like other universe data).
+`/industry/systems/` (cacheable like other universe data; the sync
+itself lives in M15's world-state band).
 
 ### Industry planner
 
@@ -106,8 +107,10 @@ Search and select a blueprint, then calculate a build plan:
 - **Market price comparison**: build-vs-buy decisions for materials,
   components, and reactions, plus profitability of the product itself.
   Price data from public market endpoints (`/markets/{region_id}/orders/`,
-  `/markets/{region_id}/history/`, `/markets/prices/`) — needs a cached
-  price pipeline and a region selector.
+  `/markets/{region_id}/history/`, `/markets/prices/`) — all of it syncs
+  in M15's world-state band (region policy decided 2026-11-19: five NPC
+  hub regions plus custom hubs, The Forge default, plan-time selector);
+  M10 is the analysis over those local tables.
 - Output: materials required (adjusted for ME/rigs/facility), production
   time, installed cost, and buy-vs-build guidance per input.
 
