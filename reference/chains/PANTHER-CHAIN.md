@@ -1577,7 +1577,7 @@ structure is fixed: **probability decryptors buy wall time, ME
 decryptors buy the bill — and at T2 volumes the bill is the bigger
 number.**
 
-### Parallel pipeline (wave composition)
+### Parallel invention branch (wave composition)
 
 The invented BPC gates exactly one node — the final ship build — so
 invention is a parallel branch of the dependency graph, not a phase:

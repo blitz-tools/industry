@@ -333,7 +333,7 @@ Two consequences worth stating outright:
   whether to pay is the slider's job (the isk side needs M10). The
   waves carry the outcome — no dedicated UI, per the copy-vs-direct
   presentation decision above.
-- **Invention is a parallel pipeline, not a phase** (2026-11-19, from
+- **Invention is a parallel branch, not a phase** (2026-11-19, from
   the Panther chain): the invented BPC gates only the final build
   node, so attempts install in wave 1 alongside the deepest-phase
   jobs (the wave-membership rule already allows this — waves mix
@@ -347,7 +347,7 @@ Two consequences worth stating outright:
   outcome (an argument for the fixed-choice side of the M8
   fixed-vs-EV question). The practical gate is datacore acquisition,
   not scheduling. Worked numbers: `reference/chains/PANTHER-CHAIN.md`'s
-  parallel-pipeline section. (M8/M9.)
+  parallel-invention-branch section. (M8/M9.)
 - **Slider is three positions, not a continuous bias** (2026-11-18):
   **profit** (left — build in-corp at maximum efficiency), **balanced**
   (middle — farming: farm chain portions to friends at below-market
@@ -1220,21 +1220,25 @@ recorded.
   engineering actually interface with the invention family — design
   at M8 pickup; the author's T3 production experience is thin, so
   validate against SDE data and community documentation then.
-- Pipelining semantics (clarified 2026-11-19): **overlap across a
-  dependency edge** — a consumer starts on partial deliveries before
-  its producer phase fully completes (reaction chunks feeding early
-  builds; BPCs building as they finish copying) — distinct from **wave
-  parallelism**, which installs independent jobs together and is
-  already handled (waves mix phases and activities by eligibility;
-  branches with no in-chain producer, like invention, run alongside
-  everything). What pipelining changes is the **eligibility gate**:
-  today a job is eligible when its phase's inputs are fully delivered
-  (T_in = the deeper phase's scheduled end); pipelining gates per edge
-  instead ("this job's inputs exist"). Waves are the container; the
-  gate is the semantics. Costs: chunked job sizing (a 25-run job
-  splitting 10+15 pays per-job rounding and fights the even-split
-  deliver-together objective), a finer progress story (phase percent
-  blurs when the next phase starts early — M6's
+- Pipelining semantics (clarified 2026-11-19): **scheduling on the
+  dependency graph instead of the wave boundaries, in both
+  directions** — a job associated with a future wave can be pulled
+  into an earlier wave when its specific inputs become available
+  before the current wave's job set completes, and a job can run past
+  its wave's fixed end, delivering into later waves on partial
+  deliveries (reaction chunks feeding early builds; BPCs building as
+  they finish copying) — distinct from **wave parallelism**, which
+  installs independent jobs together and is already handled (waves
+  mix phases and activities by eligibility; branches with no in-chain
+  producer, like invention, run alongside everything). What
+  pipelining changes is the **eligibility gate**: today a job is
+  eligible when its phase's inputs are fully delivered (T_in = the
+  deeper phase's scheduled end); pipelining gates per edge instead
+  ("this job's inputs exist"), and wave membership becomes an
+  install-time grouping, not a gate. Costs: chunked job sizing (a
+  25-run job splitting 10+15 pays per-job rounding and fights the
+  even-split deliver-together objective), a finer progress story
+  (phase percent blurs when the next phase starts early — M6's
   required/available/delivered needs chunk granularity); payoff:
   every dead zone shrinks. The hybrid copy strategy is the one
   hand-built pipelined edge. The `reference/chains/TYPHOON-CHAIN.md`
