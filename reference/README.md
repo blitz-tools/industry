@@ -36,6 +36,13 @@ and scaling analysis, all generated from the scripts above.
 `CHARON-CHAIN.md` (Charon freighter, 2026-11-18) is the capital
 stress test: seven-deep phases, recurring commodities, mixed-activity
 phases, and four terminator classes the Typhoon never exercised.
+`PANTHER-CHAIN.md` (Panther T2 battleship, 2026-11-19) is the
+invention stress test: the invention layer (22% base from the Typhoon
+Blueprint, datacores, decryptor scenarios pinned from live ESI dogma),
+the T1 hull riding inside the chain as a build input, capital-component
+crossover (Capital Jump Drives), T2 components at 1/run volumes
+(18,750-run armor-plate jobs), and the NPC-seeded T2 component BPO
+(Blueprint Original) acquisition path.
 
 New chains are added to stress the models with more complex structures
 (deeper phase stacks, capital components, invention/T2 layers) and
@@ -63,12 +70,27 @@ runtime; nothing here is learned or guessed at run time.
   RCF (Reinforced Carbon Fiber) 8 per-branch runs → 7 aggregated)
 - terminators: types with no producing blueprint (minerals, moon
   materials, PI (Planetary Industry) commodities, ice products, gas
-  from harvestable clouds, molecular-forging tools) — leaves to
+  from harvestable clouds, NPC-seeded market goods) — leaves to
   acquire, never recursed; raw categories are hardcoded here, M5
   classifies via invGroups/invCategories — validated against the
   Charon chain (2026-11-18): the SDE groups map cleanly except
-  molecular-forging tools, which sit in the generic 'Commodities'
-  catch-all group and need a name-list fallback
+  molecular-forging tools ('Commodities' catch-all), which need a
+  name-list fallback; the Panther chain (2026-11-19) added Morphite
+  (SDE files it under 'Mineral' despite being the top moon material)
+  and Construction Blocks (no blueprint exists — NPC-seeded)
+- invention (activity 8) is an overlay, never a walk step: the
+  invented blueprint's build inputs resolve through the normal walk,
+  and the invention recipe (source BPC, probability, datacores,
+  skills, T1 runs consumed per attempt — implicit in the game, absent
+  from the SDE materials) reports as its own layer with
+  expected-value math (attempts = 1/p, confidence 1−(1−p)ⁿ) and a
+  decryptor scenario table. Expected quantities stay OUT of the
+  deterministic raw-material table — probabilistic inputs present as
+  expected + confidence (the M8 decision). Decryptor modifiers are
+  pinned from live ESI dogma (2026-11-19) in `DECRYPTORS` — the dogma
+  tables are not part of the SDE mirror; invented-BPC base ME
+  (Material Efficiency)/TE (Time Efficiency) (−4/−4 per community
+  docs) and module base runs are NOT in SDE/ESI — pin at M8
 - cycle detection: NOT implemented (T1 manufacturing has none); M5 must
   add it defensively
 
@@ -119,7 +141,10 @@ runtime; nothing here is learned or guessed at run time.
   the script computes directly — the script is the source of truth).
 - Unverified inputs (M4's dogma task): skill→time/copy multipliers,
   whether copying is skill-reducible, reaction slot semantics, exact
-  BPO job-lock behavior.
+  BPO job-lock behavior. Invention pins (M8's dogma task, surfaced by
+  the Panther chain): invented-BPC base ME/TE (−4/−4 assumed), module
+  invention base runs, whether skill levels modify invention
+  probability (assumed not, post-Crius).
 - Known simplifications: serial phases (no pipelining — parked open
   question in MILESTONES.md), one skill multiplier per model run (real
   assignments weight per character), facilities/rigs not yet multiplied

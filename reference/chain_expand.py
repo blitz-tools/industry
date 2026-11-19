@@ -13,10 +13,17 @@ Pinned by the 2026-11 proof-outs:
   (manufacturing = activity 1, reactions = activity 11 in the fuzzwork dump;
   `ramActivities` labels reactions as 9, but the data lives on 11).
 - Terminators are types with no producing blueprint. The raw-category lists
-  below are hardcoded to the chains resolved so far (Typhoon, Charon); M5
-  should classify through invGroups/invCategories instead — the SDE groups
-  map cleanly for everything except molecular-forging tools, which sit in
-  the generic 'Commodities' catch-all group (see raw_categories below).
+  below are hardcoded to the chains resolved so far (Typhoon, Charon,
+  Panther); M5 should classify through invGroups/invCategories instead —
+  the SDE groups map cleanly for everything except molecular-forging tools
+  ('Commodities' catch-all) and Morphite (filed under 'Mineral' despite
+  being the top moon material) — both need the name-list fallback.
+- Invention (activity 8) is an overlay, not part of the material walk:
+  the invented blueprint's build inputs resolve normally, and the
+  invention recipe (source BPC, probability, datacores, skills) is
+  reported by the invention-layer section at the end. The source-BPC
+  run consumed per attempt is implicit in the game (1 run/attempt) and
+  absent from the SDE material list.
 - Cycle detection is NOT implemented here (the manufacturing chain has none);
   M5's resolver must add it defensively per the milestone scope.
 """
@@ -28,7 +35,27 @@ from pathlib import Path
 
 DB_PATH = Path(__file__).resolve().parent.parent / "industry.db"
 
-ACTIVITY_LABELS = {1: "manufacturing", 5: "copying", 11: "reaction"}
+ACTIVITY_LABELS = {1: "manufacturing", 5: "copying", 8: "invention", 11: "reaction"}
+
+# Decryptor modifiers for invention, pinned from live ESI dogma 2026-11-19
+# (universe/types/{id} dogma_attributes; names via /dogma/attributes/):
+# inventionPropabilityMultiplier 1112, inventionMEModifier 1113,
+# inventionTEModifier 1114, inventionMaxRunModifier 1124. Rows:
+# (name, probability multiplier, ME modifier, TE modifier, max-run modifier).
+# NOT in the SDE mirror (dogma tables are not imported) — re-pin if CCP
+# rebalances. Invented-BPC base ME/TE is likewise absent from SDE/ESI
+# (community-documented -4/-4, BASE_INVENTED_ME below) — pin at M8.
+BASE_INVENTED_ME = -4
+DECRYPTORS = [
+    ("Accelerant", 1.2, 2, 10, 1),
+    ("Attainment", 1.8, -1, 4, 4),
+    ("Augmentation", 0.6, -2, 2, 9),
+    ("Parity", 1.5, 1, -2, 3),
+    ("Process", 1.1, 3, 6, 0),
+    ("Symmetry", 1.0, 1, 8, 2),
+    ("Optimized Attainment", 1.9, 1, -2, 2),
+    ("Optimized Augmentation", 0.9, 2, 0, 7),
+]
 
 # Hardcoded to the chains resolved so far — see module docstring.
 RAW_CATEGORIES = {
@@ -42,6 +69,11 @@ RAW_CATEGORIES = {
         # R8-R64 (Charon chain's advanced reactions)
         "Cadmium", "Caesium", "Mercury", "Titanium", "Chromium", "Hafnium",
         "Dysprosium", "Neodymium", "Promethium", "Thulium",
+        # Panther chain's T2-component reactions
+        "Vanadium", "Scandium", "Platinum", "Technetium",
+        # Top moon material — invGroups files it under 'Mineral'; the
+        # name-list fallback keeps it here.
+        "Morphite",
     ],
     "PI commodities": [
         # Tier 1-3 (Typhoon chain)
@@ -66,10 +98,12 @@ RAW_CATEGORIES = {
         "Amber Cytoserocin", "Golden Cytoserocin",
     ],
     # Market-acquired NPC goods: molecular-forging tools used in gas
-    # reactions. Group 'Commodities' is a catch-all, so no SDE group
-    # maps here — M5 needs a name-list fallback for these.
-    "molecular-forging tools": [
+    # reactions, construction blocks consumed by T2 components. Group
+    # 'Commodities' is a catch-all, so no SDE group maps here — M5
+    # needs a name-list fallback for these.
+    "npc market goods": [
         "AG-Composite Molecular Condenser",
+        "Construction Blocks",
     ],
 }
 
@@ -174,6 +208,86 @@ def raw_totals(phases):
     return totals
 
 
+def invention_source(db, product_bp_id):
+    """The invention recipe producing a blueprint, if any.
+
+    Returns (source_bp_id, probability, [(material_name, qty)],
+    [(skill_name, level)]) or None. The source BPC run consumed per
+    attempt is implicit in the game and absent from the SDE materials.
+    """
+    rows_ = db.execute(
+        "SELECT typeID, probability FROM sde_industryActivityProbabilities"
+        " WHERE productTypeID=?",
+        (product_bp_id,),
+    ).fetchall()
+    if not rows_:
+        return None
+    # One product blueprint per invention recipe in practice; take the
+    # first like producers() does.
+    source_bp, probability = rows_[0]
+    mats = [
+        (type_name(db, m), q) for m, q in inputs(db, source_bp, 8)
+    ]
+    skills = db.execute(
+        "SELECT s.skillID, s.level FROM sde_industryActivitySkills s"
+        " WHERE s.typeID=? AND s.activityID=8",
+        (source_bp,),
+    ).fetchall()
+    return (
+        source_bp,
+        probability,
+        mats,
+        [(type_name(db, sk), lvl) for sk, lvl in skills],
+    )
+
+
+def invention_section(db, product_bp_id, bpcs_needed=1):
+    """Lines for the invention overlay: recipe, expected attempts,
+    datacores, confidence, and decryptor scenarios (DECRYPTORS)."""
+    src = invention_source(db, product_bp_id)
+    if src is None:
+        return []
+    source_bp, p, mats, skills = src
+    out = [
+        f"=== invention layer: {type_name(db, product_bp_id)} ===",
+        f"source: {type_name(db, source_bp)} (blueprint {source_bp},"
+        " activity 8, invention)",
+        f"probability: {p:.2f} base (SDE); skill levels are assumed NOT to"
+        " modify it post-Crius — pin at M8",
+        "materials per attempt: "
+        + ", ".join(f"{q} {m}" for m, q in mats),
+        "skills: " + ", ".join(f"{s} {lvl}" for s, lvl in skills),
+        "T1 consumption: 1 run of the source BPC per attempt (implicit,"
+        " not in the SDE material list)",
+        "",
+        f"need {bpcs_needed} successful invention(s);"
+        f" expected attempts each = 1/p = {1 / p:.2f}",
+        "expected datacores per success: "
+        + ", ".join(f"{q / p:.0f} {m}" for m, q in mats),
+        "confidence (no decryptor), P(>=1 success in n attempts): "
+        + "  ".join(
+            f"n={n}: {100 * (1 - (1 - p) ** n):.0f}%" for n in (4, 7, 10, 15)
+        ),
+        "",
+        "decryptor scenarios (modifiers pinned from ESI dogma"
+        " 2026-11-19; invented-BPC base ME/TE -4/-4 per community docs,"
+        " pin at M8):",
+        "  decryptor               p_eff  E[attempts]  ME_eff  TE  runs",
+    ]
+    for name, mult, me, te, runmod in DECRYPTORS:
+        p_eff = p * mult
+        out.append(
+            f"  {name:24s} {p_eff:.2f}  {1 / p_eff:11.2f}"
+            f"  {BASE_INVENTED_ME + me:+5d}  {te:+d}  {1 + runmod}"
+        )
+    out.append(
+        "\n  runs = invented-BPC run count (ship base 1 + max-run"
+        " modifier); more runs per BPC mean fewer inventions per ship"
+        " at scale. Module base runs differ — pin at M8."
+    )
+    return out
+
+
 def main():
     type_id = int(sys.argv[1]) if len(sys.argv) > 1 else 644
     quantity = int(sys.argv[2]) if len(sys.argv) > 2 else 1
@@ -207,6 +321,15 @@ def main():
     stray = {m: q for m, q in totals.items() if m not in known}
     if stray:
         print("-- unclassified (extend RAW_CATEGORIES):", stray)
+
+    # Invention overlay: the target's producing blueprint, when it is
+    # invention-sourced (T2/T3), reports its acquisition recipe.
+    prod = producers(db, type_id)
+    if prod:
+        inv = invention_section(db, prod[0][0])
+        if inv:
+            print()
+            print("\n".join(inv))
 
 
 if __name__ == "__main__":
