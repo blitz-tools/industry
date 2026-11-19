@@ -4,7 +4,7 @@
 # entire page height instead).
 #
 # Usage: ./take-screenshots.sh [width]
-# Output: design/mockups/screenshots/<name>.png
+# Output: design/typhoon/screenshots/<name>.png
 
 set -euo pipefail
 

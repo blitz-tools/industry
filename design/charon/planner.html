@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Planner — Charon — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">industry</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/charon/planner.html</div>
+</aside>
+
+<main class="content">
+  <h1>Build Planner</h1>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    Both search states are shown stacked — typing state above, selected state
+    below. In the real page the dropdown closes on selection and the rest of
+    the form appears.
+  </div>
+
+  <!-- 1 · Search -->
+  <section class="card overflow-visible" style="margin-top: 1.25rem;">
+    <div class="card-body">
+      <h2>1 · Find a blueprint</h2>
+      <p class="card-sub">Search the SDE catalog (5,135 blueprints) or match only what the corp owns.</p>
+
+      <div style="display: flex; gap: 0.75rem; align-items: flex-start; flex-wrap: wrap;">
+        <div class="search-wrap">
+          <input class="search-input" type="text" value="charo" aria-label="Search blueprints">
+          <div class="autocomplete">
+            <div class="autocomplete-row active">
+              <img src="https://images.evetech.net/types/20186/bpc?size=32" alt="Charon Blueprint">
+              <div>
+                <div class="ac-name">Charon Blueprint</div>
+                <div class="ac-sub">Manufacturing · Charon ×1/run · max 1 run/job</div>
+              </div>
+              <div class="ac-right">
+                <span class="badge missing">Not owned</span>
+              </div>
+            </div>
+            <div class="autocomplete-footer">1 match · icons and ownership from the live blueprints table</div>
+          </div>
+        </div>
+        <div>
+          <button class="chip-button" type="button">Match From Inventory</button>
+        </div>
+      </div>
+
+      <div class="anno" style="margin-top: 7rem;">
+        <span class="anno-label">wireframe</span>
+        Autocomplete lists every matching blueprint with its icon; an
+        <b>Owned</b> badge appears when a usable copy or original sits in the
+        inventory pool. With <b>Match From Inventory</b> on, results filter to
+        owned blueprints only — the Charon Blueprint is not owned, so it
+        disappears under that filter. Dropdown height caps with scroll.
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · Target -->
+  <section class="card">
+    <div class="card-body">
+      <h2>2 · Target build</h2>
+
+      <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <img class="type-icon-lg" src="https://images.evetech.net/types/20186/bpc?size=64" alt="Charon Blueprint">
+        <div>
+          <div><b>Charon Blueprint</b> <span class="badge missing">Not owned — BPC via contract</span></div>
+          <div class="meta-line">Builds <img class="type-icon" src="https://images.evetech.net/types/20185/icon?size=32" alt=""> Charon ×1 per run · max 1 run per job</div>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 0.75rem; align-items: center;">
+          <span class="meta-line">Target count</span>
+          <div class="stepper">
+            <button type="button" aria-label="Decrease">−</button>
+            <span class="stepper-value">1</span>
+            <button type="button" aria-label="Increase">+</button>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <h2 style="font-size: 0.95rem;">Requirements at target ×1</h2>
+      <p class="card-sub">The full chain for one build, resolved at selection — quantities track the target stepper live. Calculate schedules the plan (phases, waves, allocation, copy plan); nothing here waits for it.</p>
+
+      <!-- Tier 1: blueprints -->
+      <details class="phase-row" open>
+        <summary>
+          <span class="phase-title">Blueprints</span>
+          <span class="phase-count">41 types</span>
+          <span class="summary-right">
+            <span class="stage-state missing">18 missing — contract backfill</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <tbody>
+              <tr class="group-row"><td colspan="3">Missing — 8 manufacturing blueprints</td></tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/20186/bpc?size=32" alt="">Charon Blueprint</td>
+                <td class="muted">1 run · ME 10 / TE 20 · 300M (×10 same-type bundle) · needs Capital Ship Construction — Octavia qualifies</td>
+                <td><span class="badge missing">Missing</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/21010/bp?size=32" alt="">Capital Propulsion Engine Blueprint</td>
+                <td class="muted">5 runs needed · BPC via contract</td>
+                <td><span class="badge missing">Missing</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/21018/bp?size=32" alt="">Capital Armor Plates Blueprint</td>
+                <td class="muted">5 runs needed · BPC via contract</td>
+                <td><span class="badge missing">Missing</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/21028/bp?size=32" alt="">Capital Cargo Bay Blueprint</td>
+                <td class="muted">50 runs needed · BPC via contract</td>
+                <td><span class="badge missing">Missing</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/21038/bp?size=32" alt="">Capital Construction Parts Blueprint</td>
+                <td class="muted">5 runs needed · BPC via contract</td>
+                <td><span class="badge missing">Missing</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/57508/bp?size=32" alt="">R-O Trigger Neurolink Conduit Blueprint</td>
+                <td class="muted">16 runs needed · BPC via contract</td>
+                <td><span class="badge missing">Missing</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/57512/bp?size=32" alt="">Gravimetric-FTL Interlink Communicator Blueprint</td>
+                <td class="muted">1 run needed · BPC via contract</td>
+                <td><span class="badge missing">Missing</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/57524/bp?size=32" alt="">Capital Core Temperature Regulator Blueprint</td>
+                <td class="muted">1 run needed · BPC via contract</td>
+                <td><span class="badge missing">Missing</span></td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Missing — 10 reaction formulas</td></tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/46214/bp?size=32" alt="">Fermionic Condensates Reaction Formula</td>
+                <td class="muted">BPO · cheap originals off market</td>
+                <td><span class="badge missing">Missing</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/57497/bp?size=32" alt="">Axosomatic Neurolink Enhancer Reaction Formula</td>
+                <td class="muted">BPO</td>
+                <td><span class="badge missing">Missing</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/57504/bp?size=32" alt="">Reaction-Orienting Neurolink Stabilizer Reaction Formula</td>
+                <td class="muted">BPO</td>
+                <td><span class="badge missing">Missing</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/46218/bp?size=32" alt="">Nonlinear Metamaterials Reaction Formula</td>
+                <td class="muted">BPO</td>
+                <td><span class="badge missing">Missing</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/46166/bp?size=32" alt="">Caesarium Cadmide Reaction Formula</td>
+                <td class="muted">BPO</td>
+                <td><span class="badge missing">Missing</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/46170/bp?size=32" alt="">Dysporite Reaction Formula</td>
+                <td class="muted">BPO</td>
+                <td><span class="badge missing">Missing</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/46172/bp?size=32" alt="">Ferrofluid Reaction Formula</td>
+                <td class="muted">BPO</td>
+                <td><span class="badge missing">Missing</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/46173/bp?size=32" alt="">Fluxed Condensates Reaction Formula</td>
+                <td class="muted">BPO</td>
+                <td><span class="badge missing">Missing</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/46182/bp?size=32" alt="">Titanium Chromide Reaction Formula</td>
+                <td class="muted">BPO</td>
+                <td><span class="badge missing">Missing</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/46184/bp?size=32" alt="">Prometium Reaction Formula</td>
+                <td class="muted">BPO</td>
+                <td><span class="badge missing">Missing</span></td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Owned — 3 component BPOs</td></tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/57515/bp?size=32" alt="">Auto-Integrity Preservation Seal Blueprint</td>
+                <td class="muted">BPO ×22 · ME 10 / TE 16</td>
+                <td><span class="badge owned">Owned</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/57523/bp?size=32" alt="">Life Support Backup Unit Blueprint</td>
+                <td class="muted">BPO ×28 · ME 10 / TE 20</td>
+                <td><span class="badge owned">Owned</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/57516/bp?size=32" alt="">Core Temperature Regulator Blueprint</td>
+                <td class="muted">BPO ×34 · ME 10 / TE 20</td>
+                <td><span class="badge owned">Owned</span></td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Owned — 4 fuel-block blueprint sets</td></tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/4316/bp?size=32" alt="">Hydrogen Fuel Block Blueprint</td>
+                <td class="muted">BPO + BPC ×14</td>
+                <td><span class="badge owned">Owned</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/4315/bp?size=32" alt="">Helium Fuel Block Blueprint</td>
+                <td class="muted">BPC ×2 · 200 runs each</td>
+                <td><span class="badge owned">Owned</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/4313/bp?size=32" alt="">Oxygen Fuel Block Blueprint</td>
+                <td class="muted">BPC ×2 · 200 runs each</td>
+                <td><span class="badge owned">Owned</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/4314/bp?size=32" alt="">Nitrogen Fuel Block Blueprint</td>
+                <td class="muted">BPC ×2 · 200 runs each</td>
+                <td><span class="badge owned">Owned</span></td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Owned — 16 reaction formulas</td></tr>
+              <tr>
+                <td colspan="3" class="muted">R4 set: Carbon Polymers ×2 · Sulfuric Acid ×2 · Carbon Fiber ×2 · Thermosetting Polymer ×2 · Oxy-Organic Solvents · Pressurized Oxidizers ×2 · Reinforced Carbon Fiber ×2 (all with originals)</td>
+              </tr>
+              <tr>
+                <td colspan="3" class="muted">Fullerene set: Fulleroferrocene · Methanofullerene · PPD Fullerene Fibers · Fullerene Intercalated Graphite · Lanthanum Metallofullerene · Scandium Metallofullerene · Graphene Nanoribbons · Carbon-86 Epoxy Resin · C3-FTM Acid (originals)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 2: intermediates -->
+      <details class="phase-row">
+        <summary>
+          <span class="phase-title">Intermediates</span>
+          <span class="phase-count">55 types · 5 phases</span>
+          <span class="summary-right">
+            <span class="stage-state missing">10 formula-gated nodes</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <thead>
+              <tr>
+                <th>Phase</th>
+                <th>Intermediates</th>
+                <th class="num">Types</th>
+                <th>Notable</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="muted">5 — capital + components</td>
+                <td class="muted">Capital components + AIPS + LSBU</td>
+                <td class="num">9</td>
+                <td class="muted">Capital Cargo Bay ×50 · AIPS ×400 · LSBU ×200</td>
+              </tr>
+              <tr>
+                <td class="muted">4 — advanced reactions + CTR</td>
+                <td class="muted">Fullerene reactions + RCF + CTR</td>
+                <td class="num">16</td>
+                <td class="muted">RCF ×8,670 · Axosomatic Enhancer ×640 · CTR ×35</td>
+              </tr>
+              <tr>
+                <td class="muted">3 — R4 + advanced reactions</td>
+                <td class="muted">R4 intermediates + advanced moon reactions</td>
+                <td class="num">17</td>
+                <td class="muted">PO ×17,500 · RCF ×17,500 · CP ×8,800</td>
+              </tr>
+              <tr>
+                <td class="muted">2 — R4 reactions</td>
+                <td class="muted">Carbon Polymers · Sulfuric Acid · Carbon Fiber · Thermosetting Polymer · OOS</td>
+                <td class="num">9</td>
+                <td class="muted">CP/SA/CF/TP ×17,600 each</td>
+              </tr>
+              <tr>
+                <td class="muted">1 — fuel blocks</td>
+                <td class="muted">Four fuel types (recur at phases 1–3)</td>
+                <td class="num">4</td>
+                <td class="muted">Oxygen ×530 · Nitrogen/Hydrogen/Helium ×440 each</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 3: raw materials -->
+      <details class="phase-row">
+        <summary>
+          <span class="phase-title">Raw materials</span>
+          <span class="phase-count">60 types</span>
+          <span class="summary-right">
+            <span class="stage-state missing">4 classes at zero</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th class="num">Types</th>
+                <th>Largest requirement</th>
+                <th>Gaps</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Minerals</td>
+                <td class="num">7</td>
+                <td class="muted">Pyerite 11,794,550 · Mexallon 3,279,900</td>
+                <td class="muted">4 partial</td>
+              </tr>
+              <tr>
+                <td>Moon materials</td>
+                <td class="num">14</td>
+                <td class="muted">Hydrocarbons 68,100 · Atmospheric Gases 68,100</td>
+                <td class="muted">R8–R64 metals at zero</td>
+              </tr>
+              <tr>
+                <td>PI commodities</td>
+                <td class="num">15</td>
+                <td class="muted">Chiral Structures 3,500 · Water 3,500</td>
+                <td class="muted"><span style="color: var(--pink);">tier-4 inputs at zero</span> (Self-Harmonizing Power Core ×26)</td>
+              </tr>
+              <tr>
+                <td>Ice products</td>
+                <td class="num">8</td>
+                <td class="muted">Liquid Ozone 24,850 · Heavy Water 12,070</td>
+                <td class="muted">2 partial</td>
+              </tr>
+              <tr>
+                <td>Gas (harvestable clouds)</td>
+                <td class="num">13</td>
+                <td class="muted">Amber Mykoserocin 1,280 · Fullerite-C32 800</td>
+                <td class="muted"><span style="color: var(--pink);">all at zero</span> — gas sites / w-space</td>
+              </tr>
+              <tr>
+                <td>Molecular-forging tools</td>
+                <td class="num">1</td>
+                <td class="muted">AG-Composite Molecular Condenser ×34</td>
+                <td class="muted">NPC market</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        The requirement overview resolves at selection and tracks the target
+        stepper live — blueprint status (with a contract-backfill peek on
+        missing ones), every buildable intermediate by phase, and the raw
+        terminators by category with coverage standouts. The Charon's depth
+        shows honestly here: five intermediate phases, sixty raw types, and
+        acquisition paths the Typhoon never touches (gas sites, tier-4 PI,
+        NPC tools). <b>Skill gate</b>: every blueprint is also checked for
+        usability — at least one character holding the activity's required
+        skills (here Capital Ship Construction for the ship and capital
+        components — Octavia qualifies; Reactions 3 for the formulas). A
+        blueprint nobody can run forces its node to the purchase path and
+        skips the contract search entirely. Tiers are open-ended: invention
+        chains (M8) add their own input tier. Calculate schedules the plan;
+        totals, waves, and allocation land on the build plan.
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Contract availability (owned-copies overlay slot) -->
+  <section class="card">
+    <div class="card-body">
+      <h2>3 · Charon Blueprint — no copies owned, contract availability</h2>
+      <p class="card-sub">The owned-copies overlay becomes a contract-availability view when the pool holds nothing for this type. NPC hub regions scanned (The Forge, Domain, Heimatar, Metropolis, Sinq Laison) — region is display metadata, never a filter. Single-item contracts only — bundles that merely include the wanted type are excluded.</p>
+
+      <table class="asset-table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th class="num">Runs</th>
+            <th>ME / TE</th>
+            <th>Price</th>
+            <th>Location · expires</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge bpc">BPC ×10</span> <span class="muted">same-type bundle</span></td>
+            <td class="num qty">1 each</td>
+            <td class="num">10 / 20</td>
+            <td class="num qty">300M isk</td>
+            <td class="muted">Jita 4-4 · 14 d</td>
+          </tr>
+          <tr>
+            <td><span class="badge bpc">BPC</span></td>
+            <td class="num qty">1</td>
+            <td class="num">2 / 0</td>
+            <td class="num qty">185M isk</td>
+            <td class="muted">Jita 4-4 · 6 d</td>
+          </tr>
+          <tr>
+            <td colspan="5"><span class="muted">Backfill needs 1 BPC × 1 run at ×1 — both listings qualify; the </span><b>best combination</b><span class="muted"> (balanced) picks ME 10 / TE 20 from the bundle row</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        Real contract data (pulled 2026-11-19; second row illustrative).
+        Scans cover the NPC hub regions — the Location column is display
+        only.
+        The first listing is a <b>same-type bundle</b> — ten identical
+        1-run BPCs in one contract — the exact corner the matching rule
+        parks: exclusive-contents passes it, but a ×1 plan needs one of
+        ten. Selection bias picks by slider position: profit → highest
+        ME, throughput → highest TE, balanced → best combination. ESI's
+        contract items expose runs / ME / TE per BPC, so no extra data
+        source.
+      </div>
+    </div>
+  </section>
+
+  <!-- Calculate bar -->
+  <section class="card">
+    <div class="card-body" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+      <div class="meta-line">
+        Charon ×1 · 41 blueprints (18 missing) · 55 intermediates · 60 raw types · chain resolved — Calculate schedules the plan
+      </div>
+      <button class="primary" type="button">Calculate</button>
+    </div>
+  </section>
+
+  <p class="meta-line" style="margin-top: 1rem;">
+    Calculate resolves the full reverse chain and opens the build plan →
+    <a href="build-plan.html">build-plan.html</a> (fresh) ·
+    <a href="build-plan-active.html">build-plan-active.html</a> (mid-flight)
+  </p>
+</main>
+
+</body>
+</html>

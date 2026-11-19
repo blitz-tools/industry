@@ -1,0 +1,1227 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Plan — Charon ×1 — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">industry</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/charon/build-plan.html</div>
+</aside>
+
+<main class="content">
+  <div class="page-header">
+    <h1><img class="type-icon" style="width:32px;height:32px;" src="https://images.evetech.net/types/20185/icon?size=32" alt=""> Build Plan — Charon ×1</h1>
+    <div class="actions">
+      <span class="badge plan-state">Draft</span>
+      <span class="pool-picker">Pool
+        <select aria-label="Inventory pool">
+          <option selected>blitz and blitz holdings (corp)</option>
+          <option>Personal — schlepzrage</option>
+          <option>Corp + personal</option>
+        </select>
+      </span>
+      <button class="icon-button" type="button" title="Re-run planner" aria-label="Re-run planner">⟳</button>
+      <button class="icon-button" type="button" title="Export plan" aria-label="Export plan">⭳</button>
+    </div>
+  </div>
+
+  <!-- Summary tiles -->
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">21.7 d</p>
+      <p class="stat-label">Chain end (BPC-contract plan; 25.7 d copying the ship)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">2.6 d</p>
+      <p class="stat-label">Copy pipeline max (CTR — owned BPOs only)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">18 blueprints</p>
+      <p class="stat-label">To backfill via contract (missing)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">7 jobs</p>
+      <p class="stat-label">First wave — install now</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">60 types</p>
+      <p class="stat-label">Raw materials to obtain</p>
+    </div>
+  </div>
+
+  <!-- Reverse product chain -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse product chain</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Raw materials on the left, target on the right. Each node chip toggles Purchase ⇄ Build — purchased nodes drop out of the job allocation, count toward acquisition instead of the phase state and percent, and their inputs leave the raw-material math (the commodity itself is acquired instead). Phase rows carry a bulk toggle that sets every node at once.</p>
+
+  <div class="chain-flow">
+    <div class="chain-phase">
+      <span class="phase-label">Phase 1</span>
+      <span class="phase-name">Fuel blocks</span>
+      <span class="phase-meta">4 nodes · manufacturing</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state ready">Ready to build</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 2</span>
+      <span class="phase-name">R4 reactions</span>
+      <span class="phase-meta">9 nodes · reactions</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 3</span>
+      <span class="phase-name">R4 + advanced reactions</span>
+      <span class="phase-meta">17 nodes · reactions</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 4</span>
+      <span class="phase-name">Advanced reactions + CTR</span>
+      <span class="phase-meta">16 nodes · reactions + manufacturing</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 5</span>
+      <span class="phase-name">Capital + regular components</span>
+      <span class="phase-meta">9 nodes · manufacturing · 1 purchased</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 6</span>
+      <span class="phase-name">Charon ×1</span>
+      <span class="phase-meta">1 node · manufacturing</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Two chain shapes the Typhoon never showed: <b>fuel blocks recur at
+    phases 1–3</b> (different consumers at different depths — aggregation
+    merges per phase, never across; see the recurring-commodity open
+    question in MILESTONES), and <b>phases 3–5 mix activities</b>
+    (manufacturing and reaction items in one phase). Capital Cargo Bay is
+    flipped to <b>Purchase</b> as the live-edit demo — the missing-blueprint
+    alternative in action: buying the commodity outright instead of
+    backfilling its BPC.
+  </div>
+
+  <!-- Phase tree -->
+  <details class="phase-row" open style="margin-top: 1rem;">
+    <summary>
+      <span class="phase-title">Phase 1 — Fuel blocks</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">4 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state ready">Ready to build</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4051/icon?size=32" alt="">
+        <span class="node-name">Nitrogen Fuel Block</span>
+        <span class="node-qty">×440</span>
+        <span class="node-runs">11 runs</span>
+        <span class="node-right">
+          <span class="badge owned">BPC ×200 runs</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4246/icon?size=32" alt="">
+        <span class="node-name">Hydrogen Fuel Block</span>
+        <span class="node-qty">×440</span>
+        <span class="node-runs">11 runs</span>
+        <span class="node-right">
+          <span class="badge owned">BPO · Octavia</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4247/icon?size=32" alt="">
+        <span class="node-name">Helium Fuel Block</span>
+        <span class="node-qty">×440</span>
+        <span class="node-runs">11 runs</span>
+        <span class="node-right">
+          <span class="badge owned">BPC ×200 runs</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4312/icon?size=32" alt="">
+        <span class="node-name">Oxygen Fuel Block</span>
+        <span class="node-qty">×530</span>
+        <span class="node-runs">14 runs</span>
+        <span class="node-right">
+          <span class="badge owned">BPC ×200 runs</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row" open>
+    <summary>
+      <span class="phase-title">Phase 2 — R4 reactions</span>
+      <span class="activity-tag rxn">reaction</span>
+      <span class="phase-count">9 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/16659/icon?size=32" alt="">
+        <span class="node-name">Carbon Polymers</span>
+        <span class="node-qty">×17,600</span>
+        <span class="node-runs">88 runs · 3 jobs</span>
+        <span class="node-right">
+          <span class="badge owned">BPO ×2</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/16661/icon?size=32" alt="">
+        <span class="node-name">Sulfuric Acid</span>
+        <span class="node-qty">×17,600</span>
+        <span class="node-runs">88 runs · 3 jobs</span>
+        <span class="node-right">
+          <span class="badge owned">BPO ×2</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57453/icon?size=32" alt="">
+        <span class="node-name">Carbon Fiber</span>
+        <span class="node-qty">×17,600</span>
+        <span class="node-runs">88 runs · 3 jobs</span>
+        <span class="node-right">
+          <span class="badge owned">BPO ×2</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57455/icon?size=32" alt="">
+        <span class="node-name">Thermosetting Polymer</span>
+        <span class="node-qty">×17,600</span>
+        <span class="node-runs">88 runs · 3 jobs</span>
+        <span class="node-right">
+          <span class="badge owned">BPO ×2</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57454/icon?size=32" alt="">
+        <span class="node-name">Oxy-Organic Solvents</span>
+        <span class="node-qty">×176</span>
+        <span class="node-runs">18 runs · 3 jobs</span>
+        <span class="node-right">
+          <span class="badge owned">BPO</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4051/icon?size=32" alt="">
+        <span class="node-name">Nitrogen Fuel Block</span>
+        <span class="node-qty">×5</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="node-gating">recurring — merges with phase 1 build</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4246/icon?size=32" alt="">
+        <span class="node-name">Hydrogen Fuel Block</span>
+        <span class="node-qty">×225</span>
+        <span class="node-runs">6 runs</span>
+        <span class="node-right">
+          <span class="node-gating">recurring — merges with phase 1 build</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4247/icon?size=32" alt="">
+        <span class="node-name">Helium Fuel Block</span>
+        <span class="node-qty">×10</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="node-gating">recurring — merges with phase 1 build</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4312/icon?size=32" alt="">
+        <span class="node-name">Oxygen Fuel Block</span>
+        <span class="node-qty">×265</span>
+        <span class="node-runs">7 runs</span>
+        <span class="node-right">
+          <span class="node-gating">recurring — merges with phase 1 build</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row">
+    <summary>
+      <span class="phase-title">Phase 3 — R4 + advanced reactions</span>
+      <span class="activity-tag rxn">reaction</span>
+      <span class="phase-count">17 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57453/icon?size=32" alt="">
+        <span class="node-name">Carbon Fiber</span>
+        <span class="node-qty">×8,800</span>
+        <span class="node-runs">44 runs · 3 jobs</span>
+        <span class="node-right">
+          <span class="badge owned">BPO ×2</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57456/icon?size=32" alt="">
+        <span class="node-name">Pressurized Oxidizers</span>
+        <span class="node-qty">×17,500</span>
+        <span class="node-runs">88 runs · 3 jobs</span>
+        <span class="node-right">
+          <span class="badge owned">BPO ×2</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57457/icon?size=32" alt="">
+        <span class="node-name">Reinforced Carbon Fiber</span>
+        <span class="node-qty">×17,500</span>
+        <span class="node-runs">88 runs · 3 jobs</span>
+        <span class="node-right">
+          <span class="badge owned">BPO ×2</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/16659/icon?size=32" alt="">
+        <span class="node-name">Carbon Polymers</span>
+        <span class="node-qty">×200</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="node-gating">recurring — merges with phase 2 build</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/16661/icon?size=32" alt="">
+        <span class="node-name">Sulfuric Acid</span>
+        <span class="node-qty">×200</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="node-gating">recurring — merges with phase 2 build</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57454/icon?size=32" alt="">
+        <span class="node-name">Oxy-Organic Solvents</span>
+        <span class="node-qty">×45</span>
+        <span class="node-runs">5 runs</span>
+        <span class="node-right">
+          <span class="node-gating">recurring — merges with phase 2 build</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57455/icon?size=32" alt="">
+        <span class="node-name">Thermosetting Polymer</span>
+        <span class="node-qty">×8,800</span>
+        <span class="node-runs">44 runs · 3 jobs</span>
+        <span class="node-right">
+          <span class="node-gating">recurring — merges with phase 2 build</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4051/icon?size=32" alt="">
+        <span class="node-name">Nitrogen Fuel Block</span>
+        <span class="node-qty">×220</span>
+        <span class="node-runs">6 runs</span>
+        <span class="node-right">
+          <span class="node-gating">recurring — merges with phase 1 build</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4246/icon?size=32" alt="">
+        <span class="node-name">Hydrogen Fuel Block</span>
+        <span class="node-qty">×35</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="node-gating">recurring — merges with phase 1 build</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4247/icon?size=32" alt="">
+        <span class="node-name">Helium Fuel Block</span>
+        <span class="node-qty">×25</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="node-gating">recurring — merges with phase 1 build</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4312/icon?size=32" alt="">
+        <span class="node-name">Oxygen Fuel Block</span>
+        <span class="node-qty">×15</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="node-gating">recurring — merges with phase 1 build</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/16654/icon?size=32" alt="">
+        <span class="node-name">Titanium Chromide</span>
+        <span class="node-qty">×200</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge missing">Formula not owned</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/16663/icon?size=32" alt="">
+        <span class="node-name">Caesarium Cadmide</span>
+        <span class="node-qty">×100</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge missing">Formula not owned</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/16668/icon?size=32" alt="">
+        <span class="node-name">Dysporite</span>
+        <span class="node-qty">×100</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge missing">Formula not owned</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/16669/icon?size=32" alt="">
+        <span class="node-name">Ferrofluid</span>
+        <span class="node-qty">×200</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge missing">Formula not owned</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/17769/icon?size=32" alt="">
+        <span class="node-name">Fluxed Condensates</span>
+        <span class="node-qty">×100</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge missing">Formula not owned</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/17960/icon?size=32" alt="">
+        <span class="node-name">Prometium</span>
+        <span class="node-qty">×100</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge missing">Formula not owned</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row">
+    <summary>
+      <span class="phase-title">Phase 4 — Advanced reactions + CTR</span>
+      <span class="activity-tag rxn">reaction</span>
+      <span class="phase-count">16 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57457/icon?size=32" alt="">
+        <span class="node-name">Reinforced Carbon Fiber</span>
+        <span class="node-qty">×8,670</span>
+        <span class="node-runs">44 runs · 3 jobs</span>
+        <span class="node-right">
+          <span class="node-gating">recurring — merges with phase 3 build</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57460/icon?size=32" alt="">
+        <span class="node-name">Axosomatic Neurolink Enhancer</span>
+        <span class="node-qty">×640</span>
+        <span class="node-runs">32 runs · 3 jobs</span>
+        <span class="node-right">
+          <span class="badge missing">Formula not owned</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57467/icon?size=32" alt="">
+        <span class="node-name">Reaction-Orienting Neurolink Stabilizer</span>
+        <span class="node-qty">×16</span>
+        <span class="node-runs">2 runs</span>
+        <span class="node-right">
+          <span class="badge missing">Formula not owned</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/17317/icon?size=32" alt="">
+        <span class="node-name">Fermionic Condensates</span>
+        <span class="node-qty">×40</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge missing">Formula not owned</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/30303/icon?size=32" alt="">
+        <span class="node-name">Fulleroferrocene</span>
+        <span class="node-qty">×660</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge owned">BPO</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/30304/icon?size=32" alt="">
+        <span class="node-name">PPD Fullerene Fibers</span>
+        <span class="node-qty">×190</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge owned">BPO</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/30305/icon?size=32" alt="">
+        <span class="node-name">Fullerene Intercalated Graphite</span>
+        <span class="node-qty">×390</span>
+        <span class="node-runs">4 runs</span>
+        <span class="node-right">
+          <span class="badge owned">BPO</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/30309/icon?size=32" alt="">
+        <span class="node-name">Graphene Nanoribbons</span>
+        <span class="node-qty">×560</span>
+        <span class="node-runs">5 runs</span>
+        <span class="node-right">
+          <span class="badge owned">BPO</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/33362/icon?size=32" alt="">
+        <span class="node-name">Nonlinear Metamaterials</span>
+        <span class="node-qty">×560</span>
+        <span class="node-runs">2 runs</span>
+        <span class="node-right">
+          <span class="badge missing">Formula not owned</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57456/icon?size=32" alt="">
+        <span class="node-name">Pressurized Oxidizers</span>
+        <span class="node-qty">×160</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="node-gating">recurring — merges with phase 3 build</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57479/icon?size=32" alt="">
+        <span class="node-name">Core Temperature Regulator</span>
+        <span class="node-qty">×35</span>
+        <span class="node-runs">35 runs · 18 BPCs ×2</span>
+        <span class="node-right">
+          <span class="badge owned">BPO ×34</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row">
+    <summary>
+      <span class="phase-title">Phase 5 — Capital + regular components</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">9 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+        <span class="node-gating">8 build · 1 purchased</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/21009/icon?size=32" alt="">
+        <span class="node-name">Capital Propulsion Engine</span>
+        <span class="node-qty">×5</span>
+        <span class="node-runs">5 runs</span>
+        <span class="node-right">
+          <span class="badge missing">BPC via contract</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/21017/icon?size=32" alt="">
+        <span class="node-name">Capital Armor Plates</span>
+        <span class="node-qty">×5</span>
+        <span class="node-runs">5 runs</span>
+        <span class="node-right">
+          <span class="badge missing">BPC via contract</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row purchased">
+        <img class="type-icon" src="https://images.evetech.net/types/21027/icon?size=32" alt="">
+        <span class="node-name">Capital Cargo Bay</span>
+        <span class="node-qty">×50</span>
+        <span class="node-runs">50 runs</span>
+        <span class="node-right">
+          <span class="node-gating">purchased — acquire ×50 via contract</span>
+          <span class="stage-chip purchase">Purchase</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/21037/icon?size=32" alt="">
+        <span class="node-name">Capital Construction Parts</span>
+        <span class="node-qty">×5</span>
+        <span class="node-runs">5 runs</span>
+        <span class="node-right">
+          <span class="badge missing">BPC via contract</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57471/icon?size=32" alt="">
+        <span class="node-name">R-O Trigger Neurolink Conduit</span>
+        <span class="node-qty">×16</span>
+        <span class="node-runs">16 runs</span>
+        <span class="node-right">
+          <span class="badge missing">BPC via contract</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57475/icon?size=32" alt="">
+        <span class="node-name">Gravimetric-FTL Interlink Communicator</span>
+        <span class="node-qty">×1</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge missing">BPC via contract</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57487/icon?size=32" alt="">
+        <span class="node-name">Capital Core Temperature Regulator</span>
+        <span class="node-qty">×1</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge missing">BPC via contract</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57478/icon?size=32" alt="">
+        <span class="node-name">Auto-Integrity Preservation Seal</span>
+        <span class="node-qty">×400</span>
+        <span class="node-runs">134 runs · 27 BPCs ×≈5</span>
+        <span class="node-right">
+          <span class="badge owned">BPO ×22</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57486/icon?size=32" alt="">
+        <span class="node-name">Life Support Backup Unit</span>
+        <span class="node-qty">×200</span>
+        <span class="node-runs">67 runs · 23 BPCs ×≈3</span>
+        <span class="node-right">
+          <span class="badge owned">BPO ×28</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row">
+    <summary>
+      <span class="phase-title">Phase 6 — Target</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">1 node</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/20185/icon?size=32" alt="">
+        <span class="node-name">Charon</span>
+        <span class="node-qty">×1</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge missing">BPC via contract · 1 run</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+    </div>
+  </details>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Capital Cargo Bay is flipped to <b>Purchase</b> as the demo of the
+    missing-blueprint alternative — buy the commodity instead of
+    backfilling its BPC: its build jobs drop out of the allocation below,
+    it no longer counts toward the phase 5 state or percent, its inputs
+    (a large share of the RCF demand and the minerals its BPC runs would
+    consume) leave the raw-material math, and the commodity itself
+    (×50) lands in the acquisition table. Clicking the chip toggles back
+    to <b>Build</b> and recalculates; the phase row's <b>Purchase all</b>
+    bulk toggle sets every node in the phase at once.
+  </div>
+
+  <!-- Required blueprints -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Required blueprints</h2>
+
+  <p class="meta-line" style="margin: 0 0 0.75rem;"><span style="color: var(--pink);">18 missing</span> · 23 owned — contract backfill proposed below; owned originals (AIPS, LSBU, CTR, fuel blocks, all R4 reaction formulas) cover the rest.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Blueprint</th>
+        <th>Activity</th>
+        <th>Status</th>
+        <th>Contract backfill (NPC hub regions)</th>
+        <th>Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="group-row"><td colspan="5">Missing — backfill proposed</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/20186/bpc?size=32" alt="">Charon Blueprint</td>
+        <td><span class="activity-tag mfg">manufacture</span></td>
+        <td><span class="badge missing">Missing</span></td>
+        <td class="muted">BPC ×10 same-type bundle · 1 run each · ME 10 / TE 20 — need 1</td>
+        <td class="num qty">300M</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/21009/bp?size=32" alt="">Capital Propulsion Engine Blueprint</td>
+        <td><span class="activity-tag mfg">manufacture</span></td>
+        <td><span class="badge missing">Missing</span></td>
+        <td class="muted">BPC ×1 · 5 runs · ME 2 / TE 2 — need 5 runs</td>
+        <td class="num qty">45M</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/21017/bp?size=32" alt="">Capital Armor Plates Blueprint</td>
+        <td><span class="activity-tag mfg">manufacture</span></td>
+        <td><span class="badge missing">Missing</span></td>
+        <td class="muted">BPC ×1 · 5 runs · ME 2 / TE 4 — need 5 runs</td>
+        <td class="num qty">40M</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/21037/bp?size=32" alt="">Capital Construction Parts Blueprint</td>
+        <td><span class="activity-tag mfg">manufacture</span></td>
+        <td><span class="badge missing">Missing</span></td>
+        <td class="muted">BPC ×1 · 5 runs · ME 0 / TE 0 — need 5 runs</td>
+        <td class="num qty">38M</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57471/bp?size=32" alt="">R-O Trigger Neurolink Conduit Blueprint</td>
+        <td><span class="activity-tag mfg">manufacture</span></td>
+        <td><span class="badge missing">Missing</span></td>
+        <td class="muted">BPC ×1 · 15 runs · ME 1 / TE 0 — need 16 runs</td>
+        <td class="num qty">22M</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57475/bp?size=32" alt="">Gravimetric-FTL Interlink Communicator Blueprint</td>
+        <td><span class="activity-tag mfg">manufacture</span></td>
+        <td><span class="badge missing">Missing</span></td>
+        <td class="muted">BPC ×1 · 1 run · ME 0 / TE 0 — need 1 run</td>
+        <td class="num qty">9M</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57487/bp?size=32" alt="">Capital Core Temperature Regulator Blueprint</td>
+        <td><span class="activity-tag mfg">manufacture</span></td>
+        <td><span class="badge missing">Missing</span></td>
+        <td class="muted">BPC ×1 · 1 run · ME 0 / TE 0 — need 1 run</td>
+        <td class="num qty">12M</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57460/bp?size=32" alt="">Axosomatic Neurolink Enhancer Reaction Formula</td>
+        <td><span class="activity-tag rxn">reaction</span></td>
+        <td><span class="badge missing">Missing</span></td>
+        <td class="muted">BPO · ME 0 / TE 0 — formulas are cheap originals</td>
+        <td class="num qty">8M</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/17317/bp?size=32" alt="">Fermionic Condensates Reaction Formula</td>
+        <td><span class="activity-tag rxn">reaction</span></td>
+        <td><span class="badge missing">Missing</span></td>
+        <td class="muted">BPO · ME 0 / TE 0</td>
+        <td class="num qty">5M</td>
+      </tr>
+      <tr>
+        <td colspan="5" class="muted">+ 8 more missing reaction formulas — R-O Stabilizer · Nonlinear Metamaterials · Caesarium Cadmide · Dysporite · Ferrofluid · Fluxed Condensates · Titanium Chromide · Prometium (BPOs, cheap originals off market)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The Charon Blueprint row is <b>real contract data</b> (The Forge,
+    2026-11-19: one contract, ten identical 1-run ME 10 / TE 20 BPCs,
+    300M) — the same-type-bundle corner the matching rule parks; the
+    other rows are illustrative. Region is display metadata, never a
+    filter. Capital Cargo Bay's blueprint left this list when its node
+    flipped to Purchase — nothing to backfill for a purchased
+    commodity. Selection bias applies where several listings qualify:
+    profit → highest ME, throughput → highest TE, balanced → best
+    combination.
+  </div>
+
+  <!-- Blueprint copy plan -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Blueprint copy plan</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">BPCs to copy from owned originals so jobs install in parallel — one copy job per BPO, copies finish before their build jobs install. Only owned originals copy; the nine missing blueprints arrive via contract instead.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Commodity</th>
+        <th class="num">BPCs</th>
+        <th>Run counts</th>
+        <th class="num">Copy time</th>
+        <th>Ready by</th>
+        <th>Source</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57479/icon?size=32" alt="">Core Temperature Regulator</td>
+        <td class="num qty">18</td>
+        <td>17 × 2, 1 × 1</td>
+        <td class="num">62 h</td>
+        <td class="muted">day 2.6</td>
+        <td class="muted">Corp BPO ×34 · ME 10 / TE 20 · Amamake</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57478/icon?size=32" alt="">Auto-Integrity Preservation Seal</td>
+        <td class="num qty">27</td>
+        <td>26 × 5, 1 × 4</td>
+        <td class="num">53 h</td>
+        <td class="muted">day 2.2</td>
+        <td class="muted">Corp BPO ×22 · ME 10 / TE 16 · Amamake</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57486/icon?size=32" alt="">Life Support Backup Unit</td>
+        <td class="num qty">23</td>
+        <td>21 × 3, 2 × 2</td>
+        <td class="num">27 h</td>
+        <td class="muted">day 1.1</td>
+        <td class="muted">Corp BPO ×28 · ME 10 / TE 20 · Amamake</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">No copy needed: fuel blocks build direct from owned BPOs and 200-run BPCs; the Charon and the capital components draw from contract BPCs (the ship itself is a single-run BPC — copying provides no parallelism, which is why the BPC-contract plan beats pure-copy by 4 days).</p>
+
+  <!-- Raw materials -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Raw materials — acquisition</h2>
+  <p class="meta-line" style="margin: 0 0 0.5rem;">Chain terminators summed across all stages, measured against the selected pool. Bars fill from asset syncs; green = covered, yellow = partial, pink = under half. Defaults to gaps only so blockers stand out.</p>
+
+  <div style="display: flex; gap: 0.4rem; margin-bottom: 0.75rem;">
+    <button class="chip-button selected" type="button">Gaps only</button>
+    <button class="chip-button" type="button">Show all 60 types</button>
+  </div>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Material</th>
+        <th class="num">Required</th>
+        <th class="num">Available</th>
+        <th style="min-width: 10rem;">Coverage</th>
+        <th>Acquire via</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="group-row"><td colspan="5">Minerals</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/35/icon?size=32" alt="">Pyerite</td>
+        <td class="num qty">11,794,550</td>
+        <td class="num">4,200,000</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 36%"></div></div><span class="meter-pct">36%</span></div></td>
+        <td class="muted">Mining / market</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/36/icon?size=32" alt="">Mexallon</td>
+        <td class="num qty">3,279,900</td>
+        <td class="num">1,950,000</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 59%"></div></div><span class="meter-pct">59%</span></div></td>
+        <td class="muted">Mining / market</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/34/icon?size=32" alt="">Tritanium</td>
+        <td class="num qty">3,278,500</td>
+        <td class="num">2,880,000</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 88%"></div></div><span class="meter-pct">88%</span></div></td>
+        <td class="muted">Mining / market</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/37/icon?size=32" alt="">Isogen</td>
+        <td class="num qty">911,850</td>
+        <td class="num">610,000</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 67%"></div></div><span class="meter-pct">67%</span></div></td>
+        <td class="muted">Mining / market</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Moon materials</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/16633/icon?size=32" alt="">Hydrocarbons</td>
+        <td class="num qty">68,100</td>
+        <td class="num">21,500</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 32%"></div></div><span class="meter-pct">32%</span></div></td>
+        <td class="muted">Moon mining / market</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/16634/icon?size=32" alt="">Atmospheric Gases</td>
+        <td class="num qty">68,100</td>
+        <td class="num">8,400</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 12%"></div></div><span class="meter-pct">12%</span></div></td>
+        <td class="muted">Moon mining / market</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/16643/icon?size=32" alt="">Cadmium</td>
+        <td class="num qty">200</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — R8 moon material</span></div></td>
+        <td class="muted">Moon mining / market</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">PI commodities</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/2401/icon?size=32" alt="">Chiral Structures</td>
+        <td class="num qty">3,500</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — blocks CTR builds</span></div></td>
+        <td class="muted">Planetary industry</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/3645/icon?size=32" alt="">Water</td>
+        <td class="num qty">3,500</td>
+        <td class="num">2,100</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 60%"></div></div><span class="meter-pct">60%</span></div></td>
+        <td class="muted">Planetary industry</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/2872/icon?size=32" alt="">Self-Harmonizing Power Core</td>
+        <td class="num qty">26</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — tier-4 PI, blocks Capital Propulsion Engine</span></div></td>
+        <td class="muted">Planetary industry (tier 4)</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/2870/icon?size=32" alt="">Organic Mortar Applicators</td>
+        <td class="num qty">25</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — tier-4 PI</span></div></td>
+        <td class="muted">Planetary industry (tier 4)</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Ice products</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/16273/icon?size=32" alt="">Liquid Ozone</td>
+        <td class="num qty">24,850</td>
+        <td class="num">11,900</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 48%"></div></div><span class="meter-pct">48%</span></div></td>
+        <td class="muted">Ice mining / market</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/16272/icon?size=32" alt="">Heavy Water</td>
+        <td class="num qty">12,070</td>
+        <td class="num">6,800</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 56%"></div></div><span class="meter-pct">56%</span></div></td>
+        <td class="muted">Ice mining / market</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Gas (harvestable clouds)</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/28694/icon?size=32" alt="">Amber Mykoserocin</td>
+        <td class="num qty">1,280</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — gas sites, blocks neurolink conduits</span></div></td>
+        <td class="muted">Gas site harvesting / market</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/30371/icon?size=32" alt="">Fullerite-C60</td>
+        <td class="num qty">600</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — wormhole gas, blocks fullerene reactions</span></div></td>
+        <td class="muted">W-space gas sites / market</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Molecular-forging tools</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57446/icon?size=32" alt="">AG-Composite Molecular Condenser</td>
+        <td class="num qty">34</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — NPC market tool</span></div></td>
+        <td class="muted">Market (NPC-sold)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">47 types fully covered — hidden in this view; "Show all 60 types" lists them.</p>
+
+  <!-- Job allocation -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — wave 1</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Recommended installs per character, from synced skills and live slot occupancy — eligibility first (only characters holding the job's required skills receive it), and each job's duration uses its assignee's skill multiplier, so the chain-end estimate reflects who runs what. Reaction formulas can't be copied — one job per BPO. Each queued job is assigned to exactly one character; queues show the next job plus at most one "then", with a count for anything deeper.</p>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    Fresh plan: every slot shows its recommended job or what it's waiting on.
+    For the in-progress variant (running jobs, time-to-delivery, next-up
+    queues) see <a href="build-plan-active.html">build-plan-active.html</a>.
+  </div>
+
+  <!-- schlepzrage -->
+  <section class="char-card-jobs" style="margin-top: 1rem;">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124139810/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">schlepzrage <span class="badge bpo" style="margin-left: 0.4rem;">Main</span></div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 3 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Science slots (copying)</div>
+    <div class="slot-grid">
+      <div class="slot ready">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/57416/bp?size=32" alt="">
+          <span class="slot-name">CTR copy · BPC 1/18</span>
+          <span class="activity-tag copy">copy</span>
+        </div>
+        <span class="slot-meta">2 runs · 3.5 h · Amamake - Police Weapons Facility</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install</span>
+        <div class="next-up"><span class="next-label">next up</span>BPC 2/18 × 2 runs</div>
+      </div>
+      <div class="slot idle">+ 9 idle</div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots</div>
+    <div class="slot-grid">
+      <div class="slot ready">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/4051/icon?size=32" alt="">
+          <span class="slot-name">Nitrogen Fuel Block</span>
+          <span class="activity-tag mfg">manufacture</span>
+        </div>
+        <span class="slot-meta">11 runs · ~2 h · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install</span>
+      </div>
+      <div class="slot ready">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/4312/icon?size=32" alt="">
+          <span class="slot-name">Oxygen Fuel Block</span>
+          <span class="activity-tag mfg">manufacture</span>
+        </div>
+        <span class="slot-meta">14 runs · ~3 h · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install</span>
+      </div>
+      <div class="slot idle">+ 7 idle</div>
+    </div>
+
+    <div class="slot-group-label">Reaction slots</div>
+    <div class="slot-grid">
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>Carbon Polymers ×30 runs — waiting on fuel blocks + moon materials</div>
+      </div>
+      <div class="slot idle">+ 9 idle</div>
+    </div>
+  </section>
+
+  <!-- Octavia Arbitrage -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124297138/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">Octavia Arbitrage</div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 2 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Science slots (copying)</div>
+    <div class="slot-grid">
+      <div class="slot ready">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/57515/bp?size=32" alt="">
+          <span class="slot-name">AIPS copy · BPC 1/27</span>
+          <span class="activity-tag copy">copy</span>
+        </div>
+        <span class="slot-meta">5 runs · 2 h · Amamake - Police Weapons Facility</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install</span>
+        <div class="next-up"><span class="next-label">next up</span>BPC 2/27 × 5 runs</div>
+      </div>
+      <div class="slot idle">+ 9 idle</div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots</div>
+    <div class="slot-grid">
+      <div class="slot ready">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/4246/icon?size=32" alt="">
+          <span class="slot-name">Hydrogen Fuel Block</span>
+          <span class="activity-tag mfg">manufacture</span>
+        </div>
+        <span class="slot-meta">11 runs · ~2 h · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install</span>
+      </div>
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>Charon ×1 run — waiting on components + BPC contract · only Octavia holds Capital Ship Construction</div>
+      </div>
+      <div class="slot idle">+ 8 idle</div>
+    </div>
+
+    <div class="slot-group-label">Reaction slots</div>
+    <div class="slot-grid">
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>Sulfuric Acid ×30 runs — waiting on inputs</div>
+      </div>
+      <div class="slot idle">+ 9 idle</div>
+    </div>
+  </section>
+
+  <!-- theblitzrage I -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2123535366/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">theblitzrage I</div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 2 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Science slots (copying)</div>
+    <div class="slot-grid">
+      <div class="slot ready">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/57523/bp?size=32" alt="">
+          <span class="slot-name">LSBU copy · BPC 1/23</span>
+          <span class="activity-tag copy">copy</span>
+        </div>
+        <span class="slot-meta">3 runs · 1.2 h · Amamake - Police Weapons Facility</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install</span>
+      </div>
+      <div class="slot idle">+ 9 idle</div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots</div>
+    <div class="slot-grid">
+      <div class="slot ready">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/4247/icon?size=32" alt="">
+          <span class="slot-name">Helium Fuel Block</span>
+          <span class="activity-tag mfg">manufacture</span>
+        </div>
+        <span class="slot-meta">11 runs · ~2 h · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install</span>
+      </div>
+      <div class="slot idle">+ 9 idle</div>
+    </div>
+
+    <div class="slot-group-label">Reaction slots</div>
+    <div class="slot-grid">
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>Carbon Fiber ×30 runs — waiting on inputs</div>
+      </div>
+      <div class="slot idle">+ 9 idle</div>
+    </div>
+  </section>
+
+  <p class="meta-line" style="margin-top: 1.25rem;">
+    Wave 1: 7 jobs (3 copy · 4 manufacturing). Contract actions: 1 Charon
+    BPC + 6 capital-component BPCs + 2 reaction formulas. Slots free after
+    delivery pick up the next queued job per the "next up" hints.
+    <a href="planner.html">← back to planner</a> ·
+    <a href="build-plan-active.html">mid-flight state →</a>
+  </p>
+</main>
+
+</body>
+</html>

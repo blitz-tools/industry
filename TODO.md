@@ -152,7 +152,7 @@ Prerequisite work for anything multi-user:
 ## Smaller items / ideas
 
 - **Planner UI a11y (accessibility; from mockup iteration, 2026-11-18)** — when the
-  `design/mockups/` components ship in the app: the Purchase ⇄ Build chip
+  `design/typhoon/` components ship in the app: the Purchase ⇄ Build chip
   is a `cursor: pointer` span in the wireframes but must ship as a
   `<button>`; the blueprint-search autocomplete rows need keyboard
   navigation (arrow keys + enter, focus management).

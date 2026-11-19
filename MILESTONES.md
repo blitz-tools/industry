@@ -142,7 +142,7 @@ Two consequences worth stating outright:
   milestones graduate into the app. See `reference/README.md` for the
   formula reference and flagged assumptions.
 - **Stage-state model** (2026-11-18, from the mockup iteration —
-  `design/mockups/` is the visual spec): five node states — Missing
+  `design/typhoon/` is the visual spec): five node states — Missing
   inputs, Ready to build, In progress, Ready to deliver, Stage complete
   ("In progress" fills the spec's gap between Ready to build and Ready
   to deliver) — carried by the state chip, with the gating reason (BPC
@@ -181,7 +181,18 @@ Two consequences worth stating outright:
   includes the Charon BPC among other items is not a match, so the
   plan never prices unwanted bundled items. Whether same-type
   multiples (several identical BPCs in one contract) qualify is an
-  implementation-time call. **BPC selection bias (2026-11-18)**: when
+  implementation-time call. **Scan scope (2026-11-19, refined)**:
+  contract searches default to the standard NPC trade-hub regions
+  (The Forge, Domain, Heimatar, Metropolis, Sinq Laison) — where BPC
+  contracts actually list. Region stays display metadata on results,
+  never a filter. ESI's public-contracts endpoint is per-region by
+  construction and has **no item-level search** (the listing carries
+  no contents), so candidates pre-filter on contract type
+  `item_exchange` plus a tight volume band (a BPC contract is ~0.1
+  m³) before the per-contract items call. **No price filtering** —
+  below-market BPCs are finds, not noise. An all-region sweep
+  remains possible but is not the default. **BPC selection
+  bias (2026-11-18)**: when
   several contracts satisfy a missing blueprint, the
   profit-vs-throughput slider picks which — profit biases toward the
   highest ME (cost), throughput toward the highest TE (wall time),
@@ -191,6 +202,49 @@ Two consequences worth stating outright:
   `material_efficiency`, `time_efficiency`, and `runs` per BPC, so
   the bias needs no data source beyond the contracts sync.
   (M5/M6/M12.)
+- **Skill gate (2026-11-19)**: build planning checks each blueprint
+  for usability as well as availability — at least one character in
+  the pool holding the activity's required skills
+  (`sde_activity_skills`: manufacture, react, invent). A blueprint
+  with no skilled character forces its node to the purchase path
+  (market or farming) regardless of BPC availability, and contract
+  searches for it are skipped as unnecessary. The calculated plan
+  marks these nodes distinctly — skill-gated, not blueprint-gated —
+  so the acquisition story explains why purchase is forced.
+  (M4/M5/M9; eligibility was already M9's assignment input — this
+  makes it a plan-time gate. Live check 2026-11-19: the roster passes
+  the Charon chain — Octavia holds Capital Ship Construction.)
+  **Waves and job alignment respect the same eligibility (2026-11-19)**:
+  a wave's install requests only go to characters holding the job's
+  required skills, and single-holder skills serialize that work onto
+  one character regardless of free slots — the wave view makes the
+  bottleneck visible (e.g. every Capital-Ship-Construction job in a
+  Charon plan lands on Octavia alone). **Plan calculations weight
+  durations by assignee (2026-11-19)**: job alignment feeds the time
+  model — each job's duration uses its assigned character's skill
+  multiplier, so who runs what changes the chain-end estimate. The
+  scheduler assigns eligibility-first, then optimizes: the
+  throughput end puts jobs on the fastest eligible characters, the
+  efficiency end runs the skill-weighted distribution; single-holder
+  skills serialize both the jobs and the multiplier. The reference
+  model's single-multiplier runs remain scenarios, not the app's
+  behavior.
+- **Planner requirement overview** (2026-11-19): pre-calculation shows
+  the full per-unit chain in three collapsible tiers — blueprints
+  (owned/missing status with a contract-backfill peek on missing),
+  intermediates (grouped by phase, per-unit quantities), raw
+  terminators (by category, with coverage standouts) — quantities
+  tracking the target stepper live. Calculate schedules (phases,
+  waves, allocation, copy plan); the chain itself resolves at
+  selection. Direct-inputs-only was rejected: it is
+  recipe-dependent-inconsistent (the Typhoon takes minerals directly,
+  the Charon takes none). The tier list is open-ended — invention
+  inputs join as their own tier when M8 chains arrive, kept simple at
+  the overview level: the source-BPC → invented-BPC relationship
+  (Typhoon BPC → Panther BPC) and nothing more. The rich invention
+  math — decryptor selection, success rate per decryptor, decryptor
+  inventory vs purchase — lands on the calculated plan (M8 pickup).
+  (M4.)
 - **Phase numbering** (2026-11-18): phases count up in build order —
   raw-material terminators at phase 0, a node's phase = 1 + max(its
   inputs' phases), target at the highest number — so phase and wave
