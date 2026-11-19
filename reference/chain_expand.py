@@ -2,7 +2,7 @@
 """Chain expansion reference: per-branch tree, aggregated phases, raw totals.
 
 Executable spec for M5's chain resolution (MILESTONES.md) and the generator
-of TYPHOON-CHAIN.md's golden values. Read-only against the SDE mirror; run
+of reference/chains/TYPHOON-CHAIN.md's golden values. Read-only against the SDE mirror; run
 inside the dev container from the repo root:
 
     podman exec industry_dev_1 python reference/chain_expand.py 644 1

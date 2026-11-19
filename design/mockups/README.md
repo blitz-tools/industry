@@ -31,7 +31,7 @@ would never ship.
 Everything is real, pulled 2026-11-17 from the live dev database:
 
 - Quantities, run counts, phases, and the copy pipeline derive from
-  `TYPHOON-CHAIN.md` (Typhoon ×10 target: chain end 9.5 d, AIPS copy as
+  `reference/chains/TYPHOON-CHAIN.md` (Typhoon ×10 target: chain end 9.5 d, AIPS copy as
   critical path).
 - Type IDs, blueprint names, and `maxProductionLimit` values come from the
   SDE mirror; icons use those IDs against `images.evetech.net`.

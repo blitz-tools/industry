@@ -1,11 +1,11 @@
 # Reference — planner proof-out scripts
 
 Executable spec for the industry planner's calculation core. These scripts
-regenerate the golden values in `TYPHOON-CHAIN.md` and encode the algorithms
-the milestones graduate into the app: chain expansion → M5, time/job math →
-M4, scheduling and copy strategy → M9, BPO recommendations → M12. They are
-reference implementations, not app code — no ORM, no framework, stdlib only,
-read-only against the database.
+regenerate the golden values in `reference/chains/TYPHOON-CHAIN.md` and
+encode the algorithms the milestones graduate into the app: chain
+expansion → M5, time/job math → M4, scheduling and copy strategy → M9,
+BPO recommendations → M12. They are reference implementations, not app
+code — no ORM, no framework, stdlib only, read-only against the database.
 
 Run inside the dev container from the repo root:
 
@@ -20,6 +20,21 @@ podman exec industry_dev_1 python reference/timeline_model.py 644 100 --horizon
 
 `--char <character_id>` runs the model with that character's computed skill
 multiplier instead of the max-skills scenario; `--corp <id>` picks the pool.
+
+## Chain documents (`reference/chains/`)
+
+Per-chain golden-value documents, one file per simulation target:
+`<TARGET>-CHAIN.md`. `TYPHOON-CHAIN.md` (Typhoon, the standing M5
+validation case) is the template — full chain expansion, aggregated
+phases, raw-material acquisition table, scheduling model, timelines,
+and scaling analysis, all generated from the scripts above.
+
+New chains are added to stress the models with more complex structures
+(deeper phase stacks, capital components, invention/T2 layers) and
+surface assumptions that break — every "known simplification" below is
+a candidate for exactly that. When a chain exposes a bad assumption,
+record it in the chain document and the fix in this README's model
+notes; the milestone text records what changes for the app.
 
 ## Formula reference
 
@@ -69,7 +84,7 @@ runtime; nothing here is learned or guessed at run time.
   per run; break-even multiplier = copy-time ÷ base-build-time, 0.8 across
   this chain); 2×BPO (second BPO for the longest queue)
 - copy-vs-direct decision rule and the diminishing-returns analysis:
-  see TYPHOON-CHAIN.md
+  see reference/chains/TYPHOON-CHAIN.md
 
 **BPO recommendations (M12)**
 
@@ -80,12 +95,13 @@ runtime; nothing here is learned or guessed at run time.
 - slot ceiling = ⌈pool × copy-time ÷ build-time⌉ — BPOs past which BPCs
   arrive faster than slots can build
 - the acquisition ladder (un-gate one resource, the next surfaces) is
-  manual analysis in TYPHOON-CHAIN.md; automating the iteration is M12 work
+  manual analysis in `reference/chains/TYPHOON-CHAIN.md`; automating
+  the iteration is M12 work
 
 ## Status and caveats
 
 - Golden values: `chain_expand.py 644 1` and `timeline_model.py 644 100`
-  reproduce TYPHOON-CHAIN.md's tables; small-N timeline values differ
+  reproduce reference/chains/TYPHOON-CHAIN.md's tables; small-N timeline values differ
   slightly from the doc's charts (the doc used linear-rate approximation,
   the script computes directly — the script is the source of truth).
 - Unverified inputs (M4's dogma task): skill→time/copy multipliers,

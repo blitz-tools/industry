@@ -19,8 +19,9 @@ Working on the build planner wireframes in `design/mockups/`.
   document: settled decisions, recommendations awaiting a product-owner
   call, polish worklist).
 - **Context inputs** (read-only for these sessions): `MILESTONES.md` (what
-  each mockup section maps to) and `TYPHOON-CHAIN.md` (the real Typhoon ×10
-  chain data the mockups are populated with).
+  each mockup section maps to) and
+  `reference/chains/TYPHOON-CHAIN.md` (the real Typhoon ×10 chain data
+  the mockups are populated with).
 - **Output**: edits to the mockup HTML/CSS and updates to `ITERATION.md`.
   This work stays in its own session — it does not touch app code.
 - **Graduation rule**: when a design decision settles, it moves to its
@@ -36,8 +37,8 @@ Building the app surfaces described by the milestones.
   `TODO.md` (small items and ideas).
 - **Reference material**: `reference/README.md` (chain-resolution and
   timeline formula reference — the math the planner implements),
-  `TYPHOON-CHAIN.md` (golden values to check against), `docs/development/`
-  (architecture, testing, workflow).
+  `reference/chains/TYPHOON-CHAIN.md` (golden values to check
+  against), `docs/development/` (architecture, testing, workflow).
 - `app/industry.py` is the module the planner query layer grows in.
 
 ### Reference / model work
@@ -46,7 +47,7 @@ Maintaining the chain-expansion and timeline models.
 
 - **Read first**: `reference/README.md`.
 - `reference/chain_expand.py` and `reference/timeline_model.py` are the
-  source of the golden values; regenerating updates `TYPHOON-CHAIN.md`.
+  source of the golden values; regenerating updates `reference/chains/TYPHOON-CHAIN.md`.
 
 ### Documentation site
 
@@ -82,7 +83,9 @@ design/mockups/        working design artifacts (wireframes)
 reference/             formula models (chain expansion, timelines)
         |  regenerates
         v
-TYPHOON-CHAIN.md       golden values (durable, machine-generated)
+reference/chains/      golden values per chain (durable, machine-generated)
+  TYPHOON-CHAIN.md     the standing Typhoon validation case; more chains
+                       added as simulation targets
         |
         | check-against output
         v

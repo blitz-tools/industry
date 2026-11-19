@@ -153,7 +153,7 @@ Prerequisite work for anything multi-user:
 - **Renumber phases ascending in the reference models** (decision
   2026-11-18, see MILESTONES "Decisions already made") —
   `reference/chain_expand.py`, `reference/timeline_model.py`, and the
-  generated `TYPHOON-CHAIN.md` still number phases target-first
+  generated `reference/chains/TYPHOON-CHAIN.md` still number phases target-first
   (target = phase 0, deepest layer = highest); flip to ascending build
   order (raw-material terminators = phase 0, target = highest number) to
   match the mockups and M5's recorded convention. Pure relabel —

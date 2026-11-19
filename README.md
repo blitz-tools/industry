@@ -52,5 +52,7 @@ for the full path.
 - [`MILESTONES.md`](MILESTONES.md) — the milestone build-out plan, with
   status and validation steps.
 - [`TODO.md`](TODO.md) — smaller items and ideas.
-- [`TYPHOON-CHAIN.md`](TYPHOON-CHAIN.md) and [`reference/`](reference/) —
-  the planner's golden values and proof-out scripts.
+- [`reference/`](reference/) — the planner's proof-out scripts and
+  [`reference/chains/`](reference/chains/) chain documents
+  (`TYPHOON-CHAIN.md` is the golden-values reference for the standing
+  validation case).

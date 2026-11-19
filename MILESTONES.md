@@ -137,7 +137,7 @@ Two consequences worth stating outright:
   `reference/` — chain expansion (M5), the time-balanced
   scheduling/timeline model with per-character skill multipliers
   (M4/M9), and BPO obtainment recommendations (M12) — regenerate
-  `TYPHOON-CHAIN.md`'s golden values and are the executable spec the
+  `reference/chains/TYPHOON-CHAIN.md`'s golden values and are the executable spec the
   milestones graduate into the app. See `reference/README.md` for the
   formula reference and flagged assumptions.
 - **Stage-state model** (2026-11-18, from the mockup iteration —
@@ -174,11 +174,11 @@ Two consequences worth stating outright:
   numbers both increase toward completion (waves are temporal install
   batches, phases are dependency layers; progress moves both counters
   the same direction). The mockups use the ascending convention;
-  `reference/` and `TYPHOON-CHAIN.md` still number target-first
+  `reference/` and `reference/chains/TYPHOON-CHAIN.md` still number target-first
   (target = phase 0) until renumbered in a reference session (tracked
   in `TODO.md`). (M5.)
 - **Copy-vs-direct presentation** (2026-11-18): the planner applies the
-  copy-vs-direct rule (`TYPHOON-CHAIN.md`) in its wave composition but
+  copy-vs-direct rule (`reference/chains/TYPHOON-CHAIN.md`) in its wave composition but
   does not surface the calculation as dedicated UI — the wave job
   requests are the surface: an early wave requests the blueprint copies
   later phases need, and a later wave's job request simply uses the BPO
@@ -452,7 +452,7 @@ assignment weighting later multiplies against.*
 - **Skill→time multipliers live in a data table here** (like the rig
   multipliers): which skills reduce which activities' time, whether
   copying is affected, pinned from dogma/CCP docs at implementation.
-  The time-balanced model in `TYPHOON-CHAIN.md` (built on a ×0.68
+  The time-balanced model in `reference/chains/TYPHOON-CHAIN.md` (built on a ×0.68
   manufacturing assumption) is the golden-value check.
 - Character skills matter here: Industry (time), Advanced Industry
   (time), facility-relevant skills. Slot-count skills and
@@ -513,7 +513,7 @@ the layered chain the distribution engine schedules on the other.*
   the overlays below — blueprint ownership and asset availability.
   The fully expanded Typhoon chain — every branch, no elision, plus
   the aggregated phases and raw-material totals — lives in
-  `TYPHOON-CHAIN.md` (too heavy to inline here; it's the reference
+  `reference/chains/TYPHOON-CHAIN.md` (too heavy to inline here; it's the reference
   output M5's implementation gets checked against).
 - **Blueprint availability overlay**: per node, whether a usable
   blueprint is owned (char + corp, from the `blueprints` table — with
@@ -528,7 +528,7 @@ the layered chain the distribution engine schedules on the other.*
 - **Chain timeline view**: a linear (Gantt-style) rendering of the
   resolved chain parameterized by target count — phase bars, copy
   pipelines, and the dead zones where builds wait on inputs or BPCs
-  (the `TYPHOON-CHAIN.md` timelines as an app surface). Durations
+  (the `reference/chains/TYPHOON-CHAIN.md` timelines as an app surface). Durations
   come from M4's time math; the view makes the gating resource
   visible at a glance.
 - **Raw-material acquisition table**: the chain's terminators summed
@@ -536,7 +536,7 @@ the layered chain the distribution engine schedules on the other.*
   minerals, moon materials, PI commodities, ice products — so the
   planner knows exactly what to obtain and via which in-game mechanic
   (market, planetary industry, mining, reprocessing). The Typhoon ×1
-  version is in `TYPHOON-CHAIN.md`.
+  version is in `reference/chains/TYPHOON-CHAIN.md`.
 
 **Validation**: the Typhoon chain resolves to the expected phases
 (components → reaction intermediates → second reaction layer +
@@ -641,7 +641,7 @@ knowledge as the sanity anchor.
 *The coordination layer: who installs what, when, from where — the
 work-distribution core of the end goal. A logic proof-out of the
 target behavior — Typhoon ×100 spread across the live corp roster's
-slots, with model rules and assumptions — is in `TYPHOON-CHAIN.md`.*
+slots, with model rules and assumptions — is in `reference/chains/TYPHOON-CHAIN.md`.*
 
 **Scope**
 
@@ -658,7 +658,7 @@ slots, with model rules and assumptions — is in `TYPHOON-CHAIN.md`.*
   per reaction formula per character, a formula runs at most 3
   concurrent jobs however many reaction slots are free; copying is
   likewise one job per BPO. Slot math multiplies against blueprint
-  availability (the structural discovery of the `TYPHOON-CHAIN.md`
+  availability (the structural discovery of the `reference/chains/TYPHOON-CHAIN.md`
   time-balanced model: reactions and copying are BPO-bound, slots
   idle).
 - **Login-window alignment**: jobs sized to end together at window
@@ -698,7 +698,7 @@ slots, with model rules and assumptions — is in `TYPHOON-CHAIN.md`.*
     ten-run BPCs once copy time is counted. The recommendation finds
     the balance point, informed by the slider.
   - **Copy-vs-direct is a timed, skill-dependent decision** (rule
-    and worked example in `TYPHOON-CHAIN.md`): copy while
+    and worked example in `reference/chains/TYPHOON-CHAIN.md`): copy while
     input-starved (the dead zone before a phase's inputs exist);
     build direct from the BPO once inputs flow, if the runner's
     skilled build time beats copy time per run (break-even
@@ -788,7 +788,7 @@ positioned to build, and what it's missing.*
   blueprints — the same gap list both fork branches respond to
   (train, farm out) and the input the end-goal loop closes on.
 - **Blueprint asset gap analysis** (noted 2026-11-17; rules and
-  worked example in `TYPHOON-CHAIN.md`): BPO obtainment
+  worked example in `reference/chains/TYPHOON-CHAIN.md`): BPO obtainment
   recommendations from the chain resolver's phase math plus the
   synced `blueprints` table — per commodity, minimum useful BPOs =
   ceil(copy-queue rate ÷ input-dead-zone rate), the target-count
@@ -919,7 +919,7 @@ recorded.
 - Pipelining semantics: partial phase deliveries (reaction chunks
   feeding early component builds, BPCs building as they finish
   copying) vs. strict phase-serial deliver-together — the
-  `TYPHOON-CHAIN.md` proof-outs are deliberately serial; pipelining
+  `reference/chains/TYPHOON-CHAIN.md` proof-outs are deliberately serial; pipelining
   is the known next refinement and would shrink every dead zone,
   but complicates the scheduler and the delivery story. Decide at
   M9 pickup whether v1 ships serial-only.
