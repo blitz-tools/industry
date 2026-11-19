@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}industry{% endblock %}</title>
+  <title>{% block title %}soliton{% endblock %}</title>
   <link rel="stylesheet" href="/static/style.css?v={{ static_version }}">
 </head>
 <body{% if request.app.state.settings.dev_auto_reload %} data-dev-version="{{ dev_site_version() }}"{% endif %}>
@@ -16,7 +16,7 @@
   </button>
   <div class="backdrop" aria-hidden="true"></div>
   <aside class="sidebar" id="sidebar">
-    <a class="brand" href="/">industry</a>
+    <a class="brand" href="/">soliton</a>
     <nav aria-label="Sections">
       <a href="/dashboard"{% if active == 'dashboard' %} class="active" aria-current="page"{% endif %}>Dashboard</a>
       {% set char_active = active is defined and active in ('characters', 'assets', 'blueprints', 'skills', 'jobs') %}
