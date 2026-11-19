@@ -381,7 +381,8 @@
         <span class="anno-label">wireframe</span>
         The requirement overview resolves at selection and tracks the target
         stepper live — blueprint status (with a contract-backfill peek on
-        missing ones), every buildable intermediate by phase, and the raw
+        missing ones, served from the synced contracts tables), every
+        buildable intermediate by phase, and the raw
         terminators by category with coverage standouts. The Charon's depth
         shows honestly here: five intermediate phases, sixty raw types, and
         acquisition paths the Typhoon never touches (gas sites, tier-4 PI,
@@ -401,7 +402,8 @@
   <section class="card">
     <div class="card-body">
       <h2>3 · Charon Blueprint — no copies owned, contract availability</h2>
-      <p class="card-sub">The owned-copies overlay becomes a contract-availability view when the pool holds nothing for this type. NPC hub regions scanned (The Forge, Domain, Heimatar, Metropolis, Sinq Laison) — region is display metadata, never a filter. Single-item contracts only — bundles that merely include the wanted type are excluded.</p>
+      <p class="card-sub">The owned-copies overlay becomes a contract-availability view when the pool holds nothing for this type. Answered from the synced contracts tables — hub set: The Forge (staged rollout; regions join as rate-limit headroom allows). Region is display metadata, never a filter. Single-item contracts only — bundles that merely include the wanted type are excluded.</p>
+      <div class="sync-source">contracts · The Forge · synced 8 min ago</div>
 
       <table class="asset-table">
         <thead>
@@ -436,9 +438,14 @@
 
       <div class="anno" style="margin-top: 0.75rem;">
         <span class="anno-label">wireframe</span>
-        Real contract data (pulled 2026-11-19; second row illustrative).
-        Scans cover the NPC hub regions — the Location column is display
-        only.
+        Real contract data (The Forge listing pulled 2026-11-19; second
+        row illustrative). The view reads the local contracts tables
+        (M15's world-state sync) — never live ESI on the request path;
+        the provenance line above shows hub set and freshness. Staged
+        rollout: The Forge alone is synced to start; more hub regions —
+        and player-structure sources like the Amamake structure's
+        market, once their scope is registered — join the set as the
+        soak test shows headroom. The Location column is display only.
         The first listing is a <b>same-type bundle</b> — ten identical
         1-run BPCs in one contract — the exact corner the matching rule
         parks: exclusive-contents passes it, but a ×1 plan needs one of

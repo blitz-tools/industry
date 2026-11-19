@@ -11,8 +11,8 @@ classes (gas, tier-4 PI, molecular-forging tools).
 | File | Shows |
 |---|---|
 | `planner.html` | Search (Missing chip on the Charon Blueprint), three-tier requirement overview at ×1, contract-availability view for the unowned blueprint, Calculate |
-| `build-plan.html` | Freshly calculated plan: 6-phase reverse chain with recurring fuel blocks, capital components with BPC-via-contract badges, Cargo Bay flipped to Purchase (missing-blueprint alternative demo), required blueprints inverted (9 missing with backfill table), owned-BPO-only copy plan, gaps-only acquisition with the new categories, wave-1 job allocation |
-| `build-plan-active.html` | The same plan mid-flight (day 12.4 of 21.7): phases 1–5 complete, the single 11.8-day ship build running at 21%, contract backfills all filled |
+| `build-plan.html` | Freshly calculated plan: wave-progress bar, 6-phase reverse chain with recurring fuel blocks, capital components with BPC-via-contract badges, Cargo Bay flipped to Purchase (missing-blueprint alternative demo), required blueprints inverted (9 missing with backfill table), owned-BPO-only copy plan, gaps-only acquisition with the new categories, wave-1 job allocation |
+| `build-plan-active.html` | The same plan mid-flight (day 12.4 of 21.7): wave-progress bar at 57% (legend expanded), phases 1–5 complete, the single 11.8-day ship build running at 21%, contract backfills all filled |
 
 ## Data provenance
 
@@ -28,9 +28,15 @@ classes (gas, tier-4 PI, molecular-forging tools).
   reaction formulas are genuinely owned (23).
 - The Charon Blueprint contract listing is **real** (The Forge,
   2026-11-19: one contract, ten identical 1-run ME 10 / TE 20 BPCs,
-  300M — the same-type-bundle corner case). The other contract rows and
-  all material *availability* numbers are **invented for the wireframe**
-  (the contracts sync is future scope; the ESI fields it will consume
-  were verified live 2026-11-18).
+  300M — the same-type-bundle corner case). The other contract rows,
+  all material *availability* numbers, and the market-average figures
+  on the acquisition table are **invented for the wireframe** — the
+  real ones arrive from M15's world-state sync band (staged rollout:
+  The Forge alone first; the ESI fields were verified live 2026-11-18).
 - Character names, portraits, and structure names are the live roster
   and Amamake structures, as in the Typhoon set.
+- The wave-progress bar's schedule decomposition (wave boundaries,
+  durations, dead zones) is **illustrative** — anchored to the chain
+  document's phase delivery days (components day 9.9, ship day 21.7)
+  but invented in between; the real waves are the M9 scheduler's
+  output.

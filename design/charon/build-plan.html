@@ -74,6 +74,51 @@
     </div>
   </div>
 
+  <!-- Wave progress -->
+  <div class="wave-bar">
+    <div class="wave-header">
+      <span class="wave-title">Wave progress — day 0 of 21.7 · 0%</span>
+      <button class="legend-tab" type="button">legend ›</button>
+    </div>
+    <div class="wave-track">
+      <div class="wave-seg ahead" style="width: 2.3%;" title="W1 — fuel blocks + copy installs · 7 jobs · day 0–0.5"></div>
+      <div class="wave-seg dead" style="width: 3.7%;" title="Dead 0.8 d — moon materials + reaction inputs arriving"></div>
+      <div class="wave-seg ahead" style="width: 8.8%;" title="W2 — R4 reactions · 9 jobs · day 1.3–3.2"></div>
+      <div class="wave-seg dead" style="width: 2.8%;" title="Dead 0.6 d — advanced-reaction inputs"></div>
+      <div class="wave-seg ahead" style="width: 12.9%;" title="W3 — advanced reactions + component copies · 14 jobs · day 3.8–6.6"></div>
+      <div class="wave-seg dead" style="width: 5.5%;" title="Dead 1.2 d — component inputs + contract BPCs landing"></div>
+      <div class="wave-seg ahead" style="width: 9.7%;" title="W4 — capital + regular components · 8 jobs · day 7.8–9.9"></div>
+      <div class="wave-seg ahead" style="width: 54.3%;" title="W5 — Charon ×1 build · 11.8 d · day 9.9–21.7"></div>
+      <div class="now-line" style="left: 0;"></div>
+      <div class="now-caption" style="left: 0;">now · day 0</div>
+    </div>
+    <div class="wave-ticks">
+      <span class="tick" style="width: 2.3%;">W1</span>
+      <span class="tick" style="width: 3.7%;"></span>
+      <span class="tick" style="width: 8.8%;">W2</span>
+      <span class="tick" style="width: 2.8%;"></span>
+      <span class="tick" style="width: 12.9%;">W3</span>
+      <span class="tick" style="width: 5.5%;"></span>
+      <span class="tick" style="width: 9.7%;">W4</span>
+      <span class="tick tick-end" style="width: 54.3%;"><span>W5 · Charon build</span><span>100%</span></span>
+    </div>
+
+    <div class="anno" style="margin-top: 1.75rem;">
+      <span class="anno-label">wireframe</span>
+      Segments are sized by each wave's share of the plan's total duration
+      (serial deliver-together model — a pipelined plan grows Gantt rows
+      under the same now-line). Dead zones get their own hatched segments:
+      nothing installing or delivering while the plan waits on inputs or
+      copy pipelines. <b>Hover a segment for the wave detail</b> (window,
+      jobs — the browser tooltip stands in for the real page's rich
+      popover with job list and characters). The legend tab toggles the
+      panel — collapsed by default, shown expanded on
+      <a href="build-plan-active.html">build-plan-active.html</a> to
+      illustrate. Wave decomposition is illustrative schedule data; the
+      real waves are the M9 scheduler's output.
+    </div>
+  </div>
+
   <!-- Reverse product chain -->
   <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse product chain</h2>
   <p class="meta-line" style="margin: 0 0 0.75rem;">Raw materials on the left, target on the right. Each node chip toggles Purchase ⇄ Build — purchased nodes drop out of the job allocation, count toward acquisition instead of the phase state and percent, and their inputs leave the raw-material math (the commodity itself is acquired instead). Phase rows carry a bulk toggle that sets every node at once.</p>
@@ -765,6 +810,7 @@
   <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Required blueprints</h2>
 
   <p class="meta-line" style="margin: 0 0 0.75rem;"><span style="color: var(--pink);">18 missing</span> · 23 owned — contract backfill proposed below; owned originals (AIPS, LSBU, CTR, fuel blocks, all R4 reaction formulas) cover the rest.</p>
+  <div class="sync-source">contracts · The Forge · synced 8 min ago</div>
 
   <table class="asset-table">
     <thead>
@@ -772,7 +818,7 @@
         <th>Blueprint</th>
         <th>Activity</th>
         <th>Status</th>
-        <th>Contract backfill (NPC hub regions)</th>
+        <th>Contract backfill (synced · The Forge)</th>
         <th>Price</th>
       </tr>
     </thead>
@@ -852,7 +898,10 @@
     The Charon Blueprint row is <b>real contract data</b> (The Forge,
     2026-11-19: one contract, ten identical 1-run ME 10 / TE 20 BPCs,
     300M) — the same-type-bundle corner the matching rule parks; the
-    other rows are illustrative. Region is display metadata, never a
+    other rows are illustrative. Backfill rows read the local synced
+    contracts tables (provenance line above): The Forge alone in the
+    staged rollout, structure-market sources joining the hub set once
+    their scope is registered. Region is display metadata, never a
     filter. Capital Cargo Bay's blueprint left this list when its node
     flipped to Purchase — nothing to backfill for a purchased
     commodity. Selection bias applies where several listings qualify:
@@ -931,28 +980,28 @@
         <td class="num qty">11,794,550</td>
         <td class="num">4,200,000</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 36%"></div></div><span class="meter-pct">36%</span></div></td>
-        <td class="muted">Mining / market</td>
+        <td class="muted">Mining / market · avg 6.4 isk</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/36/icon?size=32" alt="">Mexallon</td>
         <td class="num qty">3,279,900</td>
         <td class="num">1,950,000</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 59%"></div></div><span class="meter-pct">59%</span></div></td>
-        <td class="muted">Mining / market</td>
+        <td class="muted">Mining / market · avg 48 isk</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/34/icon?size=32" alt="">Tritanium</td>
         <td class="num qty">3,278,500</td>
         <td class="num">2,880,000</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 88%"></div></div><span class="meter-pct">88%</span></div></td>
-        <td class="muted">Mining / market</td>
+        <td class="muted">Mining / market · avg 2.7 isk</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/37/icon?size=32" alt="">Isogen</td>
         <td class="num qty">911,850</td>
         <td class="num">610,000</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 67%"></div></div><span class="meter-pct">67%</span></div></td>
-        <td class="muted">Mining / market</td>
+        <td class="muted">Mining / market · avg 132 isk</td>
       </tr>
       <tr class="group-row"><td colspan="5">Moon materials</td></tr>
       <tr>
@@ -960,14 +1009,14 @@
         <td class="num qty">68,100</td>
         <td class="num">21,500</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 32%"></div></div><span class="meter-pct">32%</span></div></td>
-        <td class="muted">Moon mining / market</td>
+        <td class="muted">Moon mining / market · avg 310 isk</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/16634/icon?size=32" alt="">Atmospheric Gases</td>
         <td class="num qty">68,100</td>
         <td class="num">8,400</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 12%"></div></div><span class="meter-pct">12%</span></div></td>
-        <td class="muted">Moon mining / market</td>
+        <td class="muted">Moon mining / market · avg 280 isk</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/16643/icon?size=32" alt="">Cadmium</td>
@@ -1011,7 +1060,7 @@
         <td class="num qty">24,850</td>
         <td class="num">11,900</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 48%"></div></div><span class="meter-pct">48%</span></div></td>
-        <td class="muted">Ice mining / market</td>
+        <td class="muted">Ice mining / market · avg 460 isk</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/16272/icon?size=32" alt="">Heavy Water</td>
@@ -1026,7 +1075,7 @@
         <td class="num qty">1,280</td>
         <td class="num">0</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — gas sites, blocks neurolink conduits</span></div></td>
-        <td class="muted">Gas site harvesting / market</td>
+        <td class="muted">Gas site harvesting / market · avg 12k isk</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/30371/icon?size=32" alt="">Fullerite-C60</td>
@@ -1047,6 +1096,15 @@
   </table>
 
   <p class="meta-line" style="margin: 0.5rem 0 0;">47 types fully covered — hidden in this view; "Show all 60 types" lists them.</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Market-average figures come from M15's synced price data (global
+    adjusted/average) — the values shown are illustrative. Regional
+    order books join with the staged rollout (The Forge first);
+    isk-cost totals and build-vs-buy verdicts (mine the gap vs buy it,
+    contract vs market) are M10's analysis over this data.
+  </div>
 
   <!-- Job allocation -->
   <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — wave 1</h2>
