@@ -202,7 +202,13 @@ Two consequences worth stating outright:
   contract-items response carries `is_blueprint_copy`,
   `material_efficiency`, `time_efficiency`, and `runs` per BPC, so
   the bias needs no data source beyond the contracts sync.
-  (M5/M6/M12; the sync itself is M15.)
+  **Three acquisition paths, not two (2026-11-19, from the Panther
+  chain)**: invented (T2 ship/module BPCs — the invention layer),
+  contracted (BPCs off the public-contract market), and **NPC-seeded
+  market originals** (T2 component BPOs have no producer in the SDE —
+  they are cheap NPC-sold originals, so the contract-backfill default
+  does not apply to them; the planner buys them on the market like
+  any commodity). (M5/M6/M12; the sync itself is M15.)
 - **World-state syncs land as one band** (2026-11-19): the remaining
   public-data sync families — cost indices, public contracts, global
   market prices, regional orders/history — implement together in M15
@@ -327,6 +333,21 @@ Two consequences worth stating outright:
   whether to pay is the slider's job (the isk side needs M10). The
   waves carry the outcome — no dedicated UI, per the copy-vs-direct
   presentation decision above.
+- **Invention is a parallel pipeline, not a phase** (2026-11-19, from
+  the Panther chain): the invented BPC gates only the final build
+  node, so attempts install in wave 1 alongside the deepest-phase
+  jobs (the wave-membership rule already allows this — waves mix
+  phases and activities). Attempts batch across BPCs per the
+  blueprint job-lock: wall time is one invention-duration window per
+  batch with confidence by batch size (10 BPCs → 92% at the Panther's
+  22%), trading datacores for wall time the same way copy-vs-direct
+  trades material efficiency. A **fixed decryptor per plan** keeps
+  material quantities deterministic while invention is in flight —
+  deferring the choice would shift the bill ≈1% per ME point with the
+  outcome (an argument for the fixed-choice side of the M8
+  fixed-vs-EV question). The practical gate is datacore acquisition,
+  not scheduling. Worked numbers: `reference/chains/PANTHER-CHAIN.md`'s
+  parallel-pipeline section. (M8/M9.)
 - **Slider is three positions, not a continuous bias** (2026-11-18):
   **profit** (left — build in-corp at maximum efficiency), **balanced**
   (middle — farming: farm chain portions to friends at below-market
@@ -1199,13 +1220,26 @@ recorded.
   engineering actually interface with the invention family — design
   at M8 pickup; the author's T3 production experience is thin, so
   validate against SDE data and community documentation then.
-- Pipelining semantics: partial phase deliveries (reaction chunks
-  feeding early component builds, BPCs building as they finish
-  copying) vs. strict phase-serial deliver-together — the
-  `reference/chains/TYPHOON-CHAIN.md` proof-outs are deliberately serial; pipelining
-  is the known next refinement and would shrink every dead zone,
-  but complicates the scheduler and the delivery story. Decide at
-  M9 pickup whether v1 ships serial-only.
+- Pipelining semantics (clarified 2026-11-19): **overlap across a
+  dependency edge** — a consumer starts on partial deliveries before
+  its producer phase fully completes (reaction chunks feeding early
+  builds; BPCs building as they finish copying) — distinct from **wave
+  parallelism**, which installs independent jobs together and is
+  already handled (waves mix phases and activities by eligibility;
+  branches with no in-chain producer, like invention, run alongside
+  everything). What pipelining changes is the **eligibility gate**:
+  today a job is eligible when its phase's inputs are fully delivered
+  (T_in = the deeper phase's scheduled end); pipelining gates per edge
+  instead ("this job's inputs exist"). Waves are the container; the
+  gate is the semantics. Costs: chunked job sizing (a 25-run job
+  splitting 10+15 pays per-job rounding and fights the even-split
+  deliver-together objective), a finer progress story (phase percent
+  blurs when the next phase starts early — M6's
+  required/available/delivered needs chunk granularity); payoff:
+  every dead zone shrinks. The hybrid copy strategy is the one
+  hand-built pipelined edge. The `reference/chains/TYPHOON-CHAIN.md`
+  proof-outs are deliberately serial. Decide at M9 pickup whether v1
+  ships serial-only. See `reference/GLOSSARY.md`'s pipelining entry.
 - Recurring commodities across phases (surfaced by
   `reference/chains/CHARON-CHAIN.md`, 2026-11-18): the same type can
   appear in multiple phases when its consumers sit at different
@@ -1213,6 +1247,14 @@ recorded.
   one merged campaign at the earliest need, or per-phase campaigns?
   Merged is simplest but ties up inputs early; per-phase is
   pipelining-adjacent. — M5/M9.
+- Invention pins (surfaced by `reference/chains/PANTHER-CHAIN.md`,
+  2026-11-19): the invented-BPC base ME/TE (−4/−4 assumed from
+  community docs — not in SDE/ESI), module invention base runs
+  (ships are 1 + the decryptor's max-run modifier), and whether skill
+  levels modify invention probability (assumed not, post-Crius).
+  Decryptor modifiers themselves ARE pinned (live ESI dogma,
+  2026-11-19, carried in `reference/chain_expand.py`'s `DECRYPTORS`).
+  — M8.
 - Mixed-activity phases (surfaced by `CHARON-CHAIN.md`): phases that
   mix manufacturing and reaction items schedule through the
   slot-hour formula in the reference model (the BPO-bound reaction

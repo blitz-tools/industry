@@ -47,6 +47,7 @@ document as SHORT (expansion).
 | **T_in** | Input-ready time — when a phase's inputs exist: the scheduled end of the next deeper phase. The dead zone ends at T_in. |
 | **dead zone** | The gap before a phase can start — inputs not yet built, or BPCs not yet copied. |
 | **dead wait** | The copy-overflow segment specifically (the "BUILDS WAIT" rows): T_in → copy-queue end, caused by the copy queue overrunning the dead zone. |
+| **pipelining** | Overlap **across** a dependency edge — a consumer starts on partial deliveries before its producer phase fully completes (reaction chunks feeding early builds; BPCs building as they finish copying). Distinct from wave parallelism, which installs *independent* jobs together: pipelining changes the eligibility gate from "phase complete" (T_in, the current phase-serial model) to "this job's inputs exist," requiring chunked job sizing and a finer progress story. The hybrid copy strategy is the one hand-built pipelined edge. Deliberately unmodeled — the M9 serial-only question. |
 | **chain end** | Total wall-clock days for the whole chain, start to final delivery. |
 | **d/N** | Chain rate — days per target unit. |
 | **copy queue** | R·t_c — total copy hours for a commodity's BPCs, sequential per BPO. |
