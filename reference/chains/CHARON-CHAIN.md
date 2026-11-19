@@ -820,6 +820,7 @@ commodities (capital-component inputs), and molecular-forging tools.
 | Nocxium | 92,775 |
 | Zydrine | 46,105 |
 | Megacyte | 23,255 |
+
 **moon materials**
 
 | Type | Qty |
@@ -838,6 +839,7 @@ commodities (capital-component inputs), and molecular-forging tools.
 | Neodymium | 100 |
 | Promethium | 100 |
 | Thulium | 100 |
+
 **PI commodities**
 
 | Type | Qty |
@@ -857,6 +859,7 @@ commodities (capital-component inputs), and molecular-forging tools.
 | Integrity Response Drones | 20 |
 | Broadcast Node | 2 |
 | Wetware Mainframe | 1 |
+
 **ice products**
 
 | Type | Qty |
@@ -869,6 +872,7 @@ commodities (capital-component inputs), and molecular-forging tools.
 | Helium Isotopes | 5,850 |
 | Oxygen | 1,562 |
 | Strontium Clathrates | 1,420 |
+
 **gas (harvestable clouds)**
 
 | Type | Qty |
@@ -886,6 +890,7 @@ commodities (capital-component inputs), and molecular-forging tools.
 | Fullerite-C540 | 300 |
 | Amber Cytoserocin | 20 |
 | Golden Cytoserocin | 20 |
+
 **molecular-forging tools**
 
 | Type | Qty |
