@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Planner — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">industry</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/typhoon/planner.html</div>
+</aside>
+
+<main class="content">
+  <h1>Build Planner</h1>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    Both search states are shown stacked — typing state above, selected state
+    below. In the real page the dropdown closes on selection and the rest of
+    the form appears.
+  </div>
+
+  <!-- 1 · Search -->
+  <section class="card overflow-visible" style="margin-top: 1.25rem;">
+    <div class="card-body">
+      <h2>1 · Find a blueprint</h2>
+      <p class="card-sub">Search the SDE catalog (5,135 blueprints) or match only what the corp owns.</p>
+
+      <div style="display: flex; gap: 0.75rem; align-items: flex-start; flex-wrap: wrap;">
+        <div class="search-wrap">
+          <input class="search-input" type="text" value="typh" aria-label="Search blueprints">
+          <div class="autocomplete">
+            <div class="autocomplete-row active">
+              <img src="https://images.evetech.net/types/998/bpc?size=32" alt="Typhoon Blueprint">
+              <div>
+                <div class="ac-name">Typhoon Blueprint</div>
+                <div class="ac-sub">Manufacturing · Typhoon ×1/run · max 10 runs/job</div>
+              </div>
+              <div class="ac-right">
+                <span class="badge owned">Owned · BPC ×10</span>
+              </div>
+            </div>
+            <div class="autocomplete-row">
+              <img src="https://images.evetech.net/types/32312/bp?size=32" alt="Typhoon Fleet Issue Blueprint">
+              <div>
+                <div class="ac-name">Typhoon Fleet Issue Blueprint</div>
+                <div class="ac-sub">Manufacturing · Typhoon Fleet Issue ×1/run · max 10 runs/job</div>
+              </div>
+              <div class="ac-right">
+                <span class="badge missing">Not owned</span>
+              </div>
+            </div>
+            <div class="autocomplete-footer">2 matches · icons and ownership from the live blueprints table</div>
+          </div>
+        </div>
+        <div>
+          <button class="chip-button selected" type="button">Match From Inventory</button>
+        </div>
+      </div>
+
+      <div class="anno" style="margin-top: 12rem;">
+        <span class="anno-label">wireframe</span>
+        Autocomplete lists every matching blueprint with its icon; an
+        <b>Owned</b> badge appears when a usable copy or original sits in the
+        inventory pool. With <b>Match From Inventory</b> on, results filter to
+        owned blueprints only. Dropdown height caps with scroll.
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · Target -->
+  <section class="card">
+    <div class="card-body">
+      <h2>2 · Target build</h2>
+
+      <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <img class="type-icon-lg" src="https://images.evetech.net/types/998/bpc?size=64" alt="Typhoon Blueprint">
+        <div>
+          <div><b>Typhoon Blueprint</b> <span class="badge bpc">BPC ×10</span></div>
+          <div class="meta-line">Builds <img class="type-icon" src="https://images.evetech.net/types/644/icon?size=32" alt=""> Typhoon ×1 per run · max 10 runs per job</div>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 0.75rem; align-items: center;">
+          <span class="meta-line">Target count</span>
+          <div class="stepper">
+            <button type="button" aria-label="Decrease">−</button>
+            <span class="stepper-value">10</span>
+            <button type="button" aria-label="Increase">+</button>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <h2 style="font-size: 0.95rem;">Requirements at target ×10</h2>
+      <p class="card-sub">The full chain for one build, resolved at selection — quantities track the target stepper live. Calculate schedules the plan (phases, waves, allocation, copy plan); nothing here waits for it.</p>
+
+      <!-- Tier 1: blueprints -->
+      <details class="phase-row" open>
+        <summary>
+          <span class="phase-title">Blueprints</span>
+          <span class="phase-count">15 types</span>
+          <span class="summary-right">
+            <span class="stage-state ready">15 / 15 owned</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <tbody>
+              <tr class="group-row"><td colspan="3">Target</td></tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/998/bpc?size=32" alt="">Typhoon Blueprint</td>
+                <td class="muted">BPC-only: usable, nothing to copy from · 10 BPCs / 52 runs</td>
+                <td><span class="badge owned">Owned · BPC ×10</span></td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Components — 3 BPOs</td></tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/57516/bp?size=32" alt="">Core Temperature Regulator Blueprint</td>
+                <td class="muted">BPO · ME 10 / TE 20</td>
+                <td><span class="badge owned">Owned</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/57523/bp?size=32" alt="">Life Support Backup Unit Blueprint</td>
+                <td class="muted">BPO · ME 10 / TE 20</td>
+                <td><span class="badge owned">Owned</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/57515/bp?size=32" alt="">Auto-Integrity Preservation Seal Blueprint</td>
+                <td class="muted">BPO ×2 · ME 10 / TE 16</td>
+                <td><span class="badge owned">Owned</span></td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Reaction formulas — 7</td></tr>
+              <tr>
+                <td colspan="3" class="muted">Carbon Polymers ×2 · Sulfuric Acid ×2 · Carbon Fiber ×2 · Thermosetting Polymer ×2 · Oxy-Organic Solvents · Pressurized Oxidizers ×2 · Reinforced Carbon Fiber ×2 (all with originals)</td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Fuel blocks — 4 sets</td></tr>
+              <tr>
+                <td colspan="3" class="muted">Helium / Nitrogen / Oxygen BPCs ×2 (200 runs each) · Hydrogen BPO + BPC ×4</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 2: intermediates -->
+      <details class="phase-row">
+        <summary>
+          <span class="phase-title">Intermediates</span>
+          <span class="phase-count">14 types · 5 phases</span>
+          <span class="summary-right">
+            <span class="stage-state ready">All buildable</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <thead>
+              <tr>
+                <th>Phase</th>
+                <th>Intermediates</th>
+                <th class="num">Required</th>
+                <th>Runs</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="muted">4 — components</td>
+                <td>Core Temperature Regulator</td>
+                <td class="num qty">10</td>
+                <td class="num">1</td>
+              </tr>
+              <tr>
+                <td class="muted"></td>
+                <td>Life Support Backup Unit</td>
+                <td class="num qty">750</td>
+                <td class="num">25</td>
+              </tr>
+              <tr>
+                <td class="muted"></td>
+                <td>Auto-Integrity Preservation Seal</td>
+                <td class="num qty">1,500</td>
+                <td class="num">50</td>
+              </tr>
+              <tr>
+                <td class="muted">3 — reaction intermediates</td>
+                <td>Pressurized Oxidizers · Reinforced Carbon Fiber</td>
+                <td class="num qty">500 · 1,250</td>
+                <td class="num">3 · 7</td>
+              </tr>
+              <tr>
+                <td class="muted">2 — reaction intermediates</td>
+                <td>Carbon Polymers · Sulfuric Acid · Carbon Fiber · Thermosetting Polymer · Oxy-Organic Solvents</td>
+                <td class="num qty">600 · 600 · 1,400 · 1,400 · 10</td>
+                <td class="num">3 · 3 · 7 · 7 · 1</td>
+              </tr>
+              <tr>
+                <td class="muted">1 — fuel blocks</td>
+                <td>Helium · Nitrogen · Oxygen · Hydrogen</td>
+                <td class="num qty">15 · 15 · 40 · 35</td>
+                <td class="num">1 each</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 3: raw materials -->
+      <details class="phase-row">
+        <summary>
+          <span class="phase-title">Raw materials</span>
+          <span class="phase-count">29 types</span>
+          <span class="summary-right">
+            <span class="stage-state missing">1 at zero coverage</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th class="num">Types</th>
+                <th>Largest requirement</th>
+                <th>Gaps</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Minerals</td>
+                <td class="num">7</td>
+                <td class="muted">Tritanium 52,000,000 · Pyerite 26,000,000</td>
+                <td class="muted">5 partial</td>
+              </tr>
+              <tr>
+                <td>Moon materials</td>
+                <td class="num">4</td>
+                <td class="muted">Hydrocarbons 30,000 · Atmospheric Gases 30,000</td>
+                <td class="muted">3 partial</td>
+              </tr>
+              <tr>
+                <td>PI commodities</td>
+                <td class="num">10</td>
+                <td class="muted">Test Cultures 2,000 · Viral Agent 2,000</td>
+                <td class="muted">4 partial · <span style="color: var(--pink);">Chiral Structures 0%</span></td>
+              </tr>
+              <tr>
+                <td>Ice products</td>
+                <td class="num">8</td>
+                <td class="muted">Liquid Ozone 14,000 · Heavy Water 6,800</td>
+                <td class="muted">2 partial</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        The requirement overview resolves at selection and tracks the target
+        stepper live — blueprint status (with a contract-backfill peek on
+        missing ones), every buildable intermediate by phase, and the raw
+        terminators by category with coverage standouts. Tiers are
+        open-ended: invention chains (M8) add their own input tier
+        (datacores, decryptors, source BPCs). Calculate schedules the plan;
+        totals, waves, and allocation land on the build plan.
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Owned copies overlay -->
+  <section class="card">
+    <div class="card-body">
+      <h2>3 · Owned copies of Typhoon Blueprint</h2>
+      <p class="card-sub">Every usable blueprint in the pool for this type — same blueprint can appear many times, each with its own location and ME/TE.</p>
+
+      <table class="asset-table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th class="num">Runs</th>
+            <th>ME / TE</th>
+            <th>Location</th>
+            <th>Owner</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge bpc">BPC</span></td>
+            <td class="num qty">9</td>
+            <td class="num">10 / 18</td>
+            <td class="muted">Corp hangar · Amamake</td>
+            <td class="muted">blitz and blitz holdings</td>
+          </tr>
+          <tr>
+            <td><span class="badge bpc">BPC</span></td>
+            <td class="num qty">8</td>
+            <td class="num">10 / 18</td>
+            <td class="muted">Corp hangar · Amamake</td>
+            <td class="muted">blitz and blitz holdings</td>
+          </tr>
+          <tr>
+            <td><span class="badge bpc">BPC</span></td>
+            <td class="num qty">5</td>
+            <td class="num">8 / 10</td>
+            <td class="muted">Corp hangar · Amamake</td>
+            <td class="muted">blitz and blitz holdings</td>
+          </tr>
+          <tr>
+            <td><span class="badge bpc">BPC</span></td>
+            <td class="num qty">3</td>
+            <td class="num">10 / 20</td>
+            <td class="muted">Corp hangar · Amamake</td>
+            <td class="muted">blitz and blitz holdings</td>
+          </tr>
+          <tr>
+            <td><span class="badge bpc">BPC</span></td>
+            <td class="num qty">1</td>
+            <td class="num">10 / 20</td>
+            <td class="muted">Corp hangar · Amamake</td>
+            <td class="muted">blitz and blitz holdings</td>
+          </tr>
+          <tr>
+            <td class="muted" colspan="5">+ 5 more copies · 26 runs — 10 BPCs / 52 runs total in pool</td>
+          </tr>
+          <tr>
+            <td colspan="5"><span class="badge missing">No original owned</span> <span class="muted">copying unavailable for this type — the plan draws from owned BPCs</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Calculate bar -->
+  <section class="card">
+    <div class="card-body" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+      <div class="meta-line">
+        Typhoon ×10 · 15 blueprints · 14 intermediates · 29 raw types · chain resolved — Calculate schedules the plan
+      </div>
+      <button class="primary" type="button">Calculate</button>
+    </div>
+  </section>
+
+  <p class="meta-line" style="margin-top: 1rem;">
+    Calculate resolves the full reverse chain and opens the build plan →
+    <a href="build-plan.html">build-plan.html</a> (fresh) ·
+    <a href="build-plan-active.html">build-plan-active.html</a> (mid-flight)
+  </p>
+</main>
+
+</body>
+</html>

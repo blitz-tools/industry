@@ -1,11 +1,15 @@
-# Build planner UI mockups
+# Typhoon mockup set — the reference standard
 
 Static wireframes for the build planner surfaces (M4–M6, M9) — the planner
 entry page and the resulting build plan, including a mid-flight state
-variant. These are design artifacts for iteration, **not** app code: no
-build step, no JS, nothing wired to the FastAPI app. They are deliberately
-kept out of `docs/` so the Zensical site never publishes them (they contain
-live character and corporation names).
+variant — populated with the Typhoon ×10 chain. This set is the
+**reference standard** for the mockup convention (see
+[`../README.md`](../README.md)): every chain gets these same pages,
+layout, and components with only the data changed. These are design
+artifacts for iteration, **not** app code: no build step, no JS, nothing
+wired to the FastAPI app. They are deliberately kept out of `docs/` so
+the Zensical site never publishes them (they contain live character and
+corporation names).
 
 ## Viewing
 
