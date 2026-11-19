@@ -997,6 +997,17 @@ BPC provides none. The second-BPO question (M12's ladder) starts at
 "acquire a second Charon BPO" only if N grows past where the
 sequential copy queue outruns the reaction phases' delivery.
 
+**Blueprint-acquisition assumption (decided 2026-11-18)**: the
+timelines above model the owned-BPO scenario. Under the
+missing-blueprint default — purchase the Charon BPC off contract —
+procurement lead replaces the copy queue entirely: chain end ≈
+max(inputs ready, procurement lead) + build. At ×1 that is
+max(9.9 d, L) + 11.8 d ≈ **21.7 d** whenever the contract fills
+inside the reaction phases — the same end as hybrid, without owning
+the BPO. The single-run BPC makes the Charon the cleanest possible
+case for contract purchase: nothing about the copy pipeline matters
+at low N.
+
 ## Findings and caveats
 
 - **Chain resolves end to end with zero model changes** — 7 phases,
@@ -1015,4 +1026,6 @@ sequential copy queue outruns the reaction phases' delivery.
 - **Charon copy critical path** — with one BPO and maxProductionLimit
   1, the ship copy is ≈13.9 d per unit. The realistic plan is
   direct-from-BPO for the ship itself (hybrid, above) with copies
-  reserved for the parallelizable components.
+  reserved for the parallelizable components — or, per the
+  missing-blueprint default, simply purchase the single-run Charon
+  BPC off contract and skip the copy question entirely.
