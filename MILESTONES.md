@@ -748,6 +748,13 @@ the layered chain the distribution engine schedules on the other.*
   phases), and the target lands at the highest phase number. Detect and
   refuse blueprint cycles defensively (SDE shouldn't contain any for
   manufacturing, but the resolver shouldn't trust it).
+- **Chains generate dynamically at plan time** (clarified 2026-11-19):
+  the resolver builds every chain from the selected target and count on
+  each calculation — nothing enumerates or ships chains ahead of
+  selection (the requirement overview resolves at selection per the
+  planner-overview decision). The `reference/chains/` documents are
+  validation anchors — golden values the resolver gets checked against —
+  never pre-generated inputs to the planner.
 - **Reaction resolution in the initial chain** (moved here from M7,
   2026-11-16): the resolver walks reaction formulas (SDE activity 11)
   exactly like manufacturing — any reaction input that is itself a
@@ -1048,7 +1055,9 @@ positioned to build, and what it's missing.*
   joined against the buildable catalog — per product, whether every
   chain layer is producible in-corp, and if not, exactly which
   intermediates are blocked and why (missing skills, missing
-  blueprints).
+  blueprints). The match resolves lazily against the recipe graph,
+  per target on demand — never by pre-expanding the catalog's chains
+  (chains generate at plan time; see M5's clarification).
 - **Recommended end products**: ranked suggestions of what the
   corporation should produce — fully buildable targets first, and
   partially buildable ones with their gaps surfaced (a target whose
