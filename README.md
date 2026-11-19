@@ -1,10 +1,14 @@
-# industry
+# soliton
 
 A self-hosted **EVE Online industry planner**: it syncs everything a
 corporation builds with — characters, skills, blueprints, industry jobs,
 assets — resolves full production chains against the game's static recipe
 data, and (as the planner milestones land) distributes the work across the
 roster's skills and build slots.
+
+*Soliton* is the project's codename — the self-reinforcing wave that holds
+its shape over a long distance, like a build plan holding together through
+a weeks-long chain. The repository keeps its `industry` name.
 
 **Documentation**: <https://blitz-tools.github.io/industry/>
 
