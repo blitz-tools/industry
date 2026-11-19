@@ -20,7 +20,9 @@ Two pages: the **build planner** (search → select → target count) and the
   beside each match. "Match From Inventory" button filters to owned only.
 - After selection: overview of components/materials with required counts,
   updating live as target count changes. Multiple copies of the same
-  blueprint shown as an overlay with location, ME, and TE per BPO/BPC.
+  blueprint shown as an overlay with location, ME (Material Efficiency)
+  and TE (Time Efficiency) per BPO (Blueprint Original)/BPC (Blueprint
+  Copy).
 - "Calculate" at the bottom executes the plan: raw material requirements,
   blueprint copy requirements (BPC count + run counts), job allocation
   overview, and a visual reverse product chain indicator.
@@ -72,9 +74,10 @@ milestone-affecting vocabulary graduated to `MILESTONES.md`):
   of phase state/percent and count toward acquisition.
 - **Purchase scope**: node-level data model + phase-level bulk toggle
   ("Purchase all" on phase rows and the fresh plan's chain strip).
-- **Next-up**: one owner per queued job — queued jobs are labeled per BPC
-  ("LSBU BPC 1 × 125 runs" on schlepzrage, "BPC 2" on Octavia); queue
-  depth is next + one "then" + a "+N more" count.
+- **Next-up**: one owner per queued job — queued jobs are labeled per BPC;
+  LSBU (Life Support Backup Unit) jobs read "LSBU BPC 1 × 125 runs" on
+  schlepzrage, "BPC 2" on Octavia; queue depth is next + one "then" + a
+  "+N more" count.
 - **Blueprint availability is plan-time**: the active page omitting the
   Required blueprints section is the intended behavior — the blueprint
   set is considered immutable once a plan is active. A missing
@@ -86,8 +89,9 @@ milestone-affecting vocabulary graduated to `MILESTONES.md`):
   phase 1 → target = phase 5), so phase and wave numbers increase
   together toward completion — waves are temporal install batches,
   phases are dependency layers, and progress moves both counters the
-  same direction. → graduated to `MILESTONES.md`; the reference models
-  + `reference/chains/TYPHOON-CHAIN.md` renumber is tracked in `TODO.md`.
+  same direction. → graduated to `MILESTONES.md`; the reference
+  models + `reference/chains/TYPHOON-CHAIN.md` renumber landed
+  2026-11-18.
 - **Copy-vs-direct**: no dedicated UI — the planner accounts for the
   rule in wave composition, and the wave job requests are the surface
   (an early wave requests the copies later phases need; a later wave
@@ -100,13 +104,14 @@ Purchase chip so interactive chips read differently from outline-only
 state pills; job splits in `node-runs` in both views; copy-plan no-copy
 rows moved to a footnote with best-ME wording ("10 runs from the best-ME
 BPCs, ME 10 / TE 20"); acquisition table defaults to gaps only with a
-"Show all 29 types" toggle and a "blocks CTR builds" callout on Chiral
+"Show all 29 types" toggle and a "blocks CTR builds" callout (CTR — Core
+Temperature Regulator) on Chiral
 Structures; required blueprints collapsed to a summary line plus
 exceptions (Typhoon BPC-only, off-location Hydrogen BPO).
 
 Also fixed while in there: the fresh plan's "25 types" stat tile — the
 `reference/chains/TYPHOON-CHAIN.md` terminator table has 29 types (7 minerals + 4 moon +
-10 PI + 8 ice), so the tile now reads 29.
+10 PI (Planetary Industry) + 8 ice), so the tile now reads 29.
 
 ## Open
 

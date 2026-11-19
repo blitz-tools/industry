@@ -8,7 +8,7 @@ called out explicitly.
 
 Validation case throughout: the **Typhoon** (T1 battleship) blueprint. The
 chain it produces (ship → components → reaction intermediates → moon
-materials, PI commodities, and minerals) is familiar ground and
+materials, PI (Planetary Industry) commodities, and minerals) is familiar ground and
 exercises phases, blueprint availability, and asset measurement.
 Correction (2026-11-16, confirmed against the live mirror): the chain
 **does require reactions** (though not invention) — the components take
@@ -31,8 +31,9 @@ chain to raw-material inputs, then builds up every chain layer,
 distributing the work across the corporation's characters based on
 skill availability for each blueprint and chunking it across available
 build slots so the components the next stage needs complete as fast as
-possible. The parallelism mechanism is **BPC copies**: the planner
-recommends how many copies to make from owned BPOs and each one's run
+possible. The parallelism mechanism is **BPC (Blueprint Copy) copies**:
+the planner recommends how many copies to make from owned BPOs
+(Blueprint Originals) and each one's run
 count, so jobs install simultaneously across slots — a single
 max-run job is always the most material-efficient but slowest, so
 more slots are bought at a material cost. A **profit-vs-throughput
@@ -62,7 +63,7 @@ paid contracts), or **pick a better target**.
 | Milestone | State |
 |---|---|
 | M1 — main character & corporation pool | ✅ **Complete** (PRs #12–#14) |
-| M2 — SDE foundation & blueprint catalog | 🟡 **In progress** — SDE foundation + admin self-update (PRs #15–#16) and the character-side data syncs (PR #17) complete; remaining: catalog surface |
+| M2 — SDE (Static Data Export) foundation & blueprint catalog | 🟡 **In progress** — SDE foundation + admin self-update (PRs #15–#16) and the character-side data syncs (PR #17) complete; remaining: catalog surface |
 | M3+ | Not started |
 
 **Pick up at**: M2 remainder — the catalog query layer the M4 planner
@@ -97,7 +98,7 @@ resolver extensions* instead of schema rewrites.
 | Layer | Source | Nature | Examples |
 |---|---|---|---|
 | **Static (recipes)** | EVE SDE, imported | Write-once per EVE release | blueprint → materials, products, required skills, activity durations, invention probabilities |
-| **Dynamic (world state)** | ESI, ETag-cached sync | Refreshed in background | owned blueprints (ME/TE/runs), skills, industry jobs, system cost indices, assets, market prices (deferred) |
+| **Dynamic (world state)** | ESI (EVE Swagger Interface), ETag-cached sync | Refreshed in background | owned blueprints (ME (Material Efficiency)/TE (Time Efficiency)/runs), skills, industry jobs, system cost indices, assets, market prices (deferred) |
 | **User state** | This app | User-managed CRUD | main character, structures, build plans, job assignments |
 
 Two consequences worth stating outright:
@@ -173,20 +174,22 @@ Two consequences worth stating outright:
   inputs' phases), target at the highest number — so phase and wave
   numbers both increase toward completion (waves are temporal install
   batches, phases are dependency layers; progress moves both counters
-  the same direction). The mockups use the ascending convention;
-  `reference/` and `reference/chains/TYPHOON-CHAIN.md` still number target-first
-  (target = phase 0) until renumbered in a reference session (tracked
-  in `TODO.md`). (M5.)
+  the same direction). The mockups, the reference scripts, and
+  `reference/chains/TYPHOON-CHAIN.md` all use the ascending
+  convention (the reference renumber landed 2026-11-18 alongside the
+  first new chain document). (M5.)
 - **Copy-vs-direct presentation** (2026-11-18): the planner applies the
-  copy-vs-direct rule (`reference/chains/TYPHOON-CHAIN.md`) in its wave composition but
-  does not surface the calculation as dedicated UI — the wave job
+  copy-vs-direct rule (`reference/chains/TYPHOON-CHAIN.md`) in its
+  wave composition but does not surface the calculation as dedicated
+  UI — the wave job
   requests are the surface: an early wave requests the blueprint copies
   later phases need, and a later wave's job request simply uses the BPO
   directly where a copy was unnecessary. (M9.)
 - **Purchase-vs-copy crossover** (2026-11-18, from the ×10 simulation):
   purchasing a node (or phase) wins on wall time whenever procurement
   lead time < the node's copy-queue overflow + build time. For the
-  Typhoon chain the AIPS copy queue ÷ reaction dead zone = 1.56 at
+  Typhoon chain the AIPS (Auto-Integrity Preservation Seal) copy
+  queue ÷ reaction dead zone = 1.56 at
   every target count, so the copy pipeline is the constraint at any N
   — there is no scale at which copying catches up, and purchasing
   phase 4 collapses phases 1–3 out of the math entirely (their

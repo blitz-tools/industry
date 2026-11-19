@@ -9,7 +9,8 @@ roster's skills and build slots.
 **Documentation**: <https://blitz-tools.github.io/industry/>
 
 - [Administration](https://blitz-tools.github.io/industry/admin/installation/) —
-  standing the app up: EVE SSO registration, environment, containers, SDE
+  standing the app up: EVE SSO registration, environment, containers,
+  SDE (Static Data Export)
   data, security.
 - [Development](https://blitz-tools.github.io/industry/development/getting-started/) —
   the containerized workflow, testing and linting, project process,

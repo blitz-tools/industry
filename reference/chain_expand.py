@@ -112,6 +112,9 @@ def aggregated_phases(db, type_id, quantity):
     Same-type requirements merge per phase, then round runs once — not per
     parent. Returns a list of phases, target first; each phase is a list of
     (name, quantity, runs, activity) with runs=None marking terminators.
+    Printed phase numbers count up in build order instead (decided
+    2026-11-18, matching the waves): the all-raw final level is phase 0,
+    the deepest buildable level is phase 1, the target is the highest.
     """
     reqs = {type_id: quantity}
     phases = []
@@ -158,8 +161,9 @@ def main():
     phases = aggregated_phases(db, type_id, quantity)
     print()
     print("=== aggregated phases (shared intermediates merged) ===")
+    depth = len(phases)
     for i, rows in enumerate(phases):
-        print(f"phase {i}:")
+        print(f"phase {depth - 1 - i}:")
         for nm, qty, runs, act in rows:
             if runs is None:
                 print(f"  {nm:32s} {qty:>10,}  [raw]")

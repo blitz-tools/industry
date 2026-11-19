@@ -4,7 +4,7 @@ The completely expanded production chain for the **Typhoon** (T1
 battleship, type 644, blueprint 998) at target quantity ×1 — the
 worked example M5's chain resolution gets checked against — plus the
 ×100 work-distribution models that M9's job assignment gets checked
-against (v1: slot-spread; v2: time-balanced with copy/reaction BPO
+against (v1: slot-spread; v2: time-balanced with copy/reaction BPO (Blueprint Original)
 constraints, target-count timelines, and BPO obtainment
 recommendations). This file exists because the full expansions are
 too heavy for `MILESTONES.md` or `TODO.md`, but the detail matters:
@@ -12,7 +12,7 @@ batch sizes, per-run product quantities, shared intermediates, the
 raw-material totals, and the slot-distribution shape all inform the
 resolver's and assignment engine's design.
 
-Provenance: read directly from the live SDE mirror (`sde_*` tables,
+Provenance: read directly from the live SDE (Static Data Export) mirror (`sde_*` tables,
 release 2026-11-13) on 2026-11-16. Expansion rule: for each required
 type, find its producing blueprint (manufacturing = activity 1,
 reactions = activity 11), compute runs = ⌈needed ÷ product-per-run⌉,
@@ -214,25 +214,27 @@ under each parent. 177 nodes.
 
 What M5's shared-quantity aggregation produces: same-type
 requirements merge per phase, then round runs once — not per parent.
-Target = phase 0, terminators below phase 4.
+Phases count up in build order (decided 2026-11-18): raw-material
+terminators sit at phase 0, the deepest buildable layer (fuel blocks)
+is phase 1, the target is the highest number.
 
 | Phase | Node | Qty | Activity | Runs |
 |---|---|---|---|---|
-| 0 | Typhoon | 1 | manufacturing | 1 |
-| 1 | Core Temperature Regulator | 1 | manufacturing | 1 |
-| 1 | Life Support Backup Unit | 75 | manufacturing | 25 |
-| 1 | Auto-Integrity Preservation Seal | 150 | manufacturing | 50 |
-| 2 | Pressurized Oxidizers | 500 | reaction | 3 |
-| 2 | Reinforced Carbon Fiber | 1,250 | reaction | 7 |
-| 3 | Carbon Polymers | 600 | reaction | 3 |
-| 3 | Sulfuric Acid | 600 | reaction | 3 |
-| 3 | Oxy-Organic Solvents | 10 | reaction | 1 |
-| 3 | Carbon Fiber | 1,400 | reaction | 7 |
-| 3 | Thermosetting Polymer | 1,400 | reaction | 7 |
-| 4 | Helium Fuel Block | 15 | manufacturing | 1 |
-| 4 | Nitrogen Fuel Block | 15 | manufacturing | 1 |
-| 4 | Oxygen Fuel Block | 40 | manufacturing | 1 |
-| 4 | Hydrogen Fuel Block | 35 | manufacturing | 1 |
+| 5 | Typhoon | 1 | manufacturing | 1 |
+| 4 | Core Temperature Regulator | 1 | manufacturing | 1 |
+| 4 | Life Support Backup Unit | 75 | manufacturing | 25 |
+| 4 | Auto-Integrity Preservation Seal | 150 | manufacturing | 50 |
+| 3 | Pressurized Oxidizers | 500 | reaction | 3 |
+| 3 | Reinforced Carbon Fiber | 1,250 | reaction | 7 |
+| 2 | Carbon Polymers | 600 | reaction | 3 |
+| 2 | Sulfuric Acid | 600 | reaction | 3 |
+| 2 | Oxy-Organic Solvents | 10 | reaction | 1 |
+| 2 | Carbon Fiber | 1,400 | reaction | 7 |
+| 2 | Thermosetting Polymer | 1,400 | reaction | 7 |
+| 1 | Helium Fuel Block | 15 | manufacturing | 1 |
+| 1 | Nitrogen Fuel Block | 15 | manufacturing | 1 |
+| 1 | Oxygen Fuel Block | 40 | manufacturing | 1 |
+| 1 | Hydrogen Fuel Block | 35 | manufacturing | 1 |
 
 **Aggregation savings** (per-branch → aggregated run counts):
 Reinforced Carbon Fiber 3+2+3 = 8 → **7** runs; Carbon Fiber
@@ -240,12 +242,12 @@ Reinforced Carbon Fiber 3+2+3 = 8 → **7** runs; Carbon Fiber
 Solvents 3+2+3 = 8 needed → **10 = 1 run** (3 per-branch); Hydrogen
 Fuel Block 40 → 35; Oxygen Fuel Block 50 → 40. This is the
 per-phase-rounds-once payoff, and the same lever the M9
-BPC/slot-splitting math pulls in the other direction.
+BPC (Blueprint Copy)/slot-splitting math pulls in the other direction.
 
 ## Raw-material acquisition table (Typhoon ×1)
 
 All terminators summed across the whole chain — what to obtain, by
-category and in-game mechanic. Reprocessing, PI, and ice products
+category and in-game mechanic. Reprocessing, PI (Planetary Industry), and ice products
 are inputs to *acquire*, not plan: the chain planner stops here.
 
 | Minerals | Qty | | Moon materials | Qty |
@@ -340,7 +342,7 @@ Active jobs: none. Assumptions: max skills, ideal BPCs at preferred
 run counts, all raw materials on hand, no efficiency weighting.
 
 ------------------------------------------------------------------------
-PHASE 4 — MANUFACTURING  total 233 runs (120 jobs = 4 full waves + remainder)
+PHASE 1 — MANUFACTURING  total 233 runs (120 jobs = 4 full waves + remainder)
 ------------------------------------------------------------------------
   Nitrogen Fuel Block      1,250 units ->  32 runs  [2 BPC x2 runs, 28 BPC x1 runs]
       Octavia Arbitrage   10 jobs     11 runs  (1x2, 9x1)
@@ -360,7 +362,7 @@ PHASE 4 — MANUFACTURING  total 233 runs (120 jobs = 4 full waves + remainder)
       theblitzrage I      10 jobs     30 runs  (10x3)
 
 ------------------------------------------------------------------------
-PHASE 3 — REACTION       total 1,838 runs (150 jobs = 5 full waves + remainder)
+PHASE 2 — REACTION       total 1,838 runs (150 jobs = 5 full waves + remainder)
 ------------------------------------------------------------------------
   Carbon Polymers        50,000 units -> 250 runs  [10 BPC x9 runs, 20 BPC x8 runs]
       Octavia Arbitrage   10 jobs     84 runs  (4x9, 6x8)
@@ -384,7 +386,7 @@ PHASE 3 — REACTION       total 1,838 runs (150 jobs = 5 full waves + remainder
       theblitzrage I      10 jobs    208 runs  (8x21, 2x20)
 
 ------------------------------------------------------------------------
-PHASE 2 — REACTION       total   875 runs (60 jobs = 2 full waves + remainder)
+PHASE 3 — REACTION       total   875 runs (60 jobs = 2 full waves + remainder)
 ------------------------------------------------------------------------
   Pressurized Oxidizers  50,000 units -> 250 runs  [10 BPC x9 runs, 20 BPC x8 runs]
       Octavia Arbitrage   10 jobs     84 runs  (4x9, 6x8)
@@ -396,7 +398,7 @@ PHASE 2 — REACTION       total   875 runs (60 jobs = 2 full waves + remainder)
       theblitzrage I      10 jobs    208 runs  (8x21, 2x20)
 
 ------------------------------------------------------------------------
-PHASE 1 — MANUFACTURING  total 7,600 runs (90 jobs = 3 full waves + remainder)
+PHASE 4 — MANUFACTURING  total 7,600 runs (90 jobs = 3 full waves + remainder)
 ------------------------------------------------------------------------
   Auto-Integrity Preserv 15,000 units -> 5,000 runs  [20 BPC x167 runs, 10 BPC x166 runs]
       Octavia Arbitrage   10 jobs  1,667 runs  (7x167, 3x166)
@@ -412,7 +414,7 @@ PHASE 1 — MANUFACTURING  total 7,600 runs (90 jobs = 3 full waves + remainder)
       theblitzrage I      10 jobs    833 runs  (3x84, 7x83)
 
 ------------------------------------------------------------------------
-PHASE 0 — MANUFACTURING  total   100 runs (30 jobs = 1 full wave)
+PHASE 5 — MANUFACTURING  total   100 runs (30 jobs = 1 full wave)
 ------------------------------------------------------------------------
   Typhoon                  100 units ->   100 runs  [10 BPC x4 runs, 20 BPC x3 runs]
       Octavia Arbitrage   10 jobs     34 runs  (4x4, 6x3)
@@ -447,16 +449,16 @@ reactions cannot be copied — each character holds 1 BPO per formula,
 so a formula runs at most 3 concurrent jobs (one per character), all
 within their 10 reaction slots; copying is 1 job per BPO (science
 slots, ~8 concurrent streams across the roster); BPC run counts
-respect `maxProductionLimit` (Typhoon 10, CTR 40, components/fuel
-blocks 200).
+respect `maxProductionLimit` (Typhoon 10, CTR — Core Temperature
+Regulator — 40, components/fuel blocks 200).
 
 | Phase | Activity | Duration | Job shape |
 |---|---|---|---|
-| 4 — fuel blocks | mfg | ~1h (1 window) | 16–30 BPCs of 2–3 runs each |
-| 3 — reactions | rxn | 627h = 105 windows = 26.2d | 3 BPO jobs per formula (209/208/208 on the 625-run formulas) |
-| 2 — reactions | rxn | 627h = 26.2d | same BPO-bound shape |
-| 1 — components | mfg | ~90 slot-hours, 3 waves | AIPS 30 BPCs ×~167, LSBU 30 ×~84, CTR 25 ×4 |
-| 0 — Typhoons | mfg | ~17h | 25 BPCs ×4 runs |
+| 1 — fuel blocks | mfg | ~1h (1 window) | 16–30 BPCs of 2–3 runs each |
+| 2 — reactions | rxn | 627h = 105 windows = 26.2d | 3 BPO jobs per formula (209/208/208 on the 625-run formulas) |
+| 3 — reactions | rxn | 627h = 26.2d | same BPO-bound shape |
+| 4 — components | mfg | ~90 slot-hours, 3 waves | AIPS — Auto-Integrity Preservation Seal — 30 BPCs ×~167, LSBU — Life Support Backup Unit — 30 ×~84, CTR 25 ×4 |
+| 5 — Typhoons | mfg | ~17h | 25 BPCs ×4 runs |
 
 **Copy pipeline** (parallel from chain start, sequential per BPO):
 
@@ -494,7 +496,7 @@ t_b/run, inputs arriving at T_in (the dead zone):
 
 AIPS at ×100: pure copy finishes day ~86; **hybrid (copy to day 53,
 then direct) day ~79**; pure direct day ~124 — the trap is that
-direct building can't start before RCF inputs exist, so the BPO
+direct building can't start before RCF (Reinforced Carbon Fiber) inputs exist, so the BPO
 idles. Copying's real value is monetizing BPO dead time, not slot
 parallelism. Useful BPO count = ceil(R·t_c / T_in) — beyond that,
 BPOs idle.
@@ -519,49 +521,49 @@ choice:
 | 60d | 68 | 75 | 104 |
 | 90d | 102 | 113 | 157 |
 
-Timelines (pure-copy strategy; `#` copy, `r` reaction, `m`
-manufacturing, `.` dead zone):
+Timelines (pure-copy strategy; `#` copy, `r` reaction — rows "rxn", `m`
+manufacturing — rows "mfg", `.` dead zone):
 
 ```text
 TYPHOON x10 — chain end 9.5d, dead wait 3.0d
   AIPS copy     |##################################################  | 0.0 ->  8.3d
   LSBU copy     |#########################                           | 0.0 ->  4.2d
   TYPHOON copy  |##########                                        | 0.0 ->  1.7d
-  phase 3 rxn   |rrrrrrrrrrrrrrrr                                   | 0.1 ->  2.7d
-  phase 2 rxn   |                rrrrrrrrrrrrrrrr                   | 2.7 ->  5.3d
+  phase 2 rxn   |rrrrrrrrrrrrrrrr                                   | 0.1 ->  2.7d
+  phase 3 rxn   |                rrrrrrrrrrrrrrrr                   | 2.7 ->  5.3d
   BUILDS WAIT   |                                ..................  | 5.3 ->  8.3d
-  phase 1 mfg   |                                                  m| 8.3 ->  8.9d
-  phase 0 mfg   |                                                   | 8.9 ->  9.5d
+  phase 4 mfg   |                                                  m| 8.3 ->  8.9d
+  phase 5 mfg   |                                                   | 8.9 ->  9.5d
 
 TYPHOON x25 — chain end 22.5d, dead wait 7.6d
   AIPS copy     |#####################################################| 0.0 -> 20.8d
   LSBU copy     |##########################                          | 0.0 -> 10.4d
   TYPHOON copy  |##########                                         | 0.0 ->  4.2d
-  phase 3 rxn   |rrrrrrrrrrrrrrrrr                                  | 0.2 ->  6.7d
-  phase 2 rxn   |                 rrrrrrrrrrrrrrrrr                 | 6.7 -> 13.3d
+  phase 2 rxn   |rrrrrrrrrrrrrrrrr                                  | 0.2 ->  6.7d
+  phase 3 rxn   |                 rrrrrrrrrrrrrrrrr                 | 6.7 -> 13.3d
   BUILDS WAIT   |                                  ...................|13.3 -> 20.8d
-  phase 1 mfg   |                                                    |20.8 -> 22.0d
-  phase 0 mfg   |                                                    |22.0 -> 22.5d
+  phase 4 mfg   |                                                    |20.8 -> 22.0d
+  phase 5 mfg   |                                                    |22.0 -> 22.5d
 
 TYPHOON x50 — chain end 44.3d, dead wait 15.2d
   AIPS copy     |######################################################| 0.0 -> 41.7d
   LSBU copy     |###########################                         | 0.0 -> 20.8d
   TYPHOON copy  |###########                                        | 0.0 ->  8.3d
-  phase 3 rxn   |rrrrrrrrrrrrrrrrr                                  | 0.4 -> 13.4d
-  phase 2 rxn   |                 rrrrrrrrrrrrrrrrr                 |13.4 -> 26.5d
+  phase 2 rxn   |rrrrrrrrrrrrrrrrr                                  | 0.4 -> 13.4d
+  phase 3 rxn   |                 rrrrrrrrrrrrrrrrr                 |13.4 -> 26.5d
   BUILDS WAIT   |                                  ....................|26.5 -> 41.7d
-  phase 1 mfg   |                                                     |41.7 -> 43.7d
-  phase 0 mfg   |                                                     |43.7 -> 44.3d
+  phase 4 mfg   |                                                     |41.7 -> 43.7d
+  phase 5 mfg   |                                                     |43.7 -> 44.3d
 
 TYPHOON x100 — chain end 87.9d, dead wait 30.4d
   AIPS copy     |#######################################################| 0.0 -> 83.3d
   LSBU copy     |###########################                          | 0.0 -> 41.7d
   TYPHOON copy  |###########                                          | 0.0 -> 16.7d
-  phase 3 rxn   |rrrrrrrrrrrrrrrrr                                    | 0.8 -> 26.8d
-  phase 2 rxn   |                 rrrrrrrrrrrrrrrrr                   |26.8 -> 52.9d
+  phase 2 rxn   |rrrrrrrrrrrrrrrrr                                    | 0.8 -> 26.8d
+  phase 3 rxn   |                 rrrrrrrrrrrrrrrrr                   |26.8 -> 52.9d
   BUILDS WAIT   |                                  .....................|52.9 -> 83.3d
-  phase 1 mfg   |                                                       |83.3 -> 87.3d
-  phase 0 mfg   |                                                       |87.3 -> 87.9d
+  phase 4 mfg   |                                                       |83.3 -> 87.3d
+  phase 5 mfg   |                                                       |87.3 -> 87.9d
 ```
 
 | N | end | d/Typhoon | reactions done | AIPS copy | dead wait | copy÷T_in |
@@ -592,7 +594,7 @@ does not grow with N.
 |---|---|---|---|
 | today | 1 AIPS BPO, 1 rxn BPO/char/formula | 0.88 d/N | AIPS copying |
 | +1 AIPS BPO | 2 AIPS | 0.58 d/N | reactions — best single purchase |
-| +1 rxn BPO/char/formula, AIPS→4, LSBU→2 | | 0.32 d/N | reaction slots (phase 3: 5 formulas × 2 jobs/char = 10 slots exactly) |
+| +1 rxn BPO/char/formula, AIPS→4, LSBU→2 | | 0.32 d/N | reaction slots (phase 2: 5 formulas × 2 jobs/char = 10 slots exactly) |
 | beyond | stagger formulas, more of everything | →0.04–0.1 d/N | manufacturing slots / wave quantization |
 
 ## Deterministic feasibility
