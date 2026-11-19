@@ -15,9 +15,10 @@ The planning surfaces live in the repository:
 - [`TODO.md`](https://github.com/blitz-tools/industry/blob/main/TODO.md)
   — smaller items and ideas, each with enough context to pick up in a
   fresh session.
-- [`TYPHOON-CHAIN.md`](https://github.com/blitz-tools/industry/blob/main/TYPHOON-CHAIN.md)
-  and [`reference/`](https://github.com/blitz-tools/industry/tree/main/reference)
-  — the planner's golden values and proof-out scripts.
+- [`reference/`](https://github.com/blitz-tools/industry/tree/main/reference)
+  and its [`chains/`](https://github.com/blitz-tools/industry/tree/main/reference/chains)
+  chain documents (`TYPHOON-CHAIN.md` holds the golden values) — the
+  planner's proof-out scripts and reference data.
 
 ## Branch protection
 

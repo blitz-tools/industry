@@ -87,7 +87,7 @@ milestone-affecting vocabulary graduated to `MILESTONES.md`):
   together toward completion — waves are temporal install batches,
   phases are dependency layers, and progress moves both counters the
   same direction. → graduated to `MILESTONES.md`; the reference models
-  + `TYPHOON-CHAIN.md` renumber is tracked in `TODO.md`.
+  + `reference/chains/TYPHOON-CHAIN.md` renumber is tracked in `TODO.md`.
 - **Copy-vs-direct**: no dedicated UI — the planner accounts for the
   rule in wave composition, and the wave job requests are the surface
   (an early wave requests the copies later phases need; a later wave
@@ -105,7 +105,7 @@ Structures; required blueprints collapsed to a summary line plus
 exceptions (Typhoon BPC-only, off-location Hydrogen BPO).
 
 Also fixed while in there: the fresh plan's "25 types" stat tile — the
-`TYPHOON-CHAIN.md` terminator table has 29 types (7 minerals + 4 moon +
+`reference/chains/TYPHOON-CHAIN.md` terminator table has 29 types (7 minerals + 4 moon +
 10 PI + 8 ice), so the tile now reads 29.
 
 ## Open

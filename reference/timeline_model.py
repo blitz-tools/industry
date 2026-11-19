@@ -2,7 +2,7 @@
 """Time-balanced work-distribution and timeline model (proof-out v2).
 
 Executable spec for M9's job orchestration and M12's blueprint asset gap
-analysis; regenerates TYPHOON-CHAIN.md's v2 model, timelines, scaling and
+analysis; regenerates reference/chains/TYPHOON-CHAIN.md's v2 model, timelines, scaling and
 horizon tables, and BPO recommendations. Run inside the dev container:
 
     podman exec industry_dev_1 python reference/timeline_model.py 644 100
@@ -27,7 +27,7 @@ Everything here is computed, never assumed globally:
 Strategies for the horizon table: "copy" (pure copy), "hybrid" (copy the
 longest queue until inputs arrive, then build direct — applies when skilled
 build time beats copy time per run), "2bpo" (a second BPO for the longest
-queue). See TYPHOON-CHAIN.md's copy-vs-direct decision rule.
+queue). See reference/chains/TYPHOON-CHAIN.md's copy-vs-direct decision rule.
 """
 
 import math

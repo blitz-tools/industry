@@ -46,7 +46,7 @@ The roadmap lives in
 [`MILESTONES.md`](https://github.com/blitz-tools/industry/blob/main/MILESTONES.md)
 in the repository, with the Typhoon production chain as the standing
 validation case
-([`TYPHOON-CHAIN.md`](https://github.com/blitz-tools/industry/blob/main/TYPHOON-CHAIN.md))
+([`TYPHOON-CHAIN.md`](https://github.com/blitz-tools/industry/blob/main/reference/chains/TYPHOON-CHAIN.md))
 and the calculation core proven out as reference implementations in
 [`reference/`](https://github.com/blitz-tools/industry/tree/main/reference).
 
