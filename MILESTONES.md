@@ -165,10 +165,32 @@ Two consequences worth stating outright:
 - **Blueprint availability is plan-time** (2026-11-18): required-
   blueprint status (Missing / Owned) renders at build-plan time only;
   once a plan is active the blueprint set is considered immutable, so
-  the active view omits the section. A missing blueprint leaves
-  purchase as the node's only option (its chip locks to Purchase), and
-  purchasing removes the node's inputs from the raw-material math — the
-  commodity itself is what gets acquired. (M5/M6.)
+  the active view omits the section. Purchasing removes the node's
+  inputs from the raw-material math — the commodity itself is what
+  gets acquired. **Missing-blueprint default (refined 2026-11-18,
+  from the Charon chain)**: acquire BPCs off contract and backfill
+  what the plan requires — owning a BPO for every component fails
+  economy-of-scale (a fully-researched BPO costs isk; an unresearched
+  one costs isk plus research time; BPCs cost far less but must be
+  costed and availability-checked per plan, which needs contract /
+  market data). Buying the commodity outright remains the alternative;
+  BPC vs commodity vs BPO is an economy-of-scale call the isk math
+  (M10) and the BPO-recommendation ladder (M12) inform. **Contract
+  matching (2026-11-18)**: the availability check matches contracts
+  whose contents are exactly the wanted item — a contract that merely
+  includes the Charon BPC among other items is not a match, so the
+  plan never prices unwanted bundled items. Whether same-type
+  multiples (several identical BPCs in one contract) qualify is an
+  implementation-time call. **BPC selection bias (2026-11-18)**: when
+  several contracts satisfy a missing blueprint, the
+  profit-vs-throughput slider picks which — profit biases toward the
+  highest ME (cost), throughput toward the highest TE (wall time),
+  balanced toward the best combination (max on both ideally, else
+  the highest average). Verified against live ESI: the public
+  contract-items response carries `is_blueprint_copy`,
+  `material_efficiency`, `time_efficiency`, and `runs` per BPC, so
+  the bias needs no data source beyond the contracts sync.
+  (M5/M6/M12.)
 - **Phase numbering** (2026-11-18): phases count up in build order —
   raw-material terminators at phase 0, a node's phase = 1 + max(its
   inputs' phases), target at the highest number — so phase and wave
