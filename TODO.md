@@ -12,7 +12,8 @@ Groundwork that already exists and applies broadly:
   `owner_type`/`owner_id`; the asset sync and `UniverseResolver`
   (`app/esi/universe.py`, `app/esi/assets.py`) are owner-agnostic, so
   corporation data reuses them unchanged.
-- **ESI client**: ETag-cached GETs with per-character token refresh
+- **ESI (EVE Swagger Interface) client**: ETag-cached GETs with
+  per-character token refresh
   (`app/esi/client.py`). Scope-gated calls only — scopeless calls are
   guaranteed 403s and burn ESI's error-limit budget.
 - **Registered portal scopes** (see `.env.example` `ESI_SCOPES`): character
@@ -91,7 +92,7 @@ page with CRUD. System cost indices come from public
 
 Search and select a blueprint, then calculate a build plan:
 
-- **Blueprint inputs**: number of runs, blueprint ME/TE. Owned
+- **Blueprint inputs**: number of runs, blueprint ME/TE (Material/Time Efficiency). Owned
   blueprints for characters and the corporation are already synced
   into the owner-keyed `blueprints` table (ME/TE/runs; originals run
   -1) — the planner reads them, no ESI involved.
@@ -150,16 +151,7 @@ Prerequisite work for anything multi-user:
 
 ## Smaller items / ideas
 
-- **Renumber phases ascending in the reference models** (decision
-  2026-11-18, see MILESTONES "Decisions already made") —
-  `reference/chain_expand.py`, `reference/timeline_model.py`, and the
-  generated `reference/chains/TYPHOON-CHAIN.md` still number phases target-first
-  (target = phase 0, deepest layer = highest); flip to ascending build
-  order (raw-material terminators = phase 0, target = highest number) to
-  match the mockups and M5's recorded convention. Pure relabel —
-  quantities, ratios, and timelines unchanged; regenerate the golden
-  values after.
-- **Planner UI a11y (from mockup iteration, 2026-11-18)** — when the
+- **Planner UI a11y (accessibility; from mockup iteration, 2026-11-18)** — when the
   `design/mockups/` components ship in the app: the Purchase ⇄ Build chip
   is a `cursor: pointer` span in the wireframes but must ship as a
   `<button>`; the blueprint-search autocomplete rows need keyboard

@@ -129,8 +129,13 @@ def model(db, type_id, quantity, n_chars, mfg_mult):
     models the shared-levels scenario (M9 computes it per assignment)."""
     pool = n_chars * SLOTS_PER_CHAR
     rxn_concurrency = n_chars  # 1 reaction BPO per formula per character
+    levels = expand(db, type_id, quantity)
+    # Phase numbers count up in build order (decided 2026-11-18): the
+    # raw-only level expand() skips is phase 0, so the deepest buildable
+    # level (last in the target-first list) is phase 1 and the target
+    # lands at len(levels). chain_expand.py numbers its output the same.
     out = []
-    for pnum, buildable in enumerate(expand(db, type_id, quantity)):
+    for pnum, buildable in enumerate(levels):
         items = []
         for t, (qty, bp, act, per_run) in sorted(buildable.items()):
             runs = runs_for(qty, per_run)
@@ -153,7 +158,7 @@ def model(db, type_id, quantity, n_chars, mfg_mult):
                 )
             )
         out.append(
-            dict(num=pnum, items=items,
+            dict(num=len(levels) - pnum, items=items,
                  is_rxn=bool(items) and all(i["is_rxn"] for i in items))
         )
     return dict(phases=out, pool=pool, n_chars=n_chars)
@@ -310,7 +315,7 @@ def print_bpo(db, type_id, quantity, corp_id, mfg_mult):
     print(f"{'commodity':30s} {'queue d/unit':>12} {'T_in d/unit':>11}"
           f" {'min BPOs':>9} {'1-BPO max N':>12} {'slot ceiling':>12}")
     for phase in m["phases"]:
-        deeper = phase["num"] + 1
+        deeper = phase["num"] - 1  # inputs sit one phase below (ascending)
         if deeper in ends_n:
             t_in_rate = (ends_2n[deeper][1] - ends_n[deeper][1]) / quantity
             t_in_fixed = ends_n[deeper][1] - t_in_rate * quantity

@@ -1,10 +1,15 @@
 # Reference — planner proof-out scripts
 
+Symbols and model terms (T_in, t_c, t_b, …) stay unexpanded in these
+documents by design — look them up in [`GLOSSARY.md`](GLOSSARY.md), the
+maintained math reference. Keep it updated when new terms enter.
+
 Executable spec for the industry planner's calculation core. These scripts
 regenerate the golden values in `reference/chains/TYPHOON-CHAIN.md` and
 encode the algorithms the milestones graduate into the app: chain
 expansion → M5, time/job math → M4, scheduling and copy strategy → M9,
-BPO recommendations → M12. They are reference implementations, not app
+BPO (Blueprint Original) recommendations → M12. They are reference
+implementations, not app
 code — no ORM, no framework, stdlib only, read-only against the database.
 
 Run inside the dev container from the repo root:
@@ -28,6 +33,9 @@ Per-chain golden-value documents, one file per simulation target:
 validation case) is the template — full chain expansion, aggregated
 phases, raw-material acquisition table, scheduling model, timelines,
 and scaling analysis, all generated from the scripts above.
+`CHARON-CHAIN.md` (Charon freighter, 2026-11-18) is the capital
+stress test: seven-deep phases, recurring commodities, mixed-activity
+phases, and four terminator classes the Typhoon never exercised.
 
 New chains are added to stress the models with more complex structures
 (deeper phase stacks, capital components, invention/T2 layers) and
@@ -38,7 +46,8 @@ notes; the milestone text records what changes for the app.
 
 ## Formula reference
 
-Everything is closed-form arithmetic over the SDE mirror (`sde_*` tables)
+Everything is closed-form arithmetic over the SDE (Static Data Export)
+mirror (`sde_*` tables)
 plus the synced `skills`/`blueprints`/`characters` tables. No LLM at
 runtime; nothing here is learned or guessed at run time.
 
@@ -51,11 +60,15 @@ runtime; nothing here is learned or guessed at run time.
   components 3/run, fuel blocks 40/run)
 - phases: level-by-level aggregation; same-type requirements merge per
   phase, then round runs once — not per parent (the material savings:
-  RCF 8 per-branch runs → 7 aggregated)
+  RCF (Reinforced Carbon Fiber) 8 per-branch runs → 7 aggregated)
 - terminators: types with no producing blueprint (minerals, moon
-  materials, PI commodities, ice products) — leaves to acquire, never
-  recursed; raw categories are hardcoded here, M5 classifies via
-  invGroups/invCategories
+  materials, PI (Planetary Industry) commodities, ice products, gas
+  from harvestable clouds, molecular-forging tools) — leaves to
+  acquire, never recursed; raw categories are hardcoded here, M5
+  classifies via invGroups/invCategories — validated against the
+  Charon chain (2026-11-18): the SDE groups map cleanly except
+  molecular-forging tools, which sit in the generic 'Commodities'
+  catch-all group and need a name-list fallback
 - cycle detection: NOT implemented (T1 manufacturing has none); M5 must
   add it defensively
 
@@ -92,7 +105,7 @@ runtime; nothing here is learned or guessed at run time.
   (the next deeper phase's end, fitted linearly — scale-invariant)
 - min BPOs = ⌈queue rate ÷ input-ready rate⌉ — the count that fits the
   copy queue into the input dead zone
-- slot ceiling = ⌈pool × copy-time ÷ build-time⌉ — BPOs past which BPCs
+- slot ceiling = ⌈pool × copy-time ÷ build-time⌉ — BPOs past which BPCs (Blueprint Copies)
   arrive faster than slots can build
 - the acquisition ladder (un-gate one resource, the next surfaces) is
   manual analysis in `reference/chains/TYPHOON-CHAIN.md`; automating
