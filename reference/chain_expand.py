@@ -13,8 +13,10 @@ Pinned by the 2026-11 proof-outs:
   (manufacturing = activity 1, reactions = activity 11 in the fuzzwork dump;
   `ramActivities` labels reactions as 9, but the data lives on 11).
 - Terminators are types with no producing blueprint. The raw-category lists
-  below are hardcoded to the Typhoon chain; M5 should classify through
-  invGroups/invCategories instead.
+  below are hardcoded to the chains resolved so far (Typhoon, Charon); M5
+  should classify through invGroups/invCategories instead — the SDE groups
+  map cleanly for everything except molecular-forging tools, which sit in
+  the generic 'Commodities' catch-all group (see raw_categories below).
 - Cycle detection is NOT implemented here (the manufacturing chain has none);
   M5's resolver must add it defensively per the milestone scope.
 """
@@ -28,24 +30,46 @@ DB_PATH = Path(__file__).resolve().parent.parent / "industry.db"
 
 ACTIVITY_LABELS = {1: "manufacturing", 5: "copying", 11: "reaction"}
 
-# Hardcoded to the Typhoon chain — see module docstring.
+# Hardcoded to the chains resolved so far — see module docstring.
 RAW_CATEGORIES = {
     "minerals": [
         "Tritanium", "Pyerite", "Mexallon", "Isogen",
         "Nocxium", "Zydrine", "Megacyte",
     ],
     "moon materials": [
+        # R4 (Typhoon chain)
         "Hydrocarbons", "Silicates", "Atmospheric Gases", "Evaporite Deposits",
+        # R8-R64 (Charon chain's advanced reactions)
+        "Cadmium", "Caesium", "Mercury", "Titanium", "Chromium", "Hafnium",
+        "Dysprosium", "Neodymium", "Promethium", "Thulium",
     ],
     "PI commodities": [
+        # Tier 1-3 (Typhoon chain)
         "Chiral Structures", "Water", "Test Cultures", "Viral Agent",
         "Supertensile Plastics", "Nanites", "Robotics", "Enriched Uranium",
         "Mechanical Parts", "Coolant",
+        # Tier 4 (Charon chain's capital components)
+        "Wetware Mainframe", "Broadcast Node", "Self-Harmonizing Power Core",
+        "Organic Mortar Applicators", "Integrity Response Drones",
     ],
     "ice products": [
         "Strontium Clathrates", "Oxygen", "Heavy Water", "Liquid Ozone",
         "Helium Isotopes", "Nitrogen Isotopes", "Oxygen Isotopes",
         "Hydrogen Isotopes",
+    ],
+    # SDE group 'Harvestable Cloud': wormhole fullerites (T2-style advanced
+    # reactions) and k-space mykoserocins/cytoserocins (gas sites).
+    "gas (harvestable clouds)": [
+        "Fullerite-C28", "Fullerite-C32", "Fullerite-C50", "Fullerite-C60",
+        "Fullerite-C70", "Fullerite-C72", "Fullerite-C84", "Fullerite-C320",
+        "Fullerite-C540", "Amber Mykoserocin", "Golden Mykoserocin",
+        "Amber Cytoserocin", "Golden Cytoserocin",
+    ],
+    # Market-acquired NPC goods: molecular-forging tools used in gas
+    # reactions. Group 'Commodities' is a catch-all, so no SDE group
+    # maps here — M5 needs a name-list fallback for these.
+    "molecular-forging tools": [
+        "AG-Composite Molecular Condenser",
     ],
 }
 

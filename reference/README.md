@@ -33,6 +33,9 @@ Per-chain golden-value documents, one file per simulation target:
 validation case) is the template — full chain expansion, aggregated
 phases, raw-material acquisition table, scheduling model, timelines,
 and scaling analysis, all generated from the scripts above.
+`CHARON-CHAIN.md` (Charon freighter, 2026-11-18) is the capital
+stress test: seven-deep phases, recurring commodities, mixed-activity
+phases, and four terminator classes the Typhoon never exercised.
 
 New chains are added to stress the models with more complex structures
 (deeper phase stacks, capital components, invention/T2 layers) and
@@ -59,9 +62,13 @@ runtime; nothing here is learned or guessed at run time.
   phase, then round runs once — not per parent (the material savings:
   RCF (Reinforced Carbon Fiber) 8 per-branch runs → 7 aggregated)
 - terminators: types with no producing blueprint (minerals, moon
-  materials, PI (Planetary Industry) commodities, ice products) — leaves to acquire, never
-  recursed; raw categories are hardcoded here, M5 classifies via
-  invGroups/invCategories
+  materials, PI (Planetary Industry) commodities, ice products, gas
+  from harvestable clouds, molecular-forging tools) — leaves to
+  acquire, never recursed; raw categories are hardcoded here, M5
+  classifies via invGroups/invCategories — validated against the
+  Charon chain (2026-11-18): the SDE groups map cleanly except
+  molecular-forging tools, which sit in the generic 'Commodities'
+  catch-all group and need a name-list fallback
 - cycle detection: NOT implemented (T1 manufacturing has none); M5 must
   add it defensively
 

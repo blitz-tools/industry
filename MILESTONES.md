@@ -926,5 +926,17 @@ recorded.
   is the known next refinement and would shrink every dead zone,
   but complicates the scheduler and the delivery story. Decide at
   M9 pickup whether v1 ships serial-only.
+- Recurring commodities across phases (surfaced by
+  `reference/chains/CHARON-CHAIN.md`, 2026-11-18): the same type can
+  appear in multiple phases when its consumers sit at different
+  depths (Charon: fuel blocks at phases 1–3, PO/RCF at 3–4). Build
+  one merged campaign at the earliest need, or per-phase campaigns?
+  Merged is simplest but ties up inputs early; per-phase is
+  pipelining-adjacent. — M5/M9.
+- Mixed-activity phases (surfaced by `CHARON-CHAIN.md`): phases that
+  mix manufacturing and reaction items schedule through the
+  slot-hour formula in the reference model (the BPO-bound reaction
+  branch only triggers for all-reaction phases). Refine for mixed
+  phases. — M9.
 - Plan re-planning semantics: mid-flight adjustments (add runs, swap a
   facility) — amend in place vs. fork a new plan — M6.
