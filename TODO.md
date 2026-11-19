@@ -150,6 +150,20 @@ Prerequisite work for anything multi-user:
 
 ## Smaller items / ideas
 
+- **Renumber phases ascending in the reference models** (decision
+  2026-11-18, see MILESTONES "Decisions already made") —
+  `reference/chain_expand.py`, `reference/timeline_model.py`, and the
+  generated `TYPHOON-CHAIN.md` still number phases target-first
+  (target = phase 0, deepest layer = highest); flip to ascending build
+  order (raw-material terminators = phase 0, target = highest number) to
+  match the mockups and M5's recorded convention. Pure relabel —
+  quantities, ratios, and timelines unchanged; regenerate the golden
+  values after.
+- **Planner UI a11y (from mockup iteration, 2026-11-18)** — when the
+  `design/mockups/` components ship in the app: the Purchase ⇄ Build chip
+  is a `cursor: pointer` span in the wireframes but must ship as a
+  `<button>`; the blueprint-search autocomplete rows need keyboard
+  navigation (arrow keys + enter, focus management).
 - **Session persistence for region/category filters** — the character
   selection is remembered across page visits (see
   `character_filter_groups` / the `?chars=` sentinels); extend the same

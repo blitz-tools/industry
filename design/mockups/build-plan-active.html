@@ -60,11 +60,11 @@
     </div>
     <div class="stat">
       <p class="stat-value" style="color: var(--muted);">4 / 4</p>
-      <p class="stat-label">Fuel-block jobs delivered (phase 4 complete)</p>
+      <p class="stat-label">Fuel-block jobs delivered (phase 1 complete)</p>
     </div>
     <div class="stat">
       <p class="stat-value" style="color: var(--cyan);">58%</p>
-      <p class="stat-label">Phase 3 reactions — 1 d 2 h to delivery</p>
+      <p class="stat-label">Phase 2 reactions — 1 d 2 h to delivery</p>
     </div>
     <div class="stat">
       <p class="stat-value" style="color: var(--cyan);">19%</p>
@@ -78,23 +78,23 @@
 
   <!-- Reverse product chain -->
   <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse product chain</h2>
-  <p class="meta-line" style="margin: 0 0 0.75rem;">Same plan as the fresh view, mid-flight: stage states advance as jobs deliver. Same Purchase ⇄ Build chips, still live-editable.</p>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Same plan as the fresh view, mid-flight: stage states advance as jobs deliver. Phase summaries roll up from children — worst child wins. Same Purchase ⇄ Build chips, still live-editable.</p>
 
   <div class="chain-flow">
     <div class="chain-phase">
-      <span class="phase-label">Phase 4</span>
+      <span class="phase-label">Phase 1</span>
       <span class="phase-name">Fuel blocks</span>
       <span class="phase-meta">4 nodes · manufacturing</span>
       <div class="phase-tags">
         <span class="activity-tag mfg">manufacture</span>
-        <span class="stage-state complete">✓ Stage Complete</span>
+        <span class="stage-state complete">✓ Stage complete</span>
       </div>
     </div>
     <span class="chain-arrow">→</span>
     <div class="chain-phase">
-      <span class="phase-label">Phase 3</span>
+      <span class="phase-label">Phase 2</span>
       <span class="phase-name">Reaction intermediates</span>
-      <span class="phase-meta">5 nodes · reactions</span>
+      <span class="phase-meta">5 nodes · reactions · 1 purchased</span>
       <div class="phase-tags">
         <span class="activity-tag rxn">reaction</span>
         <span class="stage-state running">In progress · 58%</span>
@@ -102,7 +102,7 @@
     </div>
     <span class="chain-arrow">→</span>
     <div class="chain-phase">
-      <span class="phase-label">Phase 2</span>
+      <span class="phase-label">Phase 3</span>
       <span class="phase-name">Reaction intermediates</span>
       <span class="phase-meta">2 nodes · reactions</span>
       <div class="phase-tags">
@@ -112,7 +112,7 @@
     </div>
     <span class="chain-arrow">→</span>
     <div class="chain-phase">
-      <span class="phase-label">Phase 1</span>
+      <span class="phase-label">Phase 4</span>
       <span class="phase-name">Components</span>
       <span class="phase-meta">3 nodes · manufacturing</span>
       <div class="phase-tags">
@@ -122,7 +122,7 @@
     </div>
     <span class="chain-arrow">→</span>
     <div class="chain-phase">
-      <span class="phase-label">Phase 0</span>
+      <span class="phase-label">Phase 5</span>
       <span class="phase-name">Typhoon ×10</span>
       <span class="phase-meta">1 node · manufacturing</span>
       <div class="phase-tags">
@@ -133,21 +133,24 @@
   </div>
 
   <div class="anno">
-    <span class="anno-label">wireframe</span>
-    <b>In progress</b> (cyan) is added as a fifth stage state beyond the four
-    described (Missing inputs / Ready to build / Ready to Deliver / Stage
-    Complete) — a phase with running jobs needs a distinct read. Flag for
-    discussion.
+    <span class="anno-label">settled 2026-11-18</span>
+    <b>State model:</b> the chip carries the spec state — Missing inputs /
+    Ready to build / In progress / Ready to deliver / Stage complete — and
+    the gating reason (BPC copy progress, a waiting upstream phase) renders
+    as secondary text + meter beside it. Phase summaries roll up from
+    children (worst child wins); purchased nodes drop out of the phase
+    state and percent and count toward acquisition instead.
   </div>
 
   <!-- Phase tree -->
   <details class="phase-row" open style="margin-top: 1rem;">
     <summary>
-      <span class="phase-title">Phase 4 — Fuel blocks</span>
+      <span class="phase-title">Phase 1 — Fuel blocks</span>
       <span class="activity-tag mfg">manufacture</span>
       <span class="phase-count">4 nodes</span>
       <span class="summary-right">
-        <span class="stage-state complete">✓ Stage Complete</span>
+        <span class="stage-state complete">✓ Stage complete</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
       </span>
     </summary>
     <div class="phase-body">
@@ -196,11 +199,13 @@
 
   <details class="phase-row" open>
     <summary>
-      <span class="phase-title">Phase 3 — Reaction intermediates</span>
+      <span class="phase-title">Phase 2 — Reaction intermediates</span>
       <span class="activity-tag rxn">reaction</span>
       <span class="phase-count">5 nodes</span>
       <span class="summary-right">
         <span class="stage-state running">In progress · 58%</span>
+        <span class="node-gating">4 build · 1 purchased</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
       </span>
     </summary>
     <div class="phase-body">
@@ -250,7 +255,7 @@
         <span class="node-qty">×100</span>
         <span class="node-runs">10 runs</span>
         <span class="node-right">
-          <span class="stage-state deliver">Arriving day 2 · contract</span>
+          <span class="node-gating">purchased — arriving day 2 · contract</span>
           <span class="stage-chip purchase">Purchase</span>
         </span>
       </div>
@@ -259,11 +264,12 @@
 
   <details class="phase-row">
     <summary>
-      <span class="phase-title">Phase 2 — Reaction intermediates</span>
+      <span class="phase-title">Phase 3 — Reaction intermediates</span>
       <span class="activity-tag rxn">reaction</span>
       <span class="phase-count">2 nodes</span>
       <span class="summary-right">
         <span class="stage-state missing">Missing inputs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
       </span>
     </summary>
     <div class="phase-body">
@@ -271,9 +277,10 @@
         <img class="type-icon" src="https://images.evetech.net/types/57456/icon?size=32" alt="">
         <span class="node-name">Pressurized Oxidizers</span>
         <span class="node-qty">×5,000</span>
-        <span class="node-runs">25 runs</span>
+        <span class="node-runs">25 runs · 3 jobs</span>
         <span class="node-right">
-          <span class="badge owned">BPO</span>
+          <span class="stage-state missing">Missing inputs</span>
+          <span class="node-gating">waiting on phase 2 · day 2.7</span>
           <span class="stage-chip build">Build</span>
         </span>
       </div>
@@ -281,9 +288,10 @@
         <img class="type-icon" src="https://images.evetech.net/types/57457/icon?size=32" alt="">
         <span class="node-name">Reinforced Carbon Fiber</span>
         <span class="node-qty">×12,500</span>
-        <span class="node-runs">63 runs</span>
+        <span class="node-runs">63 runs · 3 jobs</span>
         <span class="node-right">
-          <span class="badge owned">BPO</span>
+          <span class="stage-state missing">Missing inputs</span>
+          <span class="node-gating">waiting on phase 2 · day 2.7</span>
           <span class="stage-chip build">Build</span>
         </span>
       </div>
@@ -292,11 +300,12 @@
 
   <details class="phase-row">
     <summary>
-      <span class="phase-title">Phase 1 — Components</span>
+      <span class="phase-title">Phase 4 — Components</span>
       <span class="activity-tag mfg">manufacture</span>
       <span class="phase-count">3 nodes</span>
       <span class="summary-right">
         <span class="stage-state missing">Missing inputs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
       </span>
     </summary>
     <div class="phase-body">
@@ -306,7 +315,8 @@
         <span class="node-qty">×10</span>
         <span class="node-runs">10 runs</span>
         <span class="node-right">
-          <span class="stage-state deliver">BPC ready to deliver</span>
+          <span class="stage-state missing">Missing inputs</span>
+          <span class="node-gating">BPC ready to deliver · day 0.7</span>
           <span class="stage-chip build">Build</span>
         </span>
       </div>
@@ -314,9 +324,10 @@
         <img class="type-icon" src="https://images.evetech.net/types/57486/icon?size=32" alt="">
         <span class="node-name">Life Support Backup Unit</span>
         <span class="node-qty">×750</span>
-        <span class="node-runs">250 runs</span>
+        <span class="node-runs">250 runs · 2 jobs</span>
         <span class="node-right">
-          <span class="stage-state running">Copying BPC 1/2 · 38%</span>
+          <span class="stage-state missing">Missing inputs</span>
+          <span class="node-gating"><span class="meter"><span class="meter-fill warn" style="width: 38%; display: block;"></span></span>BPC copy 1/2 · 38% · ready day 4.2</span>
           <span class="stage-chip build">Build</span>
         </span>
       </div>
@@ -324,9 +335,10 @@
         <img class="type-icon" src="https://images.evetech.net/types/57478/icon?size=32" alt="">
         <span class="node-name">Auto-Integrity Preservation Seal</span>
         <span class="node-qty">×1,500</span>
-        <span class="node-runs">500 runs</span>
+        <span class="node-runs">500 runs · 3 jobs</span>
         <span class="node-right">
-          <span class="stage-state running">Copying BPC 1/3 · 19%</span>
+          <span class="stage-state missing">Missing inputs</span>
+          <span class="node-gating"><span class="meter"><span class="meter-fill warn" style="width: 19%; display: block;"></span></span>BPC copy 1/3 · 19% · ready day 8.3 · critical path</span>
           <span class="stage-chip build">Build</span>
         </span>
       </div>
@@ -335,11 +347,12 @@
 
   <details class="phase-row">
     <summary>
-      <span class="phase-title">Phase 0 — Target</span>
+      <span class="phase-title">Phase 5 — Target</span>
       <span class="activity-tag mfg">manufacture</span>
       <span class="phase-count">1 node</span>
       <span class="summary-right">
         <span class="stage-state missing">Missing inputs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
       </span>
     </summary>
     <div class="phase-body">
@@ -349,6 +362,8 @@
         <span class="node-qty">×10</span>
         <span class="node-runs">10 runs</span>
         <span class="node-right">
+          <span class="stage-state missing">Missing inputs</span>
+          <span class="node-gating">waiting on phase 4 components</span>
           <span class="badge owned">BPC 9 + 1 runs</span>
           <span class="stage-chip build">Build</span>
         </span>
@@ -389,17 +404,12 @@
         <td class="num qty">1</td>
         <td>1 × 10</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill" style="width: 100%"></div></div><span class="meter-pct">done day 0.7</span></div></td>
-        <td><span class="stage-state deliver">Ready to Deliver</span></td>
-      </tr>
-      <tr>
-        <td><img class="type-icon" src="https://images.evetech.net/types/644/icon?size=32" alt="">Typhoon</td>
-        <td class="num muted">—</td>
-        <td class="muted">covered by owned BPCs (9 + 1 runs)</td>
-        <td class="muted">ready now</td>
-        <td class="muted">—</td>
+        <td><span class="stage-state deliver">Ready to deliver</span></td>
       </tr>
     </tbody>
   </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">No copy needed: Typhoon builds direct from owned BPCs — 10 runs from the best-ME BPCs (ME 10 / TE 20), no original to copy from.</p>
 
   <!-- Raw materials -->
   <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Raw materials — acquisition</h2>
@@ -510,8 +520,9 @@
         <span class="slot-meta">Delivered · day 0.3 · Amamake - 5 times nearly AT winners</span>
       </div>
       <div class="slot idle">
-        <div class="next-up"><span class="next-label">next up</span>LSBU ×125 runs — waiting on BPC (day 4.2)</div>
-        <div class="next-up"><span class="next-label">then</span>AIPS ×167 runs — waiting on BPC (day 8.3)</div>
+        <div class="next-up"><span class="next-label">next up</span>LSBU BPC 1 × 125 runs — waiting on BPC (day 4.2)</div>
+        <div class="next-up"><span class="next-label">then</span>AIPS BPC 1 × 167 runs — waiting on BPC (day 8.3)</div>
+        <div class="next-up more"><span class="next-label">+2 more</span>AIPS build jobs queued (×167, ×166 runs)</div>
       </div>
       <div class="slot idle">+ 8 idle</div>
     </div>
@@ -527,7 +538,7 @@
         <span class="slot-meta">Amamake - Reactions &amp; Reprocessing</span>
         <span class="slot-countdown">1 d 2 h to delivery</span>
         <div class="meter"><div class="meter-fill" style="width: 58%"></div></div>
-        <div class="next-up"><span class="next-label">next up</span>RCF ×21 runs (phase 2)</div>
+        <div class="next-up"><span class="next-label">next up</span>RCF ×21 runs (phase 3)</div>
       </div>
       <div class="slot running">
         <div class="slot-head">
@@ -558,7 +569,7 @@
         <span class="slot-meta">Amamake - Reactions &amp; Reprocessing</span>
         <span class="slot-countdown">1 d 2 h to delivery</span>
         <div class="meter"><div class="meter-fill" style="width: 58%"></div></div>
-        <div class="next-up"><span class="next-label">next up</span>PO ×9 runs (phase 2)</div>
+        <div class="next-up"><span class="next-label">next up</span>PO ×9 runs (phase 3)</div>
       </div>
       <div class="slot idle">+ 6 idle</div>
     </div>
@@ -601,7 +612,7 @@
         <span class="slot-meta">Delivered · day 0.3 · Amamake - 5 times nearly AT winners</span>
       </div>
       <div class="slot idle">
-        <div class="next-up"><span class="next-label">next up</span>LSBU ×125 runs — waiting on BPC (day 4.2)</div>
+        <div class="next-up"><span class="next-label">next up</span>LSBU BPC 2 × 125 runs — waiting on BPC (day 4.2)</div>
       </div>
       <div class="slot idle">+ 8 idle</div>
     </div>
@@ -627,7 +638,7 @@
         <span class="slot-meta">Amamake - Reactions &amp; Reprocessing</span>
         <span class="slot-countdown">1 d 2 h to delivery</span>
         <div class="meter"><div class="meter-fill" style="width: 58%"></div></div>
-        <div class="next-up"><span class="next-label">next up</span>RCF ×21 runs (phase 2)</div>
+        <div class="next-up"><span class="next-label">next up</span>RCF ×21 runs (phase 3)</div>
       </div>
       <div class="slot running">
         <div class="slot-head">
@@ -648,7 +659,7 @@
         <span class="slot-meta">Amamake - Reactions &amp; Reprocessing</span>
         <span class="slot-countdown">1 d 2 h to delivery</span>
         <div class="meter"><div class="meter-fill" style="width: 58%"></div></div>
-        <div class="next-up"><span class="next-label">next up</span>PO ×8 runs (phase 2)</div>
+        <div class="next-up"><span class="next-label">next up</span>PO ×8 runs (phase 3)</div>
       </div>
       <div class="slot idle">+ 6 idle</div>
     </div>
@@ -673,7 +684,7 @@
           <span class="activity-tag copy">copy</span>
         </div>
         <span class="slot-meta">10 runs · Amamake - Police Weapons Facility</span>
-        <span class="slot-meta" style="color: var(--yellow);">Ready to Deliver — finished day 0.7</span>
+        <span class="slot-meta" style="color: var(--yellow);">Ready to deliver — finished day 0.7</span>
       </div>
       <div class="slot idle">+ 9 idle</div>
     </div>
@@ -725,7 +736,7 @@
         <span class="slot-meta">Amamake - Reactions &amp; Reprocessing</span>
         <span class="slot-countdown">1 d 2 h to delivery</span>
         <div class="meter"><div class="meter-fill" style="width: 58%"></div></div>
-        <div class="next-up"><span class="next-label">next up</span>RCF ×21 runs (phase 2)</div>
+        <div class="next-up"><span class="next-label">next up</span>RCF ×21 runs (phase 3)</div>
       </div>
       <div class="slot running">
         <div class="slot-head">
@@ -736,7 +747,7 @@
         <span class="slot-meta">Amamake - Reactions &amp; Reprocessing</span>
         <span class="slot-countdown">1 d 2 h to delivery</span>
         <div class="meter"><div class="meter-fill" style="width: 58%"></div></div>
-        <div class="next-up"><span class="next-label">next up</span>PO ×8 runs (phase 2)</div>
+        <div class="next-up"><span class="next-label">next up</span>PO ×8 runs (phase 3)</div>
       </div>
       <div class="slot idle">+ 6 idle</div>
     </div>

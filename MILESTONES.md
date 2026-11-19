@@ -137,6 +137,45 @@ Two consequences worth stating outright:
   `TYPHOON-CHAIN.md`'s golden values and are the executable spec the
   milestones graduate into the app. See `reference/README.md` for the
   formula reference and flagged assumptions.
+- **Stage-state model** (2026-11-18, from the mockup iteration —
+  `design/mockups/` is the visual spec): five node states — Missing
+  inputs, Ready to build, In progress, Ready to deliver, Stage complete
+  ("In progress" fills the spec's gap between Ready to build and Ready
+  to deliver) — carried by the state chip, with the gating reason (BPC
+  copy progress, a waiting upstream phase) as secondary text + meter
+  beside the chip. Phase summaries roll up from children (worst child
+  wins); nodes marked Purchase drop out of the phase state and percent
+  and count toward the acquisition side instead. Purchase ⇄ Build is
+  node-level in the data model (purchase decisions are per-commodity)
+  with a phase-level bulk toggle recovering stage-level ergonomics.
+  (M5/M6.)
+- **Next-up assignment** (2026-11-18): each queued job is assigned to
+  exactly one character — the spec's definite "the next job that should
+  be executed in this slot" — and slot queues show the next job plus at
+  most one "then", with a "+N more" count when the backlog runs deeper.
+  (M9.)
+- **Blueprint availability is plan-time** (2026-11-18): required-
+  blueprint status (Missing / Owned) renders at build-plan time only;
+  once a plan is active the blueprint set is considered immutable, so
+  the active view omits the section. A missing blueprint leaves
+  purchase as the node's only option (its chip locks to Purchase), and
+  purchasing removes the node's inputs from the raw-material math — the
+  commodity itself is what gets acquired. (M5/M6.)
+- **Phase numbering** (2026-11-18): phases count up in build order —
+  raw-material terminators at phase 0, a node's phase = 1 + max(its
+  inputs' phases), target at the highest number — so phase and wave
+  numbers both increase toward completion (waves are temporal install
+  batches, phases are dependency layers; progress moves both counters
+  the same direction). The mockups use the ascending convention;
+  `reference/` and `TYPHOON-CHAIN.md` still number target-first
+  (target = phase 0) until renumbered in a reference session (tracked
+  in `TODO.md`). (M5.)
+- **Copy-vs-direct presentation** (2026-11-18): the planner applies the
+  copy-vs-direct rule (`TYPHOON-CHAIN.md`) in its wave composition but
+  does not surface the calculation as dedicated UI — the wave job
+  requests are the surface: an early wave requests the blueprint copies
+  later phases need, and a later wave's job request simply uses the BPO
+  directly where a copy was unnecessary. (M9.)
 
 ---
 
@@ -410,11 +449,12 @@ the layered chain the distribution engine schedules on the other.*
 **Scope**
 
 - Chain resolution: walk the target's manufacturing inputs; any input
-  that *is* a blueprint product recurses. Compute phase depth per node
-  (base materials = deepest, target = phase 0); a node's phase is
-  max(dependency phases) + 1. Detect and refuse blueprint cycles
-  defensively (SDE shouldn't contain any for manufacturing, but the
-  resolver shouldn't trust it).
+  that *is* a blueprint product recurses. Compute phase depth per node —
+  **phases count up in build order** (decided 2026-11-18): raw-material
+  terminators sit at phase 0, a node's phase is 1 + max(its inputs'
+  phases), and the target lands at the highest phase number. Detect and
+  refuse blueprint cycles defensively (SDE shouldn't contain any for
+  manufacturing, but the resolver shouldn't trust it).
 - **Reaction resolution in the initial chain** (moved here from M7,
   2026-11-16): the resolver walks reaction formulas (SDE activity 11)
   exactly like manufacturing — any reaction input that is itself a

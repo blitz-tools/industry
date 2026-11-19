@@ -8,9 +8,11 @@
  *
  * New components proposed by these mockups (no app equivalent yet):
  *   .meter          thin material-availability bar
- *   .stage-chip     Purchase ⇄ Build toggle per chain stage
+ *   .stage-chip     Purchase ⇄ Build toggle per chain node (phase rows
+ *                   add a .phase-bulk toggle for all children at once)
  *   .stage-state    Missing inputs / Ready to build / In progress /
- *                   Ready to Deliver / Stage Complete
+ *                   Ready to deliver / Stage complete
+ *   .node-gating    secondary "why not ready" detail beside a state chip
  *   .activity-tag   manufacture / reaction / copy / invention marker
  *   .slot-grid      per-character job slot tiles
  *   .chain-flow     compact reverse-chain phase strip
@@ -599,14 +601,17 @@ button.primary {
   white-space: nowrap;
 }
 
-/* Cyan outline = currently marked for market purchase. */
+/* Cyan tint = currently marked for market purchase. Interactive chips
+ * carry a standing tint so they read differently from the outline-only
+ * informational .stage-state pills. */
 .stage-chip.purchase {
   border-color: var(--cyan);
+  background: color-mix(in srgb, var(--cyan) 10%, transparent);
   color: var(--cyan);
 }
 
 .stage-chip.purchase:hover {
-  background: color-mix(in srgb, var(--cyan) 15%, transparent);
+  background: color-mix(in srgb, var(--cyan) 20%, transparent);
 }
 
 /* Green filled = planned to build in-corp. */
@@ -654,6 +659,41 @@ button.primary {
 .stage-state.complete {
   border-color: var(--muted);
   color: var(--muted);
+}
+
+/* Gating detail beside a stage-state chip: why a node isn't ready yet
+ * (BPC copy progress, waiting on an upstream phase). The chip carries
+ * the spec state; this carries the reason. */
+.node-gating {
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.node-gating .meter {
+  width: 4rem;
+}
+
+/* Phase-level bulk toggle on a phase row summary: sets every child
+ * node's Purchase ⇄ Build chip at once — the spec's stage-level
+ * ergonomics over a node-level data model. */
+.phase-bulk {
+  padding: 0.05rem 0.55rem;
+  border: 1px dashed var(--faint);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.phase-bulk:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
 }
 
 /* --- Chain flow: compact reverse-chain phase strip (new) ---------------- */
@@ -946,6 +986,11 @@ button.primary {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   margin-right: 0.25rem;
+}
+
+/* "+N more" tail when the queue runs deeper than the two jobs shown. */
+.next-up.more {
+  color: var(--faint);
 }
 
 /* --- Wireframe annotations (never ship) --------------------------------- */
