@@ -43,9 +43,10 @@ Everything is real, pulled 2026-11-17 from the live dev database:
 
 ## Iteration
 
-Edit the HTML/CSS directly; refresh the browser. Known open design points
-are flagged in `.anno` boxes on the pages (the fifth "In progress" stage
-state, node- vs phase-level Purchase chips, slot-state vocabulary).
+Edit the HTML/CSS directly; refresh the browser. Settled design decisions
+are recorded in `MILESTONES.md` ("Decisions already made"); anything still
+open is flagged in `.anno` boxes on the pages and tracked in
+`ITERATION.md`.
 
 ## Milestone mapping
 

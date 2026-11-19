@@ -1,10 +1,10 @@
-# Mockup iteration notes — 2026-11-17
+# Mockup iteration notes
 
-Working notes for the next design pass on these mockups. Captures the review
-of all three pages plus `mockups.css`, the decisions already made, and the
-recommendations still awaiting a product-owner call. Line references are
-point-in-time (2026-11-17) and will drift as files are edited — locate by
-feature if the line is stale.
+Working notes for design passes on these mockups. Settled decisions
+graduate to `MILESTONES.md` ("Decisions already made") and are removed
+here — this document shrinks as it is consumed; it is not an archive.
+Line references are point-in-time and drift as files are edited —
+locate by feature if a line is stale.
 
 ## Original spec (from the prompting session)
 
@@ -50,6 +50,8 @@ app's `type_icon_url`); all image URLs across the pages verified HTTP 200.
 
 ## Review outcome — settled
 
+2026-11-17 pass:
+
 - **"In progress" (cyan) stays as a fifth stage state.** The spec's four
   states jump from "Ready to build" to "Ready to Deliver" with nothing for
   the executing phase. This is a genuine spec gap, now filled.
@@ -61,66 +63,52 @@ app's `type_icon_url`); all image URLs across the pages verified HTTP 200.
   owned-copies overlay, material meters, required-blueprint chips, two-page
   split. No iteration needed there.
 
-## Recommendations awaiting product-owner decision
+2026-11-18 product-owner calls (applied to the mockups same day; the
+milestone-affecting vocabulary graduated to `MILESTONES.md`):
 
-1. **State model (highest value — changes what M5/M6 encode).** The active
-   view shows `Copying BPC 1/3 · 19%` on phase 1 nodes in the same cyan
-   `running` state used for phase 3 nodes whose own jobs execute. Per spec
-   those phase 1 nodes are **Missing inputs** (blueprint not yet available),
-   and that's why the phase 1 summary doesn't roll up from its children.
-   Proposed fix: the state chip carries the spec state; the gating detail
-   becomes secondary text + meter beside it
-   (`Missing inputs` + `BPC copy 19% · ready day 8.3`). Phase summaries then
-   derive from children by a roll-up rule (worst/limiting child state).
-   Purchased nodes drop out of the phase state and percent, counting toward
-   the acquisition side instead.
-2. **Purchase chip scope.** Spec said stage-level; mockups went node-level
-   (deliberate deviation). Proposed reconciliation: node-level as the data
-   model (purchase decisions are per-commodity; phase-level storage forces
-   all-or-nothing on M5 resolution), plus a phase-level bulk toggle that sets
-   all child chips — recovering the spec's stage ergonomics.
-3. **Next-up assignment semantics.** Spec is definite ("the next job that
-   should be executed in this slot"), but the fresh plan shows
-   `LSBU ×125 runs — waiting on BPC (day 4.2)` queued on both schlepzrage
-   and Octavia. Fix: assign each queued job to one character. Also define
-   the display rule for how many queued jobs a slot group shows (fresh plan
-   hints one reaction per character; the active view runs four per
-   character).
+- **State model**: the chip carries the spec state; the gating reason
+  (BPC copy progress, waiting upstream) renders as secondary text + meter
+  beside it. Phase summaries roll up worst-child; purchased nodes drop out
+  of phase state/percent and count toward acquisition.
+- **Purchase scope**: node-level data model + phase-level bulk toggle
+  ("Purchase all" on phase rows and the fresh plan's chain strip).
+- **Next-up**: one owner per queued job — queued jobs are labeled per BPC
+  ("LSBU BPC 1 × 125 runs" on schlepzrage, "BPC 2" on Octavia); queue
+  depth is next + one "then" + a "+N more" count.
+- **Blueprint availability is plan-time**: the active page omitting the
+  Required blueprints section is the intended behavior — the blueprint
+  set is considered immutable once a plan is active. A missing
+  blueprint at plan time forces the node to Purchase (chip locked, no
+  Build option), and purchasing removes the node's inputs from the
+  raw-material math (the commodity itself is acquired instead). →
+  graduated to `MILESTONES.md`.
+- **Phase numbering**: phases now count up in build order (fuel blocks =
+  phase 1 → target = phase 5), so phase and wave numbers increase
+  together toward completion — waves are temporal install batches,
+  phases are dependency layers, and progress moves both counters the
+  same direction. → graduated to `MILESTONES.md`; the reference models
+  + `TYPHOON-CHAIN.md` renumber is tracked in `TODO.md`.
+- **Copy-vs-direct**: no dedicated UI — the planner accounts for the
+  rule in wave composition, and the wave job requests are the surface
+  (an early wave requests the copies later phases need; a later wave
+  uses the BPO directly where a copy was unnecessary). → graduated to
+  `MILESTONES.md`.
 
-## Polish bundle (apply without discussion)
+Polish bundle applied 2026-11-18: `slot ready` borders on the four fresh
+manufacturing slots; sentence-case stage states; standing tint on the
+Purchase chip so interactive chips read differently from outline-only
+state pills; job splits in `node-runs` in both views; copy-plan no-copy
+rows moved to a footnote with best-ME wording ("10 runs from the best-ME
+BPCs, ME 10 / TE 20"); acquisition table defaults to gaps only with a
+"Show all 29 types" toggle and a "blocks CTR builds" callout on Chiral
+Structures; required blueprints collapsed to a summary line plus
+exceptions (Typhoon BPC-only, off-location Hydrogen BPO).
 
-- Fresh plan: the four ready manufacturing slots lack the `slot ready` class
-  the AIPS copy slot has (green border missing; state conveyed only by
-  inline-styled green text).
-- Stage-state capitalization drift: `Ready to build` / `Ready to Deliver` /
-  `In progress` / `Missing inputs` — standardize on sentence case.
-- `.stage-chip` and `.stage-state` are both 999px pills; Purchase chip is
-  outline-only like the states while Build has a 15% tint. Give Purchase a
-  tint (or fill states) so interactive chips read differently from
-  informational states.
-- `node-runs` shows `30 runs` in the fresh view but `30 runs · 3 jobs` in
-  the active view — show the job split in both.
-- Copy plan: `covered by owned BPCs (9 + 1 runs)` is unexplained next to
-  "10 BPCs / 52 runs total in pool" — reword to best-ME selection, e.g.
-  `10 runs from best-ME BPCs (ME 10 / TE 20)`, or add an anno.
-- Copy plan: move the two no-copy rows (Typhoon, fuel blocks) to a footnote;
-  they're noise in a "what to copy" table.
-- Acquisition table: most of the 25 rows are 100% covered. Default to
-  "show only gaps" (or collapse covered groups) so blockers like
-  `Chiral Structures 0% — blocks CTR builds` stand out.
-- Required blueprints: when everything is owned, a summary line plus
-  exceptions beats 15 green rows.
-- Confirm whether the active page omitting the Required blueprints section
-  is intentional (it's the "abbreviated to what moved" reading).
-- `.badge.bpo` and `.badge.owned` are byte-identical styling — fine
-  semantically, noted only so a future consolidation isn't a surprise.
-- A11y for the real app (fine in wireframes): `.stage-chip` is a
-  `cursor: pointer` span — ship as `<button>`; autocomplete rows need
-  keyboard navigation.
+Also fixed while in there: the fresh plan's "25 types" stat tile — the
+`TYPHOON-CHAIN.md` terminator table has 29 types (7 minerals + 4 moon +
+10 PI + 8 ice), so the tile now reads 29.
 
-## Suggested order
+## Open
 
-1. State model (recommendation 1) — settles M5/M6 vocabulary.
-2. Next-up semantics (recommendation 3) — M9 orchestration data.
-3. Purchase interaction (recommendation 2).
-4. Polish bundle — one pass over all three pages.
+Nothing open — every decision from the 2026-11-17 review is settled and
+graduated. New findings from the next design pass start here.
