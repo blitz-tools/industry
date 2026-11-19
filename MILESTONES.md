@@ -98,7 +98,7 @@ resolver extensions* instead of schema rewrites.
 | Layer | Source | Nature | Examples |
 |---|---|---|---|
 | **Static (recipes)** | EVE SDE, imported | Write-once per EVE release | blueprint → materials, products, required skills, activity durations, invention probabilities |
-| **Dynamic (world state)** | ESI (EVE Swagger Interface), ETag-cached sync | Refreshed in background | owned blueprints (ME (Material Efficiency)/TE (Time Efficiency)/runs), skills, industry jobs, system cost indices, assets, market prices (deferred) |
+| **Dynamic (world state)** | ESI (EVE Swagger Interface), ETag-cached sync | Refreshed in background | owned blueprints (ME (Material Efficiency)/TE (Time Efficiency)/runs), skills, industry jobs, system cost indices, assets, public contracts (M15), market prices (deferred) |
 | **User state** | This app | User-managed CRUD | main character, structures, build plans, job assignments |
 
 Two consequences worth stating outright:
@@ -201,7 +201,7 @@ Two consequences worth stating outright:
   contract-items response carries `is_blueprint_copy`,
   `material_efficiency`, `time_efficiency`, and `runs` per BPC, so
   the bias needs no data source beyond the contracts sync.
-  (M5/M6/M12.)
+  (M5/M6/M12; the sync itself is M15.)
 - **Skill gate (2026-11-19)**: build planning checks each blueprint
   for usability as well as availability — at least one character in
   the pool holding the activity's required skills
@@ -492,6 +492,67 @@ user-state facility registry the planner multiplies against.*
 **Validation**: create an Azbel with T1 ME/T1 TE rigs in a known null
 system; the cost-index lookup returns that system's manufacturing
 index; exactly one default per activity is enforced.
+
+---
+
+## M15 — Public contracts sync (BPC market data)
+
+*Numbered out of sequence on purpose: M-numbers are stable references
+across the docs, mockups, and merged history, so this late number sits
+with the data-sync track it belongs to. Land it before or alongside the
+planner surfaces that consume it — M4's contract-backfill peek and the
+M5/M6 backfill tables.*
+
+The plan-time contract-availability window cannot hit ESI live: the
+public-contracts endpoint is per-region by construction with no
+item-level search (the listing carries no contents — verified live
+2026-11-18), so a live scan is a cold sweep of every listing plus
+per-contract items calls (the slowness observed 2026-11-19). The sync
+pays that cost once in the background; the planner then answers from
+local tables and the page-render purity rule holds.
+
+**Scope**
+
+- Per-region listing sync: `/contracts/public/{region_id}/` into
+  `contracts`, defaulting to the NPC trade-hub regions (The Forge,
+  Domain, Heimatar, Metropolis, Sinq Laison) per the scan-scope
+  decision; an all-region sweep remains possible but is not the
+  default. Region stays display metadata on planner results, never a
+  filter.
+- Candidate pre-filter before any items call: contract type
+  `item_exchange` plus the tight volume band (a BPC contract is
+  ≈ 0.1 m³). No price filtering — below-market BPCs are finds, not
+  noise.
+- Items fetch once per candidate: item-exchange contents are immutable
+  once issued, so `/contracts/public/items/{contract_id}/` runs a
+  single time per contract into `contract_items` — carrying
+  `is_blueprint_copy`, `runs`, `material_efficiency`,
+  `time_efficiency`, the fields the BPC selection bias consumes.
+  Later listing revalidations only update contract status.
+- ETag-cached GETs through the existing ESI client (`esi_cache`): the
+  cold sweep happens once, every later tick revalidates with
+  If-None-Match and is near-free — the mechanism that keeps the
+  planning window fast.
+- Runs in the background tick like the other sync kinds, with a
+  `data_syncs` record. Public endpoints — no character scopes
+  required, unlike the roster kinds. Expired/finished contracts prune
+  so the tables describe the live market.
+- Planner contract-availability queries read these tables only — the
+  M4 peek and the backfill tables never call ESI on the request path.
+
+**Schema sketch**
+
+- `contracts` (synced public data): contract_id, region_id, type,
+  volume, price, issuer_id, date_issued, date_expired, status.
+- `contract_items` (synced): contract_id, type_id, quantity,
+  is_blueprint_copy, runs, material_efficiency, time_efficiency.
+
+**Validation**: a sweep against live ESI lands the real The Forge
+Charon contract (2026-11-19: ten 1-run ME 10 / TE 20 BPCs at 300M) in
+the local tables with its BPC fields intact; an immediate second sweep
+revalidates on ETags (304s, seconds not minutes); the planner's
+contract-availability query for the Charon Blueprint answers entirely
+from the DB.
 
 ---
 
