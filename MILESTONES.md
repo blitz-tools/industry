@@ -98,7 +98,7 @@ resolver extensions* instead of schema rewrites.
 | Layer | Source | Nature | Examples |
 |---|---|---|---|
 | **Static (recipes)** | EVE SDE, imported | Write-once per EVE release | blueprint → materials, products, required skills, activity durations, invention probabilities |
-| **Dynamic (world state)** | ESI (EVE Swagger Interface), ETag-cached sync | Refreshed in background | owned blueprints (ME (Material Efficiency)/TE (Time Efficiency)/runs), skills, industry jobs, system cost indices, assets, public contracts (M15), market prices (deferred) |
+| **Dynamic (world state)** | ESI (EVE Swagger Interface), ETag-cached sync | Refreshed in background | owned blueprints (ME (Material Efficiency)/TE (Time Efficiency)/runs), skills, industry jobs, assets, cost indices, public contracts, market prices & regional orders/history (M15) |
 | **User state** | This app | User-managed CRUD | main character, structures, build plans, job assignments |
 
 Two consequences worth stating outright:
@@ -184,7 +184,8 @@ Two consequences worth stating outright:
   implementation-time call. **Scan scope (2026-11-19, refined)**:
   contract searches default to the standard NPC trade-hub regions
   (The Forge, Domain, Heimatar, Metropolis, Sinq Laison) — where BPC
-  contracts actually list. Region stays display metadata on results,
+  contracts actually list. (The rollout is staged — The Forge first —
+  per the market-data region policy.) Region stays display metadata on results,
   never a filter. ESI's public-contracts endpoint is per-region by
   construction and has **no item-level search** (the listing carries
   no contents), so candidates pre-filter on contract type
@@ -202,6 +203,59 @@ Two consequences worth stating outright:
   `material_efficiency`, `time_efficiency`, and `runs` per BPC, so
   the bias needs no data source beyond the contracts sync.
   (M5/M6/M12; the sync itself is M15.)
+- **World-state syncs land as one band** (2026-11-19): the remaining
+  public-data sync families — cost indices, public contracts, global
+  market prices, regional orders/history — implement together in M15
+  as one cohesive set of functions and schema, rather than piecemeal
+  across the milestones that consume them: one converged sync
+  workflow, not the same pattern re-implemented per milestone. The
+  framework decisions (a public-endpoint sync category with no scopes
+  or role gates, per-family cadence and pruning, a shared rate-limit
+  budget, one status view) are made deliberately once; schemas
+  verbatim-mirror their payloads per the SDE lesson, so data lands
+  statically and interpretation stays with the consuming query layer.
+  Implementation does not imply consumption — each milestone reads
+  the data when its surfaces need it, and the gap is a deliberate
+  soak test: sync observability (status, rate limits, staleness) is
+  pulled forward from the platform track to land with the band, and
+  cadence/API-access tuning happens against real-world sync runs.
+  Regional orders/history initially stayed with M10 (the parked
+  region-choice question) and folded into the band the same day the
+  market-data region policy resolved it — as the heaviest slice, with
+  a staged rollout (The Forge alone first) so the soak test measures
+  one region's headroom before coverage grows. Player-structure
+  markets (the Amamake home structure's market module) ride along as
+  the band's one character-scoped source, gated per the landed
+  per-kind pattern. The landed character/corp syncs are not
+  retrofitted onto the generalized framework. (M3/M10/M15.)
+- **Market-data region policy** (2026-11-19): regional market data
+  (orders, history, public contracts) syncs a user-managed hub set —
+  the target default is the five NPC trade-hub regions (The Forge,
+  Domain, Heimatar, Metropolis, Sinq Laison), one region-set concept
+  across the world-state band, sharing its rate-limit budget. **The
+  rollout is staged: the hub set starts with The Forge alone** —
+  measure one region's rate-limit headroom before expanding
+  coverage; a single region may already brush the limits. The set is
+  **user-extensible in two directions**: additional public regions
+  (custom region hubs, e.g. null-bloc markets), and
+  **player-structure markets the roster can access** — the
+  motivating case is the corp's own Amamake structure (5 Times Nearly
+  Winners) with a market module. Structure markets sync through the
+  character-scoped `/markets/structures/{structure_id}/` (a scoped
+  sync kind riding the landed scope-gating pattern, not the public
+  category); public contracts listed at that structure already arrive
+  via the Metropolis region scan. Price lookups default to The Forge
+  (Jita, the liquidity reference; M14's bid pricing already assumes
+  it) with a plan-time selector among synced hubs — the corp builds
+  and delivers in Amamake (Metropolis), so Jita-vs-local is a real
+  per-plan choice. System-level hubs inside a synced region (Amamake
+  itself) are a query-layer filter over that region's orders (the
+  endpoint carries `system_id`), never extra sync scope. Full daily
+  history is retained (append-only, one row per type per region per
+  day); windowing is a query-layer concern, never a sync-shape
+  decision. Region stays selection metadata on planner results, never
+  a sync-scope change; an all-region sweep remains possible but is
+  not the default. (M10/M15.)
 - **Skill gate (2026-11-19)**: build planning checks each blueprint
   for usability as well as availability — at least one character in
   the pool holding the activity's required skills
@@ -463,10 +517,13 @@ dangling-structure location fix confirmed against real data.)
 
 ---
 
-## M3 — Structure manager & cost indices
+## M3 — Structure manager
 
 *Where industry happens changes materials, time, and cost — this is the
-user-state facility registry the planner multiplies against.*
+user-state facility registry the planner multiplies against. Scope note
+(2026-11-19): the cost-index sync moved to M15's world-state band, so
+M3 is now purely the user-state registry (it consumed world data; it
+never belonged to that layer).*
 
 **Scope**
 
@@ -479,66 +536,120 @@ user-state facility registry the planner multiplies against.*
 - Rig/security multipliers: confirm exact values from CCP structure
   docs at implementation time; keep them in one lookup table so balance
   changes are data edits, not code.
-- System cost indices: sync public `/industry/systems/` into
-  `cost_indices` (system_id, activity, cost_index), cached like other
-  universe data. Refresh cadence with the sync loop.
 
 **Schema sketch**
 
 - `structures` (user CRUD): name, activity, structure_type, me_rig,
   te_rig, security, system_id, tax_rate, is_default.
-- `cost_indices` (synced public data).
 
 **Validation**: create an Azbel with T1 ME/T1 TE rigs in a known null
-system; the cost-index lookup returns that system's manufacturing
-index; exactly one default per activity is enforced.
+system; exactly one default per activity is enforced.
 
 ---
 
-## M15 — Public contracts sync (BPC market data)
+## M15 — World-state data syncs (public industry & market data)
 
 *Numbered out of sequence on purpose: M-numbers are stable references
 across the docs, mockups, and merged history, so this late number sits
 with the data-sync track it belongs to. Land it before or alongside the
-planner surfaces that consume it — M4's contract-backfill peek and the
-M5/M6 backfill tables.*
+planner surfaces that consume it — M4's install cost and
+contract-backfill peek, the M5/M6 backfill tables, M9's BPC selection
+bias.*
 
-The plan-time contract-availability window cannot hit ESI live: the
-public-contracts endpoint is per-region by construction with no
-item-level search (the listing carries no contents — verified live
-2026-11-18), so a live scan is a cold sweep of every listing plus
-per-contract items calls (the slowness observed 2026-11-19). The sync
-pays that cost once in the background; the planner then answers from
-local tables and the page-render purity rule holds.
+*Origin: scoped 2026-11-19 to the public-contracts sync alone; widened
+the same day into the cohesive world-state band. The remaining
+public-data sync families implement together, as one set of functions
+and schema, so the framework decisions — a public-endpoint sync
+category, per-family cadence, pruning, rate-limit budget, status
+surface — are made deliberately once instead of piecemeal across
+consuming milestones. Implementation does not imply consumption: each
+milestone reads the data when its surfaces need it, and the landed
+character/corp syncs are not retrofitted onto the generalized
+framework.*
 
 **Scope**
 
-- Per-region listing sync: `/contracts/public/{region_id}/` into
-  `contracts`, defaulting to the NPC trade-hub regions (The Forge,
-  Domain, Heimatar, Metropolis, Sinq Laison) per the scan-scope
-  decision; an all-region sweep remains possible but is not the
-  default. Region stays display metadata on planner results, never a
-  filter.
-- Candidate pre-filter before any items call: contract type
-  `item_exchange` plus the tight volume band (a BPC contract is
-  ≈ 0.1 m³). No price filtering — below-market BPCs are finds, not
-  noise.
-- Items fetch once per candidate: item-exchange contents are immutable
-  once issued, so `/contracts/public/items/{contract_id}/` runs a
-  single time per contract into `contract_items` — carrying
-  `is_blueprint_copy`, `runs`, `material_efficiency`,
-  `time_efficiency`, the fields the BPC selection bias consumes.
-  Later listing revalidations only update contract status.
-- ETag-cached GETs through the existing ESI client (`esi_cache`): the
-  cold sweep happens once, every later tick revalidates with
-  If-None-Match and is near-free — the mechanism that keeps the
+- **The public-world-data sync category** (the framework slice, landed
+  first): public endpoints with no character scopes or role gates,
+  unlike the roster kinds (player-structure markets below are the one
+  scoped exception, riding the landed gating pattern); per-family
+  refresh cadence; pruning/expiry semantics; a `data_syncs` record
+  and one admin-visible status view for all public kinds; a deliberate
+  rate-limit budget across families. Runs in the background tick like
+  the other sync kinds.
+- **Cost indices** (moved from M3): sync public `/industry/systems/`
+  into `cost_indices` — the M4 install-cost input.
+- **Public contracts** (the original M15 scope). The plan-time
+  contract-availability window cannot hit ESI live — the
+  public-contracts endpoint is per-region by construction with no
+  item-level search (the listing carries no contents — verified live
+  2026-11-18), so a live scan is a cold sweep of every listing plus
+  per-contract items calls (the slowness observed 2026-11-19). The
+  sync pays that cost once in the background:
+  - Per-region listing sync: `/contracts/public/{region_id}/` into
+    `contracts`, over the hub set per the scan-scope decision —
+    staged rollout starts with The Forge alone, the five-hub set as
+    the expansion target; an all-region sweep remains possible but is
+    not the default. Region stays display metadata on planner
+    results, never a filter.
+  - Candidate pre-filter before any items call: contract type
+    `item_exchange` plus the tight volume band (a BPC contract is
+    ≈ 0.1 m³). No price filtering — below-market BPCs are finds, not
+    noise.
+  - Items fetch once per candidate: item-exchange contents are
+    immutable once issued, so `/contracts/public/items/{contract_id}/`
+    runs a single time per contract into `contract_items` — carrying
+    `is_blueprint_copy`, `runs`, `material_efficiency`,
+    `time_efficiency`, the fields the BPC selection bias consumes.
+    Later listing revalidations only update contract status.
+    Expired/finished contracts prune so the tables describe the live
+    market.
+- **Global market prices** (moved from M10): cached `/markets/prices/`
+  (global adjusted/average) into `market_prices`.
+- **Regional market orders & history** (folded in 2026-11-19 when the
+  market-data region policy resolved the parked region choice — the
+  band's heaviest slice): sync `/markets/{region_id}/orders/` and
+  `/markets/{region_id}/history/` for the synced hub set, full daily
+  history retained append-only. The regional order book is the
+  heaviest family in the app — large payloads, continuous churn,
+  frequent full 200s even under ETag revalidation — so this slice
+  lands last, at a deliberately conservative cadence tuned against
+  the rate-limit panel, and **the rollout is staged: The Forge alone
+  first** — one region may already brush the limits, and measured
+  headroom gates each expansion.
+- **Player-structure markets** (the band's one character-scoped
+  source): sync `/markets/structures/{structure_id}/` for structures
+  on the hub list that the roster can access — the motivating case
+  is the corp's Amamake structure (5 Times Nearly Winners) with a
+  market module, where the corp will also seed public contracts
+  (those arrive via the region scan — no extra contracts work).
+  Requires `esi-markets.structure_markets.v1` registered on the
+  portal plus one re-auth; only scope-holding characters are tried,
+  and 403/404 park per the landed pattern.
+- **Observability** (pulled forward from the platform later-track,
+  lands with the band): the admin sync-status view plus ESI
+  rate-limit and error-budget monitoring — per-group window usage
+  recorded from the X-Ratelimit headers the ESILimiter already sees,
+  per-family sync duration, and staleness per table. The standing
+  requirement: the app never rides its rate limits — the panel exists
+  to answer that question continuously while the band soaks.
+  Storage-format note (2026-11-19): consider OpenTelemetry
+  conventions for the telemetry records so over-time views and
+  graphing for API tuning consume them naturally — zero-code Python
+  instrumentation
+  (<https://opentelemetry.io/docs/zero-code/python/>); the uv
+  bootstrap caveat is documented at
+  <https://opentelemetry.io/docs/zero-code/python/troubleshooting/#bootstrap-using-uv>.
+- ETag-cached GETs through the existing ESI client (`esi_cache`) for
+  every family: cold sweeps happen once, later ticks revalidate with
+  If-None-Match and are near-free — the mechanism that keeps the
   planning window fast.
-- Runs in the background tick like the other sync kinds, with a
-  `data_syncs` record. Public endpoints — no character scopes
-  required, unlike the roster kinds. Expired/finished contracts prune
-  so the tables describe the live market.
-- Planner contract-availability queries read these tables only — the
-  M4 peek and the backfill tables never call ESI on the request path.
+- **Schema philosophy**: verbatim-mirror the payloads (the SDE
+  lesson — interpretation belongs to the consuming query layer, never
+  the sync), so the band never guesses a consumer's queries.
+- The planner never calls ESI on the request path — contract
+  availability, install cost, and price lookups read these tables
+  only (page-render purity holds).
 
 **Schema sketch**
 
@@ -546,13 +657,30 @@ local tables and the page-render purity rule holds.
   volume, price, issuer_id, date_issued, date_expired, status.
 - `contract_items` (synced): contract_id, type_id, quantity,
   is_blueprint_copy, runs, material_efficiency, time_efficiency.
+- `cost_indices` (synced): system_id, activity, cost_index.
+- `market_prices` (synced): type_id, adjusted_price, average_price.
+- `market_orders` (synced): region_id, order_id, type_id, system_id,
+  location_id, is_buy_order, price, volume_remain, issued, expires.
+- `market_history` (synced): region_id, type_id, date, average,
+  highest, lowest, order_count, volume.
+- `sync_hubs` (user state — the band's one piece of it): the synced
+  market sources — seeded with The Forge alone (staged rollout),
+  extensible with custom region hubs and accessed player structures.
 
 **Validation**: a sweep against live ESI lands the real The Forge
-Charon contract (2026-11-19: ten 1-run ME 10 / TE 20 BPCs at 300M) in
-the local tables with its BPC fields intact; an immediate second sweep
-revalidates on ETags (304s, seconds not minutes); the planner's
-contract-availability query for the Charon Blueprint answers entirely
-from the DB.
+Charon contract (2026-11-19: ten 1-run ME 10 / TE 20 BPCs at 300M)
+with its BPC fields intact; the cost-index lookup returns a known
+system's manufacturing index; `market_prices` carries both price
+fields for a sampled type; the rate-limit panel shows per-group
+headroom with The Forge alone live — the gate for adding the next
+region; once Metropolis joins the hub set, an Amamake system filter
+over its orders returns local prices and the 5 Times Nearly Winners
+structure market syncs through its scoped source; history appends
+one row per type per region per day without rewriting; an immediate
+second sweep revalidates on ETags (304s, seconds not minutes); the
+admin status view shows every public kind with its rate-limit usage;
+the planner's contract-availability query for the Charon Blueprint
+answers entirely from the DB.
 
 ---
 
@@ -879,10 +1007,13 @@ gets flagged, not silently assigned.
 
 ## M10 — Market pricing & build-vs-buy (deferred by decision)
 
-- Price pipeline: cached `/markets/prices/` (global adjusted/average)
-  plus regional orders/history; region choice was explicitly deferred —
-  revisit default (The Forge vs. plan-time selector) when this
-  milestone is picked up.
+- Analysis only — every price pipeline (global prices, regional
+  orders/history) syncs in M15's world-state band; the region policy
+  is decided (2026-11-19: five NPC hub regions plus custom hubs, The
+  Forge default, plan-time region selector among synced regions), so
+  this milestone has no open sync questions. What remains here is the
+  consumption: build-vs-buy per node and per material, and target
+  profitability, over M15's local tables.
 - Build-vs-buy per node and per material: compare chain-adjusted build
   cost against market buy; mark nodes where buying beats building.
 - Target profitability: product sale value (market sell) vs. full
@@ -1028,7 +1159,10 @@ recorded.
   M13's skill recommendations (Reprocessing skill family).
 - **Platform / administration**: local user accounts, admin menu,
   observability. Becomes a prerequisite once more than one human uses
-  the app (and a hard one for M14's bidding).
+  the app (and a hard one for M14's bidding). The sync-observability
+  slice (sync status, rate limits, staleness) is pulled forward out
+  of here into M15's world-state band (2026-11-19) — the rest of the
+  track stays put.
 - **CI Node 20 deprecation bump** and the smaller TODO items — stay in
   `TODO.md`.
 
