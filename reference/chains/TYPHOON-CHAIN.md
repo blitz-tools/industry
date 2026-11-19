@@ -448,17 +448,17 @@ for dogma verification**; reaction and copy times unadjusted);
 reactions cannot be copied — each character holds 1 BPO per formula,
 so a formula runs at most 3 concurrent jobs (one per character), all
 within their 10 reaction slots; copying is 1 job per BPO (science
-slots, ~8 concurrent streams across the roster); BPC run counts
+slots, ≈8 concurrent streams across the roster); BPC run counts
 respect `maxProductionLimit` (Typhoon 10, CTR — Core Temperature
 Regulator — 40, components/fuel blocks 200).
 
 | Phase | Activity | Duration | Job shape |
 |---|---|---|---|
-| 1 — fuel blocks | mfg | ~1h (1 window) | 16–30 BPCs of 2–3 runs each |
+| 1 — fuel blocks | mfg | ≈1h (1 window) | 16–30 BPCs of 2–3 runs each |
 | 2 — reactions | rxn | 627h = 105 windows = 26.2d | 3 BPO jobs per formula (209/208/208 on the 625-run formulas) |
 | 3 — reactions | rxn | 627h = 26.2d | same BPO-bound shape |
-| 4 — components | mfg | ~90 slot-hours, 3 waves | AIPS — Auto-Integrity Preservation Seal — 30 BPCs ×~167, LSBU — Life Support Backup Unit — 30 ×~84, CTR 25 ×4 |
-| 5 — Typhoons | mfg | ~17h | 25 BPCs ×4 runs |
+| 4 — components | mfg | ≈90 slot-hours, 3 waves | AIPS — Auto-Integrity Preservation Seal — 30 BPCs ×≈167, LSBU — Life Support Backup Unit — 30 ×≈84, CTR 25 ×4 |
+| 5 — Typhoons | mfg | ≈17h | 25 BPCs ×4 runs |
 
 **Copy pipeline** (parallel from chain start, sequential per BPO):
 
@@ -473,8 +473,8 @@ Regulator — 40, components/fuel blocks 200).
 **Findings**: chain ≈ 88 days pure-copy; the single AIPS BPO's copy
 queue (5,000 runs × 24 min = 2,000h) is the critical path; the
 reaction phases (52.4d combined) finish 30 days early and wait;
-manufacturing slots run ~5% utilized — never the constraint. The
-end-together sizing needs only ~7 logins across the whole chain.
+manufacturing slots run ≈5% utilized — never the constraint. The
+end-together sizing needs only ≈7 logins across the whole chain.
 Pipelining (partial reaction deliveries, BPCs building as they
 arrive) is deliberately excluded to keep phases deliver-together.
 
@@ -494,8 +494,8 @@ t_b/run, inputs arriving at T_in (the dead zone):
    better. Break-even multiplier = t_c/t_base (0.80 for AIPS:
    Industry 5 alone lands exactly on it).
 
-AIPS at ×100: pure copy finishes day ~86; **hybrid (copy to day 53,
-then direct) day ~79**; pure direct day ~124 — the trap is that
+AIPS at ×100: pure copy finishes day ≈86; **hybrid (copy to day 53,
+then direct) day ≈79**; pure direct day ≈124 — the trap is that
 direct building can't start before RCF (Reinforced Carbon Fiber) inputs exist, so the BPO
 idles. Copying's real value is monetizing BPO dead time, not slot
 parallelism. Useful BPO count = ceil(R·t_c / T_in) — beyond that,
@@ -504,7 +504,7 @@ BPOs idle.
 ## Target-count scaling & timelines
 
 All quantities are linear in N, so ratios never move: AIPS copy
-queue ÷ reaction dead zone = 1.6 at every N; slot utilization ~5% at
+queue ÷ reaction dead zone = 1.6 at every N; slot utilization ≈5% at
 every N. There is **no slot-based ideal target count** — 100 is not
 too large for 30 slots (they idle regardless); it is too large for
 one AIPS BPO and for an 88-day deadline. The AIPS overflow is
@@ -583,10 +583,10 @@ useful BPOs per commodity = ceil(queue rate ÷ dead-zone rate), which
 does not grow with N.
 
 - **Trigger**: the AIPS queue overflows the dead zone at every N
-  (sub-day below N ≈ 3); a ~1-day dead-wait tolerance puts the
+  (sub-day below N ≈ 3); a ≈1-day dead-wait tolerance puts the
   practical trigger near **N ≈ 4 Typhoons** — from there up,
   "acquire a second AIPS BPO" is the standing recommendation.
-- **Ceiling**: BPOs eventually saturate slots (~35 for AIPS at 30
+- **Ceiling**: BPOs eventually saturate slots (≈35 for AIPS at 30
   slots); between the minimum and the ceiling, extras idle.
 - **Ladder** (un-gating one resource exposes the next):
 

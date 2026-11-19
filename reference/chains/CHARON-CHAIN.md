@@ -939,11 +939,11 @@ phase (condensed; full output from the regen command above):
 | Phase | Activity | Duration | Job shape |
 |---|---|---|---|
 | 6 — Charon | mfg | 283.3h = 48 windows | 1 BPC × 1 run |
-| 5 — capital + regular components | mfg | 0.4d | Cargo Bay 25 BPCs ×2; AIPS (Auto-Integrity Preservation Seal) 27 BPCs ×~5; LSBU (Life Support Backup Unit) 23 BPCs ×~3; CTR (Core Temperature Regulator) 18 BPCs ×2; capital parts 5 BPCs ×1 each |
+| 5 — capital + regular components | mfg | 0.4d | Cargo Bay 25 BPCs ×2; AIPS (Auto-Integrity Preservation Seal) 27 BPCs ×≈5; LSBU (Life Support Backup Unit) 23 BPCs ×≈3; CTR (Core Temperature Regulator) 18 BPCs ×2; capital parts 5 BPCs ×1 each |
 | 4 — advanced reactions + CTR | mixed | 1.9d | RCF 44 runs (3 BPO jobs), neurolink enhancer 32 runs (3 BPO jobs), fullerite reactions 1–4 runs each, CTR 35 runs (18 BPCs ×2) |
 | 3 — R4 reactions + fuel blocks | mixed | 3.7d | CP/SA/CF/TP 44 runs each (3 BPO jobs), PO/RCF 88 runs each, fuel blocks 1–6 runs |
 | 2 — R4 reactions + fuel blocks | mixed | 3.8d | CP/SA/CF/TP/OOS 88/18 runs (3 BPO jobs), fuel blocks 1–11 runs |
-| 1 — fuel blocks | mfg | ~0 | 440–530 units, 11–14 runs |
+| 1 — fuel blocks | mfg | ≈0 | 440–530 units, 11–14 runs |
 
 Copy pipeline (parallel across types, sequential per BPO): the
 **Charon BPC dominates at 13.9 d**; everything else fits inside it —
@@ -973,7 +973,7 @@ CHARON x5 — end 81.2d (16.25 d/unit)
   phase 6 mfg                           69.4 ->   81.2d
 ```
 
-The Charon's own copy queue is the critical path at every N — ~13.9 d
+The Charon's own copy queue is the critical path at every N — ≈13.9 d
 per ship, linear, because each copy is a single-run BPC off one BPO.
 The reaction phases scale with N and eventually dominate the input
 side, but the copy dead wait grows just as fast.
@@ -1000,7 +1000,7 @@ sequential copy queue outruns the reaction phases' delivery.
 ## Findings and caveats
 
 - **Chain resolves end to end with zero model changes** — 7 phases,
-  ~120 aggregated nodes, 60 terminator types. The only script change
+  ≈120 aggregated nodes, 60 terminator types. The only script change
   the Charon forced: four new `RAW_CATEGORIES` entries (the
   unclassified-terminator report did its job).
 - **Mixed-phase scheduling is approximate**: phases 2–4 mix
@@ -1013,6 +1013,6 @@ sequential copy queue outruns the reaction phases' delivery.
   treatment is the parked pipelining question made concrete; a
   merged-campaign option would shrink phases 2–3 further.
 - **Charon copy critical path** — with one BPO and maxProductionLimit
-  1, the ship copy is ~13.9 d per unit. The realistic plan is
+  1, the ship copy is ≈13.9 d per unit. The realistic plan is
   direct-from-BPO for the ship itself (hybrid, above) with copies
   reserved for the parallelizable components.
