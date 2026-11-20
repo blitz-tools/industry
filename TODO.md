@@ -125,6 +125,61 @@ provide the availability side. Industry jobs for both sides (characters
 and corporation, completed history included) are already synced into
 `industry_jobs`, so correlating installed jobs to plan nodes is a join.
 
+**Plan-scoped material buckets via station containers**
+(investigated 2026-11-20 — feasible):
+
+- The goal: run multiple concurrent build plans without
+  cross-contaminating the availability math — each plan's input and
+  output materials live in their own named station container, so a
+  plan measures a plan-scoped pool instead of the shared hangar.
+- **Feasibility confirmed against live data (2026-11-20)**: station
+  containers and their contents already sync through the existing
+  assets machinery — no resolver or sync changes needed. Contents are
+  ordinary asset rows with `location_id` = the container's `item_id`,
+  `location_type='item'`, `location_flag='Unlocked'`, and
+  `parent_location_id` already resolved through the container's own
+  location row (the asset-snapshot hop handles the nesting). Verified
+  on the live roster: 14 character-owned Station Containers (8 with
+  contents — e.g. one holding 113 distinct types — 6 empty), plus
+  Giant Secure and Huge Freight containers. None sit in corp hangars
+  today; placement there is a practice step, not a code step (the corp
+  asset sync is identical, owner-parameterized machinery).
+- The pool-scoping primitive is one join: plan → its container
+  `item_id`s → `assets WHERE location_id IN (…)`. Availability meters,
+  acquisition gaps, and delivered-output tracking all filter through
+  it; the shared hangar stays available as the fallback pool.
+- **Container names DO come from ESI** (corrected 2026-11-20 after
+  live verification): `POST /characters/{id}/assets/names/` (and the
+  corporation variant) returns custom item names for arbitrary item
+  ids, under the already-registered `esi-assets.read_assets.v1`
+  scope — no portal change needed. Live-tested against the roster's
+  containers: 8 of 9 returned their in-game names (`'|____ manu.
+  output'`, `'__charges'`, `'__damaged crystals'`, `'[drones]'`,
+  `'__loki'`, `'__fuel blocks / minerals'` … — the roster already
+  organizes builds this way). **Gotcha**: a batch containing any id
+  that was never custom-named fails wholesale with
+  `404 {"error":"Invalid IDs in the request"}` — the sync must
+  filter or retry around invalid ids per-item. Names are free text
+  (one container is literally named `None`). The names pass belongs
+  in the asset sync (cacheable like the rest).
+- **Workflow investigation still open (product owner, 2026-11-20)**:
+  how to identify a container in-game and link it to its app-side
+  plan entry in a human-consumable way — e.g. a naming convention
+  where containers are named in-game for a particular build ("PLAN —
+  jackdaw ×1") so it's clear which `item_id` belongs to which build.
+  With names syncing (above), the app can surface each container's
+  in-game name and contents to disambiguate at binding time, and the
+  plan can suggest its own container name to copy in-game.
+- **Unverified pins (check at M6 pickup)**: (a) whether industry
+  installs can consume materials and/or select blueprints directly
+  from container contents — if not, bucketing is a staging layer and
+  the plan should model the explicit "dump container → hangar at
+  install" move (job output always delivers to the installing hangar,
+  so output bucketing needs the reverse move too); (b) ESI's behavior
+  for locked/passworded audit-log containers (every live sample is
+  Unlocked — Station Containers are in the 'Audit Log Secure
+  Container' group).
+
 ---
 
 ## Platform / administration
