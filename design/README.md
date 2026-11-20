@@ -49,6 +49,13 @@ component set — the convention's new-component rule applies).
 Order (chain sets by escalating complexity, then the surfaces — the
 three surface mockups are independent and can slot anywhere):
 
+**Skill gates are simulated as met from the Jackdaw set on**
+(2026-11-19): the Panther set owns the missing-skills scenario (sole
+inventor, out-of-corp, unresolvable-as-scoped), so the remaining sets
+assume the roster holds the required skills and spend their surface
+area validating the chain systems — the complex mechanics and their
+edge cases, not the skill gate.
+
 The **wave-progress bar** (added in the 2026-11-19 refinement pass) is
 part of the standard chain-set pages from here on — every set's
 build-plan pages carry it. A future set whose plan uses pipelining
@@ -64,9 +71,14 @@ single-row case of that shape).
    (source-BPC → invented-BPC), 22% base probability from the Typhoon
    Blueprint, expected-runs math, decryptor selection on the
    calculated plan (M8).
-3. **Jackdaw** — T3: invention from three relic grades, relics as a
-   new terminator class, and the multi-target plan (hull +
-   subsystems as one target set — the first multi-target mockup).
+3. **Jackdaw** — T3: invention from three relic grades (26/21/14%,
+   runs set by the grade), relics and Sleeper salvage as new
+   terminator classes, the fullerene-polymer reaction world, invention
+   over-delivery (one success = 20 ships' worth), and the
+   drop-sourced BPC acquisition path. The earlier hull + subsystems
+   multi-target bullet was corrected 2026-11-19 — tactical destroyers
+   have no subsystems, and no hull consumes subsystems; multi-target
+   is a possible future UI feature, not a chain mechanic.
 4. **T2 rigs** (+ a high-volume consumable variant — ammo or
    drones): validates invention at medium and production volume, and
    that workflows aren't strictly ship-building.

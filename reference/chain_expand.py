@@ -14,16 +14,26 @@ Pinned by the 2026-11 proof-outs:
   `ramActivities` labels reactions as 9, but the data lives on 11).
 - Terminators are types with no producing blueprint. The raw-category lists
   below are hardcoded to the chains resolved so far (Typhoon, Charon,
-  Panther); M5 should classify through invGroups/invCategories instead —
-  the SDE groups map cleanly for everything except molecular-forging tools
-  ('Commodities' catch-all) and Morphite (filed under 'Mineral' despite
-  being the top moon material) — both need the name-list fallback.
+  Panther, Jackdaw); M5 should classify through invGroups/invCategories
+  instead — the SDE groups map cleanly for everything except
+  molecular-forging tools ('Commodities' catch-all) and Morphite (filed
+  under 'Mineral' despite being the top moon material) — both need the
+  name-list fallback. T3 adds two terminator classes the material walk
+  never sees (they enter only through the invention overlay): the
+  invention relics themselves ('Ancient Relics' category, e.g. Sleeper
+  Hull Relics) and the Sleeper salvage ('Ancient Salvage' group, 19
+  types — maps cleanly) that feeds the hybrid tech components.
 - Invention (activity 8) is an overlay, not part of the material walk:
   the invented blueprint's build inputs resolve normally, and the
   invention recipe (source BPC, probability, datacores, skills) is
   reported by the invention-layer section at the end. The source-BPC
   run consumed per attempt is implicit in the game (1 run/attempt) and
-  absent from the SDE material list.
+  absent from the SDE material list. Two flavors, dispatched on the
+  probability rows for the product blueprint: T2 has one source BPC
+  (decryptor scenarios apply); T3 reverse engineering has one row per
+  relic grade — the relic item itself carries activity 8, the grade
+  sets both probability and BPC runs (the activity-8 product quantity),
+  and the T2 decryptor/base-ME conventions do not apply (pin at M8).
 - Cycle detection is NOT implemented here (the manufacturing chain has none);
   M5's resolver must add it defensively per the milestone scope.
 """
@@ -104,6 +114,19 @@ RAW_CATEGORIES = {
     "npc market goods": [
         "AG-Composite Molecular Condenser",
         "Construction Blocks",
+    ],
+    # Sleeper salvage (w-space site drops) consumed by hybrid tech
+    # components. The SDE group 'Ancient Salvage' maps cleanly (19
+    # types); the 15 below are the Jackdaw chain's members.
+    "sleeper salvage": [
+        "Modified Fluid Router", "Cartesian Temporal Coordinator",
+        "Electromechanical Hull Sheeting", "Powdered C-540 Graphite",
+        "Neurovisual Input Matrix", "Melted Nanoribbons",
+        "Fused Nanomechanical Engines", "Resonance Calibration Matrix",
+        "Central System Controller", "Defensive Control Node",
+        "Emergent Combat Intelligence", "Heuristic Selfassemblers",
+        "Jump Drive Control Nexus", "Thermoelectric Catalysts",
+        "Emergent Combat Analyzer",
     ],
 }
 
@@ -208,23 +231,44 @@ def raw_totals(phases):
     return totals
 
 
-def invention_source(db, product_bp_id):
-    """The invention recipe producing a blueprint, if any.
+def invention_sources(db, product_bp_id):
+    """All invention recipes producing a blueprint:
+    [(source_type_id, probability, runs_per_success)].
 
-    Returns (source_bp_id, probability, [(material_name, qty)],
-    [(skill_name, level)]) or None. The source BPC run consumed per
-    attempt is implicit in the game and absent from the SDE materials.
+    T2 has a single row (the source BPC, runs 1). T3 relic reverse
+    engineering has one row per relic grade; the grade sets both the
+    probability and the BPC runs per success, the latter read from the
+    activity-8 product quantity (20/10/3 for small hull sections).
     """
     rows_ = db.execute(
         "SELECT typeID, probability FROM sde_industryActivityProbabilities"
         " WHERE productTypeID=?",
         (product_bp_id,),
     ).fetchall()
-    if not rows_:
+    out = []
+    for source, probability in rows_:
+        runs = db.execute(
+            "SELECT quantity FROM sde_industryActivityProducts"
+            " WHERE typeID=? AND activityID=8 AND productTypeID=?",
+            (source, product_bp_id),
+        ).fetchone()
+        out.append((source, probability, runs[0] if runs else 1))
+    return out
+
+
+def invention_source(db, product_bp_id):
+    """The T2 invention recipe producing a blueprint, if any.
+
+    Returns (source_bp_id, probability, [(material_name, qty)],
+    [(skill_name, level)]) or None. The source BPC run consumed per
+    attempt is implicit in the game and absent from the SDE materials.
+    """
+    srcs = invention_sources(db, product_bp_id)
+    if not srcs:
         return None
-    # One product blueprint per invention recipe in practice; take the
-    # first like producers() does.
-    source_bp, probability = rows_[0]
+    # One product blueprint per T2 invention recipe in practice; take
+    # the first like producers() does.
+    source_bp, probability, _runs = srcs[0]
     mats = [
         (type_name(db, m), q) for m, q in inputs(db, source_bp, 8)
     ]
@@ -242,8 +286,14 @@ def invention_source(db, product_bp_id):
 
 
 def invention_section(db, product_bp_id, bpcs_needed=1):
-    """Lines for the invention overlay: recipe, expected attempts,
-    datacores, confidence, and decryptor scenarios (DECRYPTORS)."""
+    """Lines for the invention overlay, dispatched on the probability
+    rows: one source renders the T2 recipe (decryptor scenarios);
+    multiple sources render the T3 relic-grade table."""
+    srcs = invention_sources(db, product_bp_id)
+    if not srcs:
+        return []
+    if len(srcs) > 1:
+        return relic_invention_section(db, product_bp_id, srcs, bpcs_needed)
     src = invention_source(db, product_bp_id)
     if src is None:
         return []
@@ -285,6 +335,67 @@ def invention_section(db, product_bp_id, bpcs_needed=1):
         " modifier); more runs per BPC mean fewer inventions per ship"
         " at scale. Module base runs differ — pin at M8."
     )
+    return out
+
+
+def relic_invention_section(db, product_bp_id, srcs, bpcs_needed=1):
+    """Lines for the T3 reverse-engineering overlay: one row per relic
+    grade. The relic item itself carries activity 8; the grade sets
+    both probability and BPC runs per success. Decryptors and the T2
+    base ME/TE (-4/-4) do not apply — pins at M8."""
+    first_source = srcs[0][0]
+    mats = [(type_name(db, m), q) for m, q in inputs(db, first_source, 8)]
+    skills = [
+        (type_name(db, sk), lvl)
+        for sk, lvl in db.execute(
+            "SELECT skillID, level FROM sde_industryActivitySkills"
+            " WHERE typeID=? AND activityID=8",
+            (first_source,),
+        )
+    ]
+    prods = [
+        type_name(db, p)
+        for (p,) in db.execute(
+            "SELECT DISTINCT productTypeID FROM sde_industryActivityProducts"
+            " WHERE typeID=? AND activityID=8",
+            (first_source,),
+        )
+    ]
+    out = [
+        f"=== invention layer (T3 relic reverse engineering):"
+        f" {type_name(db, product_bp_id)} ===",
+        "source: the relic item itself is the invention 'blueprint' —"
+        " activity 8 lives on the relic's typeID, and 1 relic is consumed"
+        " per attempt (implicit, like the T1 source-BPC run in T2;"
+        " absent from the SDE material list)",
+        "recipe shared across: " + ", ".join(prods)
+        + " — the job targets one output; the probability row applies to"
+        " the targeted blueprint",
+        "materials per attempt: "
+        + ", ".join(f"{q} {m}" for m, q in mats)
+        + " (identical across grades)",
+        "skills: " + ", ".join(f"{s} {lvl}" for s, lvl in skills),
+        "",
+        "grade table (SDE):",
+        "  grade                              p   runs/success"
+        "  E[attempts]  E[relics]  E[datacores per success]",
+    ]
+    for source, p, runs in srcs:
+        out.append(
+            f"  {type_name(db, source):34s} {p:.2f}  {runs:>12,}"
+            f"  {1 / p:11.2f}  {1 / p:9.2f}"
+            + "  " + " + ".join(f"{q / p:.1f}" for _m, q in mats)
+        )
+    out += [
+        "",
+        f"successes needed for {bpcs_needed} target(s) ="
+        " ceil(target / runs-per-success) — a single success over-delivers"
+        " at small targets (excess runs are inventory)",
+        "T3 pins (community-documented, absent from SDE/ESI — pin at M8):"
+        " invented-BPC ME/TE is fixed per grade (not the T2 -4/-4 base),"
+        " decryptors do not apply to relic reverse engineering, and any"
+        " skill effect on probability is unverified",
+    ]
     return out
 
 
