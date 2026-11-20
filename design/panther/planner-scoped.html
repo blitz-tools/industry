@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Planner — Panther — scoped pool — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/panther/planner-scoped.html</div>
+</aside>
+
+<main class="content">
+  <h1>Build Planner</h1>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    Variant of <a href="planner.html">planner.html</a>: the participant
+    pool scoped to corp members only, which makes the invention path
+    unresolvable — the scenario where a plan cannot fully resolve and
+    the planner must say so, with remediation actions rather than a
+    silent wrong answer.
+  </div>
+
+  <!-- 1 · Search -->
+  <section class="card overflow-visible" style="margin-top: 1.25rem;">
+    <div class="card-body">
+      <h2>1 · Find a blueprint</h2>
+      <p class="card-sub">Same selection as the standard planner — Panther Blueprint, not owned, invented from the Typhoon Blueprint. The difference starts at the participant pool.</p>
+    </div>
+  </section>
+
+  <!-- 2 · Target -->
+  <section class="card">
+    <div class="card-body">
+      <h2>2 · Target build</h2>
+
+      <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <img class="type-icon-lg" src="https://images.evetech.net/types/22441/bpc?size=64" alt="Panther Blueprint">
+        <div>
+          <div><b>Panther Blueprint</b> <span class="badge missing">Not owned — path unresolved</span></div>
+          <div class="meta-line">Builds <img class="type-icon" src="https://images.evetech.net/types/22440/icon?size=32" alt=""> Panther ×1 per run · max 1 run per job · invented from <img class="type-icon" src="https://images.evetech.net/types/644/icon?size=32" alt=""> Typhoon Blueprint at 22%</div>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 0.75rem; align-items: center;">
+          <span class="meta-line">Target count</span>
+          <div class="stepper">
+            <button type="button" aria-label="Decrease">−</button>
+            <span class="stepper-value">1</span>
+            <button type="button" aria-label="Increase">+</button>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Participation -->
+      <h2 style="font-size: 0.95rem;">Plan participants</h2>
+      <p class="card-sub">Who the plan may assign work to. Corp members take materials from the office hangars directly; out-of-corp characters need a distribution step (contract / station trade) before their jobs can install.</p>
+
+      <table class="asset-table">
+        <tbody>
+          <tr class="group-row"><td colspan="3">In the pool — corp members</td></tr>
+          <tr>
+            <td colspan="3" class="muted">schlepzrage (main) · Octavia Arbitrage · theblitzrage I — full access to the corp hangars at Amamake</td>
+          </tr>
+          <tr class="group-row"><td colspan="3">Excluded — out-of-corp roster</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/1634367930/portrait?size=32" alt="">blitzrage <span class="badge missing">only inventor</span></td>
+            <td class="muted">holds the sole invention skills (4 / 4 / 1) — including blitzrage adds a distribution step to every job it runs</td>
+            <td><button class="chip-button" type="button">Include</button></td>
+          </tr>
+          <tr>
+            <td colspan="3" class="muted">+ 4 more out-of-corp characters (Storm Ragez · schlurpzrage · scoopsrage · theblitzrage) — include any of them the same way</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <hr class="divider">
+
+      <h2 style="font-size: 0.95rem;">Requirements at target ×1</h2>
+      <p class="card-sub">Tiers below the invention inputs resolve identically to the standard planner — 48 blueprints, 62 intermediates, 45 raw types. The invention path is what breaks.</p>
+
+      <!-- Invention inputs tier: unresolvable -->
+      <details class="phase-row" open>
+        <summary>
+          <span class="phase-title">Invention inputs</span>
+          <span class="phase-count">source BPC · 2 datacores · decryptor</span>
+          <span class="summary-right">
+            <span class="stage-state missing">no eligible inventor</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <tbody>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/998/bpc?size=32" alt="">Typhoon Blueprint (source)</td>
+                <td class="muted">1 run per attempt · 10 BPCs / 52 runs in the corp pool</td>
+                <td><span class="badge owned">Owned · BPC ×10</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/20172/icon?size=32" alt="">Datacore - Minmatar Starship Engineering</td>
+                <td class="muted">32 per attempt · expected ≈145 per success</td>
+                <td><span class="badge missing">53 on hand</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/20411/icon?size=32" alt="">Datacore - High Energy Physics</td>
+                <td class="muted">32 per attempt · expected ≈145 per success</td>
+                <td><span class="badge missing">11 on hand</span></td>
+              </tr>
+              <tr>
+                <td colspan="3"><span style="color: var(--pink);">No participant holds the required skills</span> <span class="muted">— High Energy Physics · Minmatar Starship Engineering · Minmatar Encryption Methods. The only holder is blitzrage (out-of-corp, excluded from this pool). The invention path is <b>unresolvable as scoped</b> — distinct from blueprint-missing: the blueprint's source exists and is owned; nobody in the pool can run the activity.</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Fallback: contract acquisition -->
+      <details class="phase-row" open>
+        <summary>
+          <span class="phase-title">Fallback — acquire the BPC instead</span>
+          <span class="phase-count">contract / market</span>
+          <span class="summary-right">
+            <span class="stage-state missing">no listings in the synced hub set</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <div class="sync-source">contracts · The Forge · synced 8 min ago</div>
+          <table class="asset-table">
+            <tbody>
+              <tr>
+                <td colspan="3" class="muted">No single-item Panther Blueprint listings in The Forge (the staged hub set). T2 ship BPCs do not sell on the regular market — contract acquisition is the only purchase path.</td>
+              </tr>
+              <tr>
+                <td colspan="3"><span class="muted">Remediation: </span><b>include blitzrage</b><span class="muted"> (the sole inventor — adds a distribution step: the source BPCs, datacores, and decryptors are contracted to blitzrage before wave 1 installs), or </span><b>watch the contracts</b><span class="muted"> for a listing and re-calculate when one appears.</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        The unresolvable state: the gating reason reads <b>"no eligible
+        character,"</b> never "missing blueprint" — the planner
+        distinguishes skill-gated-by-pool from blueprint-gated, because
+        the remediations differ (add a participant vs acquire a
+        blueprint). The contract fallback reuses the Charon's
+        contract-availability treatment, including the empty result —
+        an honest state, not an error. Corp membership and skill
+        holders are live data: blitzrage (out-of-corp, 1413715023) is
+        the roster's only inventor, which makes this scenario the
+        real default for a corp-members-only Panther plan.
+      </div>
+    </div>
+  </section>
+
+  <!-- Calculate bar -->
+  <section class="card">
+    <div class="card-body" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+      <div class="meta-line">
+        Panther ×1 · invention path unresolved — include blitzrage to resolve, or acquire the BPC off contract
+      </div>
+      <button class="primary" type="button" style="opacity: 0.5;">Calculate</button>
+    </div>
+  </section>
+
+  <p class="meta-line" style="margin-top: 1rem;">
+    <a href="planner.html">← standard planner (full roster pool)</a> ·
+    <a href="build-plan.html">build-plan.html</a> (the resolved plan, blitzrage included)
+  </p>
+</main>
+
+</body>
+</html>

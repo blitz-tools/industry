@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Plan — Panther ×1 — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/panther/build-plan-active.html</div>
+</aside>
+
+<main class="content">
+  <div class="page-header">
+    <h1><img class="type-icon" style="width:32px;height:32px;" src="https://images.evetech.net/types/22440/icon?size=32" alt=""> Build Plan — Panther ×1</h1>
+    <div class="actions">
+      <span class="badge plan-state active">Active</span>
+      <span class="pool-picker">Pool
+        <select aria-label="Inventory pool">
+          <option selected>blitz and blitz holdings (corp)</option>
+          <option>Personal — schlepzrage</option>
+          <option>Corp + personal</option>
+        </select>
+      </span>
+      <button class="icon-button" type="button" title="Re-run planner" aria-label="Re-run planner">⟳</button>
+      <button class="icon-button" type="button" title="Export plan" aria-label="Export plan">⭳</button>
+    </div>
+  </div>
+
+  <p class="meta-line" style="margin: 0 0 1rem;">Day 6.5 of 16.0 · assets synced 12 min ago · jobs correlated from ESI industry jobs</p>
+
+  <!-- Summary tiles -->
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">6.5 d</p>
+      <p class="stat-label">Elapsed of 16.0 d chain (batched-invention plan)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--muted);">2 / 10</p>
+      <p class="stat-label">Invention attempts succeeded (E = 2.2) — 2 BPCs in hangar since day 2.2</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--cyan);">9%</p>
+      <p class="stat-label">Component wave W3 — 5.0 d to delivery</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--muted);">33 / 33</p>
+      <p class="stat-label">Blueprint acquisitions filled (BPOs day 0.4 · formulas day 1.1)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">2 jobs</p>
+      <p class="stat-label">Running (2 manufacturing)</p>
+    </div>
+  </div>
+
+  <!-- Wave progress -->
+  <div class="wave-bar">
+    <div class="wave-header">
+      <span class="wave-title">Wave progress — day 6.5 of 16.0 · 41%</span>
+      <button class="legend-tab" type="button">legend ‹</button>
+    </div>
+    <div class="wave-track">
+      <div class="wave-seg done" style="width: 13.8%;" title="W1 — invention batch ×10 + fuel blocks + Typhoon sub-chain · 14 jobs · day 0–2.2 · delivered day 2.2"></div>
+      <div class="wave-seg dead" style="width: 3.8%;" title="Dead 0.6 d — reaction inputs (moon materials) arriving"></div>
+      <div class="wave-seg done" style="width: 17.5%;" title="W2 — R4 + advanced reactions · day 2.8–5.6 · delivered day 5.6"></div>
+      <div class="wave-seg dead" style="width: 2.5%;" title="Dead 0.4 d — component inputs settling; T2 BPOs procured off the NPC market"></div>
+      <div class="wave-seg current" style="width: 34.4%;" title="W3 — T2 components (armor plate 130 h + microprocessor 131 h as parallel max-run jobs) + CJD + R.A.M. · day 6.0–11.5 · running">
+        <div class="seg-fill" style="width: 9%;"></div>
+      </div>
+      <div class="wave-seg dead" style="width: 1.9%;" title="Dead 0.3 d — hull inputs complete"></div>
+      <div class="wave-seg ahead" style="width: 26.1%;" title="W4 — Panther ×1 build · 100 h · day 11.8–16.0"></div>
+      <div class="now-line" style="left: 41%;"></div>
+      <div class="now-caption" style="left: 41%;">now · day 6.5</div>
+    </div>
+    <div class="wave-ticks">
+      <span class="tick" style="width: 13.8%;">W1</span>
+      <span class="tick" style="width: 3.8%;"></span>
+      <span class="tick" style="width: 17.5%;">W2</span>
+      <span class="tick" style="width: 2.5%;"></span>
+      <span class="tick" style="width: 34.4%;">W3</span>
+      <span class="tick" style="width: 1.9%;"></span>
+      <span class="tick tick-end" style="width: 26.1%;"><span>W4 · ship build</span><span>100%</span></span>
+    </div>
+
+    <div class="wave-legend open">
+      <div class="legend-title">Legend</div>
+      <div class="legend-row"><span class="swatch done"></span> wave time · completed</div>
+      <div class="legend-row"><span class="swatch current"><span class="seg-fill" style="width: 55%;"></span></span> current wave — 9% through it</div>
+      <div class="legend-row"><span class="swatch ahead"></span> wave time · ahead</div>
+      <div class="legend-row"><span class="swatch dead"></span> dead zone — nothing installing or delivering (input waits, copy pipelines)</div>
+      <div class="legend-row"><span class="swatch now"></span> now</div>
+    </div>
+
+    <div class="anno" style="margin-top: 0.75rem;">
+      <span class="anno-label">wireframe</span>
+      Same bar as the fresh view, mid-flight: W1 (the invention batch +
+      Typhoon sub-chain) and W2 elapsed, W3 — the two ≈5.5-day max-run
+      T2 component jobs — 9% through, the now-line at day 6.5 of 16.0.
+      The legend is shown <b>expanded here to illustrate</b> — collapsed
+      by default, toggled by the chevron tab. Hover a segment for the
+      wave detail.
+    </div>
+  </div>
+
+  <!-- Reverse product chain -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse product chain</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Same plan as the fresh view, mid-flight: stage states advance as jobs deliver. Phase summaries roll up from children — worst child wins. Same Purchase ⇄ Build chips, still live-editable.</p>
+
+  <div class="chain-flow">
+    <div class="chain-phase">
+      <span class="phase-label">Phase 1</span>
+      <span class="phase-name">Fuel blocks</span>
+      <span class="phase-meta">4 nodes · manufacturing</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state complete">✓ Stage complete</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 2</span>
+      <span class="phase-name">R4 reactions</span>
+      <span class="phase-meta">9 nodes · reactions</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state complete">✓ Stage complete</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 3</span>
+      <span class="phase-name">Reaction stack</span>
+      <span class="phase-meta">25 nodes · reactions</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state complete">✓ Stage complete</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 4</span>
+      <span class="phase-name">Advanced materials + T1 components</span>
+      <span class="phase-meta">13 nodes · reactions + manufacturing</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state complete">✓ Stage complete</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 5</span>
+      <span class="phase-name">Hull + T2 components</span>
+      <span class="phase-meta">11 nodes · manufacturing</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state running">In progress · 9%</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 6</span>
+      <span class="phase-name">Panther ×1</span>
+      <span class="phase-meta">1 node · manufacturing</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="anno">
+    <span class="anno-label">settled 2026-11-18</span>
+    <b>State model:</b> the chip carries the spec state — Missing inputs /
+    Ready to build / In progress / Ready to deliver / Stage complete — and
+    the gating reason (job progress, a waiting upstream phase) renders as
+    secondary text + meter beside it. Phase summaries roll up from
+    children (worst child wins); purchased nodes drop out of the phase
+    state and percent and count toward acquisition instead.
+  </div>
+
+  <!-- Phase tree -->
+  <details class="phase-row" style="margin-top: 1rem;">
+    <summary>
+      <span class="phase-title">Phase 1 — Fuel blocks</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">4 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state complete">✓ Stage complete</span>
+      </span>
+    </summary>
+  </details>
+
+  <details class="phase-row">
+    <summary>
+      <span class="phase-title">Phase 2 — R4 reactions</span>
+      <span class="activity-tag rxn">reaction</span>
+      <span class="phase-count">9 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state complete">✓ Stage complete</span>
+      </span>
+    </summary>
+  </details>
+
+  <details class="phase-row">
+    <summary>
+      <span class="phase-title">Phase 3 — Reaction stack</span>
+      <span class="activity-tag rxn">reaction</span>
+      <span class="phase-count">25 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state complete">✓ Stage complete</span>
+      </span>
+    </summary>
+  </details>
+
+  <details class="phase-row">
+    <summary>
+      <span class="phase-title">Phase 4 — Advanced materials + T1 components</span>
+      <span class="activity-tag rxn">reaction</span>
+      <span class="phase-count">13 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state complete">✓ Stage complete</span>
+      </span>
+    </summary>
+  </details>
+
+  <details class="phase-row" open>
+    <summary>
+      <span class="phase-title">Phase 5 — Hull + T2 components</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">11 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state running">In progress · 9%</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/11542/icon?size=32" alt="">
+        <span class="node-name">Fernite Carbide Composite Armor Plate</span>
+        <span class="node-qty">×18,750</span>
+        <span class="node-runs">18,750 runs · 1 max-run job</span>
+        <span class="node-right">
+          <span class="stage-state running">In progress</span>
+          <span class="node-gating"><span class="meter"><span class="meter-fill" style="width: 9%; display: block;"></span></span>130 h job · delivers day 11.5</span>
+          <span class="badge owned">BPO · bought day 0.4 · ME 2</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/11538/icon?size=32" alt="">
+        <span class="node-name">Nanomechanical Microprocessor</span>
+        <span class="node-qty">×6,300</span>
+        <span class="node-runs">6,300 runs · 1 max-run job</span>
+        <span class="node-right">
+          <span class="stage-state running">In progress</span>
+          <span class="node-gating"><span class="meter"><span class="meter-fill" style="width: 9%; display: block;"></span></span>131 h job · delivers day 11.5</span>
+          <span class="badge owned">BPO · bought day 0.4 · ME 2</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/644/icon?size=32" alt="">
+        <span class="node-name">Typhoon</span>
+        <span class="node-qty">×1</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="stage-state complete">✓ Delivered day 1.0</span>
+          <span class="badge owned">BPC · owned</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/21025/icon?size=32" alt="">
+        <span class="node-name">Capital Jump Drive</span>
+        <span class="node-qty">×3</span>
+        <span class="node-runs">3 runs</span>
+        <span class="node-right">
+          <span class="stage-state complete">✓ Delivered day 6.3</span>
+          <span class="badge owned">BPO · bought day 0.4</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row" open>
+    <summary>
+      <span class="phase-title">Phase 6 — Target</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">1 node</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/22440/icon?size=32" alt="">
+        <span class="node-name">Panther</span>
+        <span class="node-qty">×1</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="node-gating">waiting on T2 components (day 11.5) — BPC in hangar since day 2.2</span>
+          <span class="badge bpc">BPC · invented · ME −1 / TE +2</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+    </div>
+  </details>
+
+  <!-- Invention plan — completed -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Invention plan — complete</h2>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Source</th>
+        <th class="num">Attempts</th>
+        <th>Outcome</th>
+        <th>Decryptor</th>
+        <th>Window</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/998/bpc?size=32" alt="">Typhoon Blueprint ×10 BPCs</td>
+        <td class="num qty">10</td>
+        <td class="muted">2 succeeded (E = 2.2) · 8 failed — 2 Panther BPCs in hangar, 1 spare</td>
+        <td class="muted">Process — BPCs at ME −1 / TE +2</td>
+        <td class="muted">day 0 → 2.2</td>
+        <td><span class="stage-state complete">✓ Stage complete</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">The batch landed inside its confidence framing: 2 of 10 attempts succeeded against an expectation of 2.2, delivering two 1-run BPCs at the Process decryptor's ME −1 / TE +2. The plan needs one; the spare covers the next Panther or sells. Ten Typhoon BPC runs and 320 + 320 datacores consumed — the parallel branch finished 9.3 days before the ship build needs it, exactly the slack the batch bought.</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Probabilistic outcomes render as <b>actuals against expectation</b>:
+    2 / 10 against E = 2.2, never a deterministic promise. A
+    zero-success batch (8% odds) would have appended another 53.33 h
+    window with the remaining 42 source-BPC runs — the retry is a new
+    wave, not a plan failure.
+  </div>
+
+  <!-- Blueprint copy plan -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Blueprint copy plan — complete</h2>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Commodity</th>
+        <th class="num">BPCs</th>
+        <th>Run counts</th>
+        <th style="min-width: 10rem;">Progress</th>
+        <th>Ready by</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57478/icon?size=32" alt="">Auto-Integrity Preservation Seal</td>
+        <td class="num qty">25</td>
+        <td>25 × 2</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill" style="width: 100%"></div></div><span class="meter-pct">done day 0.8</span></div></td>
+        <td><span class="stage-state complete">✓ Stage complete</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57486/icon?size=32" alt="">Life Support Backup Unit</td>
+        <td class="num qty">25</td>
+        <td>25 × 1</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill" style="width: 100%"></div></div><span class="meter-pct">done day 0.4</span></div></td>
+        <td><span class="stage-state complete">✓ Stage complete</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57479/icon?size=32" alt="">Core Temperature Regulator</td>
+        <td class="num qty">1</td>
+        <td>1 × 1</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill" style="width: 100%"></div></div><span class="meter-pct">done day 0.1</span></div></td>
+        <td><span class="stage-state complete">✓ Stage complete</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">All 33 blueprint acquisitions filled by day 1.1 — the nine NPC-seeded BPOs landed day 0.4 and the reaction formulas day 1.1, well before their phases opened.</p>
+
+  <!-- Raw materials -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Raw materials — acquisition</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Abbreviated to the rows that moved since the fresh view. Reaction inputs are committed to delivered jobs; the T2 component jobs are consuming the advanced materials now.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Material</th>
+        <th class="num">Required</th>
+        <th class="num">Available</th>
+        <th style="min-width: 10rem;">Coverage</th>
+        <th>Acquire via</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="group-row"><td colspan="5">Moved since calculation</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/11399/icon?size=32" alt="">Morphite</td>
+        <td class="num qty">900</td>
+        <td class="num">6</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 1%"></div></div><span class="meter-pct">bought via market to fill</span></div></td>
+        <td class="muted">Moon mining / market</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/3828/icon?size=32" alt="">Construction Blocks</td>
+        <td class="num qty">450</td>
+        <td class="num">3</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 1%"></div></div><span class="meter-pct">bought via market to fill</span></div></td>
+        <td class="muted">Market (NPC-sold)</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/16632/icon?size=32" alt="">Fernite Carbide</td>
+        <td class="num qty">1,055,573</td>
+        <td class="num">180,000</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 17%"></div></div><span class="meter-pct">17% — feeding the running armor-plate job</span></div></td>
+        <td class="muted">Reaction output</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/2872/icon?size=32" alt="">Wetware Mainframe</td>
+        <td class="num qty">3</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">bought via market to fill — CJD delivered day 6.3</span></div></td>
+        <td class="muted">Planetary industry (tier 4)</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/34/icon?size=32" alt="">Tritanium</td>
+        <td class="num qty">5,380,556</td>
+        <td class="num">1,100,000</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 20%"></div></div><span class="meter-pct">rest committed</span></div></td>
+        <td class="muted">Mining / market</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Job allocation -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — in flight</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Running jobs show status and time-to-delivery; busy slots queue their next job. Jobs correlate from synced ESI industry jobs.</p>
+
+  <!-- blitzrage -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/1634367930/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">blitzrage <span class="badge bpc" style="margin-left: 0.4rem;">Sole inventor</span></div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 0 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Science slots (invention)</div>
+    <div class="slot-grid">
+      <div class="slot done">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/998/bpc?size=32" alt="">
+          <span class="slot-name">Invention batch · 10 attempts</span>
+          <span class="activity-tag inv">invention</span>
+        </div>
+        <span class="slot-meta">Delivered day 2.2 · 2 of 10 succeeded (E = 2.2) · Amamake - Police Weapons Facility</span>
+      </div>
+      <div class="slot idle">+ 9 idle</div>
+    </div>
+  </section>
+
+  <!-- schlepzrage -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124139810/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">schlepzrage <span class="badge bpo" style="margin-left: 0.4rem;">Main</span></div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 1 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots</div>
+    <div class="slot-grid">
+      <div class="slot running">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/11542/icon?size=32" alt="">
+          <span class="slot-name">Fernite Carbide Composite Armor Plate</span>
+          <span class="activity-tag mfg">manufacture</span>
+        </div>
+        <span class="slot-meta">18,750 runs · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-countdown">5.0 d to delivery</span>
+        <div class="meter"><div class="meter-fill" style="width: 9%"></div></div>
+      </div>
+      <div class="slot idle">+ 9 idle</div>
+    </div>
+
+    <div class="slot-group-label">Science slots (copying)</div>
+    <div class="slot-grid">
+      <div class="slot done">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/57515/bp?size=32" alt="">
+          <span class="slot-name">AIPS copies · 25 BPCs</span>
+          <span class="activity-tag copy">copy</span>
+        </div>
+        <span class="slot-meta">Delivered · day 0.8 · Amamake - Police Weapons Facility</span>
+      </div>
+      <div class="slot idle">+ 9 idle</div>
+    </div>
+  </section>
+
+  <!-- theblitzrage I -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2123535366/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">theblitzrage I</div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 1 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots</div>
+    <div class="slot-grid">
+      <div class="slot running">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/11538/icon?size=32" alt="">
+          <span class="slot-name">Nanomechanical Microprocessor</span>
+          <span class="activity-tag mfg">manufacture</span>
+        </div>
+        <span class="slot-meta">6,300 runs · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-countdown">5.0 d to delivery</span>
+        <div class="meter"><div class="meter-fill" style="width: 9%"></div></div>
+      </div>
+      <div class="slot idle">+ 9 idle</div>
+    </div>
+
+    <div class="slot-group-label">Science slots (copying)</div>
+    <div class="slot-grid">
+      <div class="slot done">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/57523/bp?size=32" alt="">
+          <span class="slot-name">LSBU copies · 25 BPCs</span>
+          <span class="activity-tag copy">copy</span>
+        </div>
+        <span class="slot-meta">Delivered · day 0.4 · Amamake - Police Weapons Facility</span>
+      </div>
+      <div class="slot idle">+ 9 idle</div>
+    </div>
+  </section>
+
+  <!-- Octavia Arbitrage -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124297138/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">Octavia Arbitrage</div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 0 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots</div>
+    <div class="slot-grid">
+      <div class="slot done">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/21025/icon?size=32" alt="">
+          <span class="slot-name">Capital Jump Drive ×3</span>
+          <span class="activity-tag mfg">manufacture</span>
+        </div>
+        <span class="slot-meta">Delivered · day 6.3 · only Capital Ship Construction holder</span>
+      </div>
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>Panther ×1 run — waiting on T2 components (day 11.5) · BPC in hangar</div>
+      </div>
+      <div class="slot idle">+ 8 idle</div>
+    </div>
+  </section>
+
+  <p class="meta-line" style="margin-top: 1.25rem;">
+    The ×1 T2 plan ends sparse like the Charon's, but the tail is
+    <b>two parallel 5.5-day component jobs</b> instead of one long ship
+    build — the ship itself is a 100 h install once they deliver. The
+    invented BPC sat in the hangar 9.3 days before its consumer opened:
+    the parallel branch's whole point.
+    <a href="planner.html">← planner</a> ·
+    <a href="build-plan.html">fresh build plan</a>
+  </p>
+</main>
+
+</body>
+</html>
