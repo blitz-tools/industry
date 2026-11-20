@@ -581,8 +581,7 @@ minerals), and the four fuel blocks recurring once more.
 
 ### Phase 0
 
-Fuel-block inputs — the Typhoon world's PI (Planetary Industry) and
-ice stack, unchanged.
+Fuel-block inputs — the standard PI (Planetary Industry) and ice stack.
 
 | Type | Required | Activity / runs |
 |---|---:|---|
@@ -804,8 +803,7 @@ the roster):
 | Self-Assembling Nanolattice Blueprint | 3 | 0 |
 | Warfare Computation Core Blueprint | 1 | 0 |
 
-Owned — the Typhoon world carries over (fuel blocks and every polymer
-formula as originals):
+Owned — fuel blocks and every polymer formula as originals:
 
 | Blueprint | Copies + originals | Originals |
 |---|---:|---:|

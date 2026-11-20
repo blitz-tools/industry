@@ -377,6 +377,24 @@ Two consequences worth stating outright:
   **throughput** (right — purchase whatever shortens wall time). Three
   discrete plan postures; supersedes the two-ended continuous-slider
   wording in the end goal and M9. (M9/M14.)
+- **The planner renders computed states, never editorial prose**
+  (2026-11-19, from the mockup-framing review): every piece of
+  narrative content in a mockup decomposes into exactly one of three
+  buckets — (a) **computed rules** over data the system holds (chain
+  resolution, stock/skill/ownership joins, expected-value arithmetic,
+  eligibility and distribution rules — the `reference/` scripts are
+  the proof these are mechanical), (b) **scheduled syncs** (wave
+  decomposition from M9, prices from M10/M15 — mockup values for
+  these are flagged illustrative), or (c) **curated pin tables** with
+  verification paths (acquisition-path classification such as
+  NPC-seeded vs drop-sourced, decryptor modifiers, T3 ME/TE — never
+  inferred, checked against M15's market/contract data where
+  possible). Editorial voice and cross-chain superlatives are
+  wireframe-only scaffolding (`.anno` boxes) and never ship: the app
+  presents the numbers and states consistently and the human draws
+  the conclusion. Consequence for process: every mockup section names
+  its bucket, so "is this feature actually buildable?" is checkable
+  at design time — a section with no bucket is a design bug.
 
 ---
 
