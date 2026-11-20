@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Plan — Jackdaw ×1 — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/jackdaw/build-plan.html</div>
+</aside>
+
+<main class="content">
+  <div class="page-header">
+    <h1><img class="type-icon" style="width:32px;height:32px;" src="https://images.evetech.net/types/34828/icon?size=32" alt=""> Build Plan — Jackdaw ×1</h1>
+    <div class="actions">
+      <span class="badge plan-state">Draft</span>
+      <span class="pool-picker">Pool
+        <select aria-label="Inventory pool">
+          <option selected>blitz and blitz holdings (corp)</option>
+          <option>Personal — schlepzrage</option>
+          <option>Corp + personal</option>
+        </select>
+      </span>
+      <button class="icon-button" type="button" title="Re-run planner" aria-label="Re-run planner">⟳</button>
+      <button class="icon-button" type="button" title="Export plan" aria-label="Export plan">⭳</button>
+    </div>
+  </div>
+
+  <!-- Summary tiles -->
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">2.5 d</p>
+      <p class="stat-label">Chain end — the build-dominated chain (50 h ship build)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">5 × 78%</p>
+      <p class="stat-label">Invention attempts, wave 1 (one 1 h window, no job-lock)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">2 blueprints</p>
+      <p class="stat-label">To acquire (1 invent · 1 NPC-market BPO) — 21 owned</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">9 jobs</p>
+      <p class="stat-label">First wave — 5 invention · 4 manufacturing (fuel blocks)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">43 types</p>
+      <p class="stat-label">Raw materials to obtain — 24 at zero (salvage + fullerites)</p>
+    </div>
+  </div>
+
+  <!-- Wave progress -->
+  <div class="wave-bar">
+    <div class="wave-header">
+      <span class="wave-title">Wave progress — day 0 of 2.5 · 0%</span>
+      <button class="legend-tab" type="button">legend ›</button>
+    </div>
+    <div class="wave-track">
+      <div class="wave-seg ahead" style="width: 2%;" title="W1 — 5 invention attempts + 4 fuel-block jobs · 9 jobs · day 0–0.05"></div>
+      <div class="wave-seg dead" style="width: 4%;" title="Dead 0.1 d — fullerite / salvage purchases arriving · R.A.M. BPO bought"></div>
+      <div class="wave-seg ahead" style="width: 6%;" title="W2 — 9 polymer reactions (3 h, one formula each) + R.A.M. · day 0.15–0.3"></div>
+      <div class="wave-seg dead" style="width: 2%;" title="Dead 0.05 d — component inputs settling"></div>
+      <div class="wave-seg ahead" style="width: 2%;" title="W3 — 8 hybrid tech component jobs, 10 min each · day 0.35–0.4"></div>
+      <div class="wave-seg dead" style="width: 4%;" title="Dead 0.1 d — build inputs complete; invented BPC in hangar"></div>
+      <div class="wave-seg ahead" style="width: 80%;" title="W4 — Jackdaw ×1 build · 50 h · day 0.5–2.5"></div>
+      <div class="now-line" style="left: 0;"></div>
+      <div class="now-caption" style="left: 0;">now · day 0</div>
+    </div>
+    <div class="wave-ticks">
+      <span class="tick" style="width: 2%;">W1</span>
+      <span class="tick" style="width: 4%;"></span>
+      <span class="tick" style="width: 6%;">W2</span>
+      <span class="tick" style="width: 2%;"></span>
+      <span class="tick" style="width: 2%;">W3</span>
+      <span class="tick" style="width: 4%;"></span>
+      <span class="tick tick-end" style="width: 80%;"><span>W4 · ship build</span><span>100%</span></span>
+    </div>
+
+    <div class="anno" style="margin-top: 1.75rem;">
+      <span class="anno-label">wireframe</span>
+      The <b>inverse-Charon</b> shape: everything below the ship finishes
+      inside half a day — 1 h invention attempts, 15-minute fuel blocks,
+      3-hour reactions, 10-minute components — and the 50 h Jackdaw build
+      owns 80% of the bar. Invention can't be the critical path here (no
+      job-lock, attempts cost an hour), and the dead zones are procurement
+      waits, not copy pipelines — there is no copy plan at all in this
+      chain. Wave decomposition is illustrative schedule data; the real
+      waves are the M9 scheduler's output.
+    </div>
+  </div>
+
+  <!-- Reverse product chain -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse product chain</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Raw materials on the left, target on the right. Each node chip toggles Purchase ⇄ Build — purchased nodes drop out of the job allocation, count toward acquisition instead of the phase state and percent, and their inputs leave the raw-material math (the commodity itself is acquired instead). Phase rows carry a bulk toggle that sets every node at once.</p>
+
+  <div class="chain-flow">
+    <div class="chain-phase">
+      <span class="phase-label">Phase 1</span>
+      <span class="phase-name">Fuel blocks</span>
+      <span class="phase-meta">4 nodes · manufacturing</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state ready">Ready to build</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 2</span>
+      <span class="phase-name">Polymers + R.A.M.</span>
+      <span class="phase-meta">10 nodes · reactions + manufacturing</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 3</span>
+      <span class="phase-name">Hybrid tech components</span>
+      <span class="phase-meta">8 nodes · manufacturing</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 4</span>
+      <span class="phase-name">Jackdaw ×1</span>
+      <span class="phase-meta">1 node · manufacturing</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The shallowest chain in the set (the Panther ran six buildable phases;
+    this is four) and the first with <b>no T1 hull inside</b> — no racial
+    components, no nested sub-chain. Phase 2 is the T3 signature: a
+    <b>mixed-activity phase</b> where nine polymer reactions and the R.A.M.
+    manufacturing job share a level, and the reactions consume minerals
+    and fuel blocks directly.
+  </div>
+
+  <!-- Phase tree -->
+  <details class="phase-row" open style="margin-top: 1rem;">
+    <summary>
+      <span class="phase-title">Phase 1 — Fuel blocks</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">4 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state ready">Ready to build</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4246/icon?size=32" alt="">
+        <span class="node-name">Hydrogen Fuel Block</span>
+        <span class="node-qty">×15</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge owned">BPO ×4</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4312/icon?size=32" alt="">
+        <span class="node-name">Oxygen Fuel Block</span>
+        <span class="node-qty">×20</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge owned">BPC ×2 · 200 runs</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4051/icon?size=32" alt="">
+        <span class="node-name">Nitrogen Fuel Block</span>
+        <span class="node-qty">×10</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge owned">BPC ×2 · 200 runs</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/4247/icon?size=32" alt="">
+        <span class="node-name">Helium Fuel Block</span>
+        <span class="node-qty">×10</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge owned">BPC ×2 · 200 runs</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row">
+    <summary>
+      <span class="phase-title">Phase 2 — Polymers + R.A.M.</span>
+      <span class="activity-tag rxn">reaction</span>
+      <span class="phase-count">10 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/30303/icon?size=32" alt="">
+        <span class="node-name">Fulleroferrocene</span>
+        <span class="node-qty">×1,180</span>
+        <span class="node-runs">2 runs · 1 job</span>
+        <span class="node-right">
+          <span class="badge owned">Formula · original</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/30304/icon?size=32" alt="">
+        <span class="node-name">PPD Fullerene Fibers</span>
+        <span class="node-qty">×110</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge owned">Formula · original</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/11478/icon?size=32" alt="">
+        <span class="node-name">R.A.M.- Starship Tech</span>
+        <span class="node-qty">×10</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge missing">BPO · NPC market</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <span class="node-gating">+ 7 more nodes — Fullerene Intercalated Graphite ×26 · Methanofullerene ×120 · Lanthanum Metallofullerene ×162 · Scandium Metallofullerene ×132 · Graphene Nanoribbons ×101 · Carbon-86 Epoxy Resin ×39 · C3-FTM Acid ×15 — all formulas owned, all inputs are fullerites + minerals + fuel blocks</span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row" open>
+    <summary>
+      <span class="phase-title">Phase 3 — Hybrid tech components</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">8 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/30464/icon?size=32" alt="">
+        <span class="node-name">Metallofullerene Plating</span>
+        <span class="node-qty">×8</span>
+        <span class="node-runs">8 runs · 1 job</span>
+        <span class="node-right">
+          <span class="badge owned">BPC ×2 · 1000 runs · ME 10 / TE 20</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/34396/icon?size=32" alt="">
+        <span class="node-name">Self-Assembling Nanolattice</span>
+        <span class="node-qty">×3</span>
+        <span class="node-runs">3 runs · 1 job</span>
+        <span class="node-right">
+          <span class="badge owned">BPC ×3 · 1000 runs · ME 10 / TE 20</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <span class="node-gating">+ 6 more nodes — Electromechanical Interface Nexus ×2 · Fullerene Intercalated Sheets ×2 · Fulleroferrocene Power Conduits ×2 · Optimized Nano-Engines ×2 · Reconfigured Subspace Calibrator ×2 · Warfare Computation Core ×2 — all on owned 1000-run site-drop BPCs, 10 min/run</span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row" open>
+    <summary>
+      <span class="phase-title">Phase 4 — Target</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">1 node</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/34828/icon?size=32" alt="">
+        <span class="node-name">Jackdaw</span>
+        <span class="node-qty">×1</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge bpc">BPC · invented · 20 runs (grade-set) · ME / TE fixed per grade</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+    </div>
+  </details>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The component world inverts the Panther's: T2 components ran at
+    18,750-run jobs on newly bought BPOs; these T3 components run 2–8
+    runs on <b>owned 1000-run site-drop BPCs at ME 10 / TE 20</b> — run
+    counts exceed every job's needs by two orders of magnitude, so the
+    blueprint is never the constraint. Job counts stay in single digits
+    and every job is minutes, not days.
+  </div>
+
+  <!-- Invention plan -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Invention plan</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">The invented blueprint is a parallel branch — it gates only the final build, so the attempts install in wave 1. No job-lock: each attempt consumes its own relic, so all five run in one 1 h window. Expected value 1.3 successes at 5 attempts. <b>blitzrage is out-of-corp</b>: the relics and datacores are contracted to blitzrage before wave 1 installs — the distribution step is a plan item with its own procurement lead.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Source</th>
+        <th class="num">Attempts</th>
+        <th>Consumes</th>
+        <th>Grade</th>
+        <th class="num">Window</th>
+        <th>Confidence</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="type-icon-none" title="Ancient Relics have no icon"></span>Small Intact Hull Section ×5</td>
+        <td class="num qty">5</td>
+        <td class="muted">5 relics · 15 + 15 datacores <span style="color: var(--pink);">(5 relics + 3 Plasma Physics to buy)</span></td>
+        <td class="muted">Intact — 26% · 20 runs per success · no decryptor (grade sets runs and ME / TE)</td>
+        <td class="num">1 h</td>
+        <td class="muted">78% ≥1 success · E[successes] 1.3</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Two T3 contrasts with the Panther's invention plan. <b>No decryptor
+    row</b>: the grade choice is price-only — Intact dominates every
+    deterministic axis (Wrecked needs 12.5× the relics per ship), so the
+    plan picks the highest grade the market stocks and moves on. And the
+    fuel decision is <b>attempts-to-buy, not successes-needed</b>: one
+    success yields a 20-run BPC against a ×1 target, so 5 attempts buys
+    78% confidence and the surplus 19 runs are inventory — blueprint fuel
+    for the next 19 Jackdaws, or a spare BPC to sell. A zero-success
+    batch (22% odds) appends another 1 h window with 5 more relics: the
+    cheapest retry in any chain so far.
+  </div>
+
+  <!-- Required blueprints -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Required blueprints</h2>
+
+  <p class="meta-line" style="margin: 0 0 0.75rem;"><span style="color: var(--green);">21 owned</span> · 2 missing — four acquisition paths, the most-owned chain in the set: <b>invent</b> the ship, <b>buy one NPC-seeded original</b>, <b>farm or trade for drop-sourced BPCs</b>, and everything else already held.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Blueprint</th>
+        <th>Activity</th>
+        <th>Status</th>
+        <th>Acquisition</th>
+        <th>Est. cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="group-row"><td colspan="5">Invented</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/34829/bpc?size=32" alt="">Jackdaw Blueprint</td>
+        <td><span class="activity-tag inv">invention</span></td>
+        <td><span class="badge missing">Missing</span></td>
+        <td class="muted">5-attempt batch · see the invention plan above</td>
+        <td class="num qty">5 relics + 30 datacores</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">NPC-seeded original</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/11478/icon?size=32" alt="">R.A.M.- Starship Tech Blueprint</td>
+        <td><span class="activity-tag mfg">manufacture</span></td>
+        <td><span class="badge missing">Missing</span></td>
+        <td class="muted">NPC market · maxPL 200 · needed day 0.15</td>
+        <td class="num qty">~2M</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Owned — drop-sourced BPCs (w-space site drops; no producer, no invention recipe, no NPC seeding)</td></tr>
+      <tr>
+        <td colspan="5" class="muted">8 hybrid tech component blueprints — 16 copies total, each 1000 runs at ME 10 / TE 20 (Electromechanical Interface Nexus ×2 · Fullerene Intercalated Sheets ×2 · Fulleroferrocene Power Conduits ×2 · Metallofullerene Plating ×2 · Optimized Nano-Engines ×2 · Reconfigured Subspace Calibrator ×2 · Self-Assembling Nanolattice ×3 · Warfare Computation Core ×1) — effectively unconstrained at 2–8 runs needed</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Owned — originals</td></tr>
+      <tr>
+        <td colspan="5" class="muted">9 polymer reaction formulas (PPD Fullerene Fibers · Fullerene Intercalated Graphite · Methanofullerene · Lanthanum Metallofullerene · Scandium Metallofullerene · Graphene Nanoribbons · Carbon-86 Epoxy Resin · C3-FTM Acid · Fulleroferrocene) + 4 fuel-block sets</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The <b>fourth acquisition path</b> debuts here: drop-sourced BPCs.
+    The component blueprints have no producing entry, no invention
+    recipe, and no NPC seeding — the 1000-run ME 10 / TE 20 copies are
+    w-space relic/data site loot, acquired by farming or buying resold
+    copies (contracts / market). Verify the no-seeding claim against
+    M15's market data when it lands. Costs illustrative.
+  </div>
+
+  <!-- Blueprint copy plan -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Blueprint copy plan</h2>
+
+  <p class="meta-line" style="margin: 0 0 0.75rem;"><span class="stage-state ready">Nothing to copy</span> — no copy plan exists for this chain.</p>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">Every blueprint is held as an original (formulas, fuel blocks), a 1000-run site-drop copy (components — run counts exceed job needs by two orders of magnitude), or arrives by invention (the Jackdaw BPC). Copying never enters this chain.</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The <b>absent state</b> — an edge case the M9 surface must handle:
+    a chain with no copying renders this section as absent, not as an
+    error or an empty queue with zero rows. "Nothing to copy" with the
+    one-line reason is the honest rendering; every previous chain had a
+    copy plan, so this state had never drawn until now.
+  </div>
+
+  <!-- Raw materials -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Raw materials — acquisition</h2>
+  <p class="meta-line" style="margin: 0 0 0.5rem;">Chain terminators summed across all stages, measured against the selected pool. Bars fill from asset syncs; green = covered, yellow = partial, pink = under half. Defaults to gaps only so blockers stand out.</p>
+
+  <div style="display: flex; gap: 0.4rem; margin-bottom: 0.75rem;">
+    <button class="chip-button selected" type="button">Gaps only</button>
+    <button class="chip-button" type="button">Show all 43 types</button>
+  </div>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Material</th>
+        <th class="num">Required</th>
+        <th class="num">Available</th>
+        <th style="min-width: 10rem;">Coverage</th>
+        <th>Acquire via</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="group-row"><td colspan="5">Sleeper salvage — w-space site drops</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/30251/icon?size=32" alt="">Neurovisual Input Matrix</td>
+        <td class="num qty">163</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — direct component input</span></div></td>
+        <td class="muted">w-space sites / market · avg 240k isk</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/30254/icon?size=32" alt="">Electromechanical Hull Sheeting</td>
+        <td class="num qty">140</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0%</span></div></td>
+        <td class="muted">w-space sites / market · avg 55k isk</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/30021/icon?size=32" alt="">Modified Fluid Router</td>
+        <td class="num qty">76</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0%</span></div></td>
+        <td class="muted">w-space sites / market · avg 90k isk</td>
+      </tr>
+      <tr>
+        <td colspan="5" class="muted">+ 12 more salvage types at zero — Powdered C-540 Graphite ×30 · Cartesian Temporal Coordinator ×8 · Fused Nanomechanical Engines ×8 · Resonance Calibration Matrix ×8 · Emergent Combat Analyzer ×8 · Heuristic Selfassemblers ×6 · Melted Nanoribbons ×4 · Central System Controller ×3 · Defensive Control Node ×3 · Emergent Combat Intelligence ×3 · Jump Drive Control Nexus ×3 · Thermoelectric Catalysts ×3</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Gas — harvestable clouds (w-space fullerites)</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/30370/icon?size=32" alt="">Fullerite-C50</td>
+        <td class="num qty">700</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — feeds PPD Fullerene Fibers</span></div></td>
+        <td class="muted">w-space gas sites / market · avg 900 isk</td>
+      </tr>
+      <tr>
+        <td colspan="5" class="muted">+ 8 more fullerites at zero — C60 ×400 · C70 ×400 · C84 ×300 · C28 / C32 / C72 ×200 each · C320 / C540 ×100 each</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Minerals</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/37/icon?size=32" alt="">Isogen</td>
+        <td class="num qty">382</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — reaction input (T3 signature)</span></div></td>
+        <td class="muted">Mining / market · avg 260 isk</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">PI commodities</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/9832/icon?size=32" alt="">Coolant</td>
+        <td class="num qty">36</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — fuel-block input</span></div></td>
+        <td class="muted">Planetary industry / market</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/44/icon?size=32" alt="">Enriched Uranium</td>
+        <td class="num qty">16</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0%</span></div></td>
+        <td class="muted">Planetary industry / market</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Ice products</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/17887/icon?size=32" alt="">Oxygen Isotopes</td>
+        <td class="num qty">450</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — blocks the Oxygen fuel-block job</span></div></td>
+        <td class="muted">Ice mining / market · avg 320 isk</td>
+      </tr>
+      <tr>
+        <td colspan="5" class="muted">+ Nitrogen Isotopes ×450 and Helium Isotopes ×450, both at zero — Hydrogen Isotopes (×450 needed) covered 21×</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">19 types fully covered — hidden in this view; "Show all 43 types" lists them (Tritanium 97.4M on hand against 2,556 needed — the corp's stockpile dwarfs this bill; the Typhoon chain alone consumes 5.4M). Relics and datacores live in the invention plan, not here — expected-value quantities stay out of the deterministic acquisition table.</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The T3 raw story inverts every previous chain: the mineral bill is
+    pocket change (2.5k Tritanium against the Typhoon chain's 5.4M) while
+    <b>the entire T3 stack starts at zero</b> — 15 Sleeper salvage types
+    and 9 fullerites, all w-space drops. This is the first chain whose
+    acquisition table is dominated by <b>site-drop procurement</b> rather
+    than mining or market volume — the M14 farming flow's natural
+    customer. Market-average figures illustrative (M15 synced prices).
+  </div>
+
+  <!-- Job allocation -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — wave 1</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Recommended installs per character, from synced skills and live slot occupancy — eligibility first. The five invention attempts take five of blitzrage's science slots (simulated skill holder; one relic each, no job-lock); the fuel blocks go to the corp members so reactions open on schedule. blitzrage is out-of-corp: everything its jobs consume arrives by contract, not the office hangars.</p>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    Fresh plan: every slot shows its recommended job or what it's waiting on.
+    For the in-progress variant (running jobs, time-to-delivery, next-up
+    queues) see <a href="build-plan-active.html">build-plan-active.html</a>.
+  </div>
+
+  <!-- blitzrage -->
+  <section class="char-card-jobs" style="margin-top: 1rem;">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/1634367930/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">blitzrage <span class="badge bpc" style="margin-left: 0.4rem;">Sole inventor (simulated)</span></div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 0 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Science slots (invention)</div>
+    <div class="slot-grid">
+      <div class="slot ready">
+        <div class="slot-head">
+          <span class="type-icon-none" title="Ancient Relics have no icon"></span>
+          <span class="slot-name">Invention · attempt 1/5</span>
+          <span class="activity-tag inv">invention</span>
+        </div>
+        <span class="slot-meta">Small Intact Hull Section 1 · 3 + 3 datacores · 1 h · Amamake - Police Weapons Facility</span>
+        <span class="slot-meta">relics + datacores contracted to blitzrage day 0 — out-of-corp, no office access</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install</span>
+      </div>
+      <div class="slot ready">
+        <div class="slot-head">
+          <span class="type-icon-none" title="Ancient Relics have no icon"></span>
+          <span class="slot-name">Invention · attempt 2/5</span>
+          <span class="activity-tag inv">invention</span>
+        </div>
+        <span class="slot-meta">Small Intact Hull Section 2 · 1 h</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install</span>
+      </div>
+      <div class="slot idle">+ 3 more attempts</div>
+    </div>
+  </section>
+
+  <!-- schlepzrage -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124139810/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">schlepzrage <span class="badge bpo" style="margin-left: 0.4rem;">Main</span></div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 0 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots</div>
+    <div class="slot-grid">
+      <div class="slot ready">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/4246/icon?size=32" alt="">
+          <span class="slot-name">Hydrogen Fuel Block</span>
+          <span class="activity-tag mfg">manufacture</span>
+        </div>
+        <span class="slot-meta">1 run · 15 min · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install</span>
+      </div>
+      <div class="slot ready">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/4051/icon?size=32" alt="">
+          <span class="slot-name">Nitrogen Fuel Block</span>
+          <span class="activity-tag mfg">manufacture</span>
+        </div>
+        <span class="slot-meta">1 run · 15 min</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install</span>
+      </div>
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>R.A.M.- Starship Tech ×1 run — waiting on the BPO buy (day 0.15) · minerals on hand</div>
+      </div>
+      <div class="slot idle">+ 7 idle</div>
+    </div>
+  </section>
+
+  <!-- Octavia Arbitrage -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124297138/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">Octavia Arbitrage</div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 0 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots</div>
+    <div class="slot-grid">
+      <div class="slot ready">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/4312/icon?size=32" alt="">
+          <span class="slot-name">Oxygen Fuel Block</span>
+          <span class="activity-tag mfg">manufacture</span>
+        </div>
+        <span class="slot-meta">1 run · 15 min · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install</span>
+      </div>
+      <div class="slot ready">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/4247/icon?size=32" alt="">
+          <span class="slot-name">Helium Fuel Block</span>
+          <span class="activity-tag mfg">manufacture</span>
+        </div>
+        <span class="slot-meta">1 run · 15 min</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install</span>
+      </div>
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>Jackdaw ×1 run — waiting on components (day 0.4) · sole Advanced Small Ship Construction holder (4 live, 5 simulated)</div>
+      </div>
+      <div class="slot idle">+ 7 idle</div>
+    </div>
+  </section>
+
+  <!-- theblitzrage I -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2123535366/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">theblitzrage I</div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 0 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Reaction slots</div>
+    <div class="slot-grid">
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>9 polymer reactions (formulas owned) — waiting on fuel blocks + fullerites (day 0.15) · 3 h each, one formula per slot</div>
+      </div>
+      <div class="slot idle">+ 9 idle</div>
+    </div>
+  </section>
+
+  <p class="meta-line" style="margin-top: 1.25rem;">
+    Wave 1: 9 jobs (5 invention · 4 manufacturing — the fuel blocks that
+    open the reactions). Market actions: 5 Intact relics + 3 Plasma
+    Physics datacores + 1 R.A.M. BPO + the zero-stock T3 stack (15
+    salvage types · 9 fullerites · 3 isotope types). Slots free after
+    delivery pick up the next queued job per the "next up" hints.
+    <a href="planner.html">← back to planner</a> ·
+    <a href="build-plan-active.html">mid-flight state →</a>
+  </p>
+</main>
+
+</body>
+</html>

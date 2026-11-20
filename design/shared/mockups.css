@@ -17,6 +17,9 @@
  *   .slot-grid      per-character job slot tiles
  *   .chain-flow     compact reverse-chain phase strip
  *   .autocomplete   blueprint search dropdown
+ *   .type-icon-none placeholder for iconless types (Ancient Relics
+ *                   have no imageserver variations — mirrors the app's
+ *                   ICONLESS_CATEGORIES treatment)
  *   .sync-source    synced-data provenance line — which world-state
  *                   table a card reads, its hub set, and freshness
  *                   (M15; never live ESI on the request path)
@@ -415,6 +418,16 @@ button.primary {
   width: 48px;
   height: 48px;
   border-radius: 4px;
+}
+
+.type-icon-none {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 1px dashed var(--muted);
+  border-radius: 3px;
+  vertical-align: -0.45rem;
+  margin-right: 0.4rem;
 }
 
 /* --- Search + autocomplete (new) ---------------------------------------- */

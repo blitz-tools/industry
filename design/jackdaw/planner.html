@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Planner — Jackdaw — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/jackdaw/planner.html</div>
+</aside>
+
+<main class="content">
+  <h1>Build Planner</h1>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    Both search states are shown stacked — typing state above, selected state
+    below. In the real page the dropdown closes on selection and the rest of
+    the form appears.
+  </div>
+
+  <!-- 1 · Search -->
+  <section class="card overflow-visible" style="margin-top: 1.25rem;">
+    <div class="card-body">
+      <h2>1 · Find a blueprint</h2>
+      <p class="card-sub">Search the SDE catalog (5,135 blueprints) or match only what the corp owns.</p>
+
+      <div style="display: flex; gap: 0.75rem; align-items: flex-start; flex-wrap: wrap;">
+        <div class="search-wrap">
+          <input class="search-input" type="text" value="jackd" aria-label="Search blueprints">
+          <div class="autocomplete">
+            <div class="autocomplete-row active">
+              <img src="https://images.evetech.net/types/34829/bpc?size=32" alt="Jackdaw Blueprint">
+              <div>
+                <div class="ac-name">Jackdaw Blueprint</div>
+                <div class="ac-sub">Manufacturing · Jackdaw ×1/run · max 1 run/job · invented from Small Hull Section relics at 26/21/14%</div>
+              </div>
+              <div class="ac-right">
+                <span class="badge missing">Not owned</span>
+              </div>
+            </div>
+            <div class="autocomplete-footer">1 match · icons and ownership from the live blueprints table</div>
+          </div>
+        </div>
+        <div>
+          <button class="chip-button" type="button">Match From Inventory</button>
+        </div>
+      </div>
+
+      <div class="anno" style="margin-top: 5rem;">
+        <span class="anno-label">wireframe</span>
+        The T3 autocomplete sub-line differs from the T2 shape: there is
+        <b>no source blueprint</b> — the relic item itself carries the
+        invention activity, so the sub-line names the relic family and the
+        three grade probabilities. With <b>Match From Inventory</b> on, the
+        Jackdaw Blueprint disappears (not owned); its world below — the
+        component BPCs, formulas, fuel blocks — stays reachable through the
+        chain, not the search.
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · Target -->
+  <section class="card">
+    <div class="card-body">
+      <h2>2 · Target build</h2>
+
+      <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <img class="type-icon-lg" src="https://images.evetech.net/types/34829/bpc?size=64" alt="Jackdaw Blueprint">
+        <div>
+          <div><b>Jackdaw Blueprint</b> <span class="badge missing">Not owned — BPC via relic invention</span></div>
+          <div class="meta-line">Builds <img class="type-icon" src="https://images.evetech.net/types/34828/icon?size=32" alt=""> Jackdaw ×1 per run · max 1 run/job · invented from <span class="type-icon-none" title="Ancient Relics have no icon"></span> Sleeper Hull Relics at 26/21/14% (grade-set)</div>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 0.75rem; align-items: center;">
+          <span class="meta-line">Target count</span>
+          <div class="stepper">
+            <button type="button" aria-label="Decrease">−</button>
+            <span class="stepper-value">1</span>
+            <button type="button" aria-label="Increase">+</button>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <h2 style="font-size: 0.95rem;">Requirements at target ×1</h2>
+      <p class="card-sub">The full chain for one build, resolved at selection — quantities track the target stepper live. Calculate schedules the plan (phases, waves, allocation, invention plan); nothing here waits for it.</p>
+
+      <!-- Tier 0: invention inputs (T3 flavor) -->
+      <details class="phase-row" open>
+        <summary>
+          <span class="phase-title">Invention inputs</span>
+          <span class="phase-count">relic grade · 2 datacores</span>
+          <span class="summary-right">
+            <span class="stage-state missing">relics at zero · grade choice</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <tbody>
+              <tr>
+                <td><span class="type-icon-none" title="Small Intact Hull Section — Ancient Relics have no icon"></span>Small Intact Hull Section <span class="badge owned" style="margin-left: 0.4rem;">Selected grade</span></td>
+                <td class="muted">26% per attempt · 20 runs per success · 1 relic consumed per attempt</td>
+                <td><span class="badge missing">0 on hand</span></td>
+              </tr>
+              <tr>
+                <td><span class="type-icon-none" title="Small Malfunctioning Hull Section — Ancient Relics have no icon"></span>Small Malfunctioning Hull Section</td>
+                <td class="muted">21% · 10 runs per success — same recipe, lower grade</td>
+                <td><span class="badge missing">0 on hand</span></td>
+              </tr>
+              <tr>
+                <td><span class="type-icon-none" title="Small Wrecked Hull Section — Ancient Relics have no icon"></span>Small Wrecked Hull Section</td>
+                <td class="muted">14% · 3 runs per success</td>
+                <td><span class="badge missing">0 on hand</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/20412/icon?size=32" alt="">Datacore - Plasma Physics</td>
+                <td class="muted">3 per attempt · expected ≈11.5 per success at Intact</td>
+                <td><span class="badge missing">12 on hand</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/20424/icon?size=32" alt="">Datacore - Mechanical Engineering</td>
+                <td class="muted">3 per attempt · expected ≈11.5 per success at Intact</td>
+                <td><span class="badge owned">97 on hand</span></td>
+              </tr>
+              <tr>
+                <td colspan="3" class="muted">No decryptor — T3 reverse engineering has no decryptor slot: the relic grade sets <b>both</b> the probability and the BPC runs, and ME (Material Efficiency) / TE (Time Efficiency) are fixed per grade (M8 pin). The T2 decision axes don't exist here — see the invention summary below.</td>
+              </tr>
+              <tr>
+                <td colspan="3" class="muted">Skills — Sleeper Encryption Methods 1 · Plasma Physics 1 · Mechanical Engineering 1, all at level 1: <b>blitzrage</b> (simulated per the 2026-11-19 convention — the roster's only 4/4 science holder; live, nobody holds the encryption skill). One relic consumed per attempt, no job-lock: attempts parallelize across slots.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 1: blueprints -->
+      <details class="phase-row" open>
+        <summary>
+          <span class="phase-title">Blueprints</span>
+          <span class="phase-count">23 types</span>
+          <span class="summary-right">
+            <span class="stage-state ready">21 owned — 2 missing</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <tbody>
+              <tr class="group-row"><td colspan="3">Target — invented</td></tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/34829/bpc?size=32" alt="">Jackdaw Blueprint</td>
+                <td class="muted">invented from Sleeper Hull Relics — see the invention tier above</td>
+                <td><span class="badge missing">Invent</span></td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Missing — 1 NPC-seeded original</td></tr>
+              <tr>
+                <td colspan="3" class="muted">R.A.M.- Starship Tech Blueprint — no producer in the SDE (Static Data Export), cheap original bought on the market (same as the Panther chain)</td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Owned — 8 hybrid tech components as drop-sourced BPCs (Blueprint Copies)</td></tr>
+              <tr>
+                <td colspan="3" class="muted">Electromechanical Interface Nexus ×2 · Fullerene Intercalated Sheets ×2 · Fulleroferrocene Power Conduits ×2 · Metallofullerene Plating ×2 · Optimized Nano-Engines ×2 · Reconfigured Subspace Calibrator ×2 · Self-Assembling Nanolattice ×3 · Warfare Computation Core ×1 — all 1000-run copies at ME 10 / TE 20, the w-space site-drop signature. No producer, no invention recipe, no NPC seeding: a <b>fourth acquisition path</b> (farm or buy resold copies)</td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Owned — fuel blocks + polymer formulas (13 originals)</td></tr>
+              <tr>
+                <td colspan="3" class="muted">9 polymer reaction formulas (PPD Fullerene Fibers · Fullerene Intercalated Graphite · Methanofullerene · Lanthanum Metallofullerene · Scandium Metallofullerene · Graphene Nanoribbons · Carbon-86 Epoxy Resin · C3-FTM Acid · Fulleroferrocene) + 4 fuel-block sets</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 2: intermediates -->
+      <details class="phase-row">
+        <summary>
+          <span class="phase-title">Intermediates</span>
+          <span class="phase-count">22 types · 5 phases</span>
+          <span class="summary-right">
+            <span class="stage-state missing">salvage-gated phase 2</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <thead>
+              <tr>
+                <th>Phase</th>
+                <th>Intermediates</th>
+                <th class="num">Types</th>
+                <th>Notable</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="muted">4 — target</td>
+                <td class="muted">Jackdaw</td>
+                <td class="num">1</td>
+                <td class="muted">50 h build · needs Advanced Small Ship Construction 5 — Octavia (simulated, 4 live)</td>
+              </tr>
+              <tr>
+                <td class="muted">3 — hybrid tech components</td>
+                <td class="muted">8 components + R.A.M.</td>
+                <td class="num">9</td>
+                <td class="muted">Metallofullerene Plating ×8 — everything 10 min/run on 1000-run BPCs</td>
+              </tr>
+              <tr>
+                <td class="muted">2 — polymers + R.A.M. minerals</td>
+                <td class="muted">9 reaction products · mixed activity phase</td>
+                <td class="num">9</td>
+                <td class="muted">Fulleroferrocene ×1,180 (2 runs) · reactions consume minerals directly — a T3 signature</td>
+              </tr>
+              <tr>
+                <td class="muted">1 — fuel blocks</td>
+                <td class="muted">Four fuel types</td>
+                <td class="num">4</td>
+                <td class="muted">Hydrogen ×15 · Oxygen ×20 · Nitrogen / Helium ×10 each</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 3: raw materials -->
+      <details class="phase-row">
+        <summary>
+          <span class="phase-title">Raw materials</span>
+          <span class="phase-count">43 types</span>
+          <span class="summary-right">
+            <span class="stage-state missing">24 at zero — the T3 stack</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th class="num">Types</th>
+                <th>Largest requirement</th>
+                <th>Gaps</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Minerals</td>
+                <td class="num">7</td>
+                <td class="muted">Tritanium 2,556 · Pyerite 1,244</td>
+                <td class="muted"><span style="color: var(--pink);">Isogen 0 of 382</span> — the rest covered</td>
+              </tr>
+              <tr>
+                <td>Sleeper salvage</td>
+                <td class="num">15</td>
+                <td class="muted">Neurovisual Input Matrix 163 · Electromechanical Hull Sheeting 140 · Modified Fluid Router 76</td>
+                <td class="muted"><span style="color: var(--pink);">all 15 at zero</span> — w-space site drops / market</td>
+              </tr>
+              <tr>
+                <td>Gas (harvestable clouds)</td>
+                <td class="num">9</td>
+                <td class="muted">Fullerite-C50 700 · C60 / C70 400 each</td>
+                <td class="muted"><span style="color: var(--pink);">all 9 at zero</span> — w-space gas sites / market</td>
+              </tr>
+              <tr>
+                <td>PI commodities</td>
+                <td class="num">4</td>
+                <td class="muted">Coolant 36 · Enriched Uranium 16</td>
+                <td class="muted"><span style="color: var(--pink);">Coolant 0 of 36 · Enriched Uranium 0 of 16</span></td>
+              </tr>
+              <tr>
+                <td>Ice products</td>
+                <td class="num">8</td>
+                <td class="muted">Liquid Ozone 1,400 · Heavy Water 680</td>
+                <td class="muted"><span style="color: var(--pink);">Oxygen / Nitrogen / Helium Isotopes 0 of 450 each</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        The requirement overview resolves at selection and tracks the target
+        stepper live. The T3 differences from the Panther: <b>the relic
+        grades replace the decryptor pointer</b> (the grade sets both
+        probability and runs — selection lands on the calculated plan), the
+        blueprints tier carries a <b>fourth acquisition path</b>
+        (drop-sourced BPCs), and the raw story is inverted — minerals
+        mostly covered, but <b>the entire T3 stack (salvage + fullerites,
+        24 types) starts at zero</b>. Skill gates are <b>simulated as
+        met</b> per the 2026-11-19 program convention — the Panther set
+        owns the missing-skills scenario.
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Invention summary (owned-copies overlay slot) -->
+  <section class="card">
+    <div class="card-body">
+      <h2>3 · Jackdaw Blueprint — no copies owned, invention summary</h2>
+      <p class="card-sub">The owned-copies overlay becomes a T3 invention summary: the grade table replaces the T2 decryptor scenarios, because the grade — not a decryptor — sets probability, runs, and ME/TE.</p>
+
+      <table class="asset-table">
+        <thead>
+          <tr>
+            <th>Relic grade</th>
+            <th class="num">Probability</th>
+            <th class="num">Runs / success</th>
+            <th class="num">E[attempts]</th>
+            <th>Confidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="type-icon-none" title="Ancient Relics have no icon"></span>Small Intact Hull Section <span class="muted">(selected)</span></td>
+            <td class="num qty">26%</td>
+            <td class="num qty">20</td>
+            <td class="num qty">3.85</td>
+            <td class="muted">4 attempts → 70% · 5 → 78%</td>
+          </tr>
+          <tr>
+            <td><span class="type-icon-none" title="Ancient Relics have no icon"></span>Small Malfunctioning Hull Section</td>
+            <td class="num qty">21%</td>
+            <td class="num qty">10</td>
+            <td class="num qty">4.76</td>
+            <td class="muted">5 attempts → 69% · 6 → 76%</td>
+          </tr>
+          <tr>
+            <td><span class="type-icon-none" title="Ancient Relics have no icon"></span>Small Wrecked Hull Section</td>
+            <td class="num qty">14%</td>
+            <td class="num qty">3</td>
+            <td class="num qty">7.14</td>
+            <td class="muted">7 attempts → 65% · 10 → 77%</td>
+          </tr>
+          <tr>
+            <td colspan="5"><span class="muted">Recipe (identical across grades): 3 + 3 datacores · 1 relic per attempt · 1 h per attempt · skills 1/1/1. </span><b>One Intact success over-delivers</b><span class="muted"> — 20 runs against a ×1 target; the surplus is inventory, not waste. The grade dominates every deterministic axis (relics, datacores, and wall time per ship all fall as the grade rises — Wrecked needs 12.5× Intact's relics per ship), so the choice is </span><b>price-only</b><span class="muted"> — use the highest grade the market stocks (the M10 question). Recipe shared across all four racial tactical destroyers; the job targets the Jackdaw.</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        All numbers real: probabilities, runs, recipe, and durations from
+        the SDE mirror; relic and datacore stock from the live tables
+        (2026-11-19 — relics 0, datacores 12 + 97). The batch decision on
+        the <b>calculated plan</b> is attempts-to-buy (confidence), not
+        successes-needed — one success satisfies any target up to
+        runs-per-success. Invention is a <b>parallel branch</b> with no
+        job-lock: each attempt consumes its own relic, so attempts
+        parallelize across science slots freely.
+      </div>
+    </div>
+  </section>
+
+  <!-- Calculate bar -->
+  <section class="card">
+    <div class="card-body" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+      <div class="meta-line">
+        Jackdaw ×1 · 23 blueprints (2 missing) · 22 intermediates · 43 raw types (24 at zero) · chain resolved — Calculate schedules the plan
+      </div>
+      <button class="primary" type="button">Calculate</button>
+    </div>
+  </section>
+
+  <p class="meta-line" style="margin-top: 1rem;">
+    Calculate resolves the full reverse chain and opens the build plan →
+    <a href="build-plan.html">build-plan.html</a> (fresh) ·
+    <a href="build-plan-active.html">build-plan-active.html</a> (mid-flight)
+  </p>
+</main>
+
+</body>
+</html>
