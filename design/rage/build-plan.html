@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Plan — Scourge Rage HAM ×500,000 — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/rage/build-plan.html</div>
+</aside>
+
+<main class="content">
+  <div class="page-header">
+    <h1><img class="type-icon" style="width:32px;height:32px;" src="https://images.evetech.net/types/2679/icon?size=32" alt=""> Build Plan — Scourge Rage HAM ×500,000</h1>
+    <div class="actions">
+      <span class="badge plan-state">Draft</span>
+      <span class="pool-picker">Pool
+        <select aria-label="Participant pool">
+          <option>Corp + included characters (8)</option>
+          <option>Corp members only (4)</option>
+        </select>
+      </span>
+      <button class="icon-button" type="button" title="Re-run planner" aria-label="Re-run planner">⟳</button>
+      <button class="icon-button" type="button" title="Export plan" aria-label="Export plan">⭳</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">2.7 d</p>
+      <p class="stat-label">Chain end — serial model (2.3 d if the component job overlaps the invention tail — the M9 pipelining question)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">4 × 81%</p>
+      <p class="stat-label">Top-up attempts, one 12.67 h wave — 1 Rage success needed against the 98-run pool; Javelin siblings expected</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">11 blueprints</p>
+      <p class="stat-label">To acquire — 9 reaction formulas + 2 NPC-seeded BPOs; all cheap market originals</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">12 jobs</p>
+      <p class="stat-label">First wave — 7 simple reactions + 4 one-run copies + R.A.M. · 3 h</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">32 types</p>
+      <p class="stat-label">Raw materials to obtain — 11 at zero (10 R8/R64 moon · Rocket Fuel)</p>
+    </div>
+  </div>
+
+  <!-- Wave progress -->
+  <div class="wave-bar">
+    <div class="wave-header">
+      <span class="wave-title">Wave progress — day 0 of 2.7 · 0%</span>
+      <button class="legend-tab" type="button">legend ›</button>
+    </div>
+    <div class="wave-track">
+      <div class="wave-seg ahead" style="width: 5%;" title="W1 — 7 simple reactions (3 h) + 4 one-run copies + R.A.M. · 12 jobs · day 0–0.13"></div>
+      <div class="wave-seg ahead" style="width: 19%;" title="W2 — tier-2 reactions (4) + invention top-up (4 attempts, 12.67 h) in parallel · day 0.13–0.65"></div>
+      <div class="wave-seg ahead" style="width: 19%;" title="W3 — Graviton Pulse Generator, 300 runs, one 12.5 h job · day 0.65–1.17"></div>
+      <div class="wave-seg ahead" style="width: 41%;" title="W4 — ammo manufacturing round 1: 7 × 10-run + 1 × 2-run jobs, 26.7 h · day 1.17–2.28"></div>
+      <div class="wave-seg ahead" style="width: 16%;" title="W5 — round 2: 7 × 4-run jobs, 10.7 h · day 2.28–2.73"></div>
+      <div class="now-line" style="left: 0;"></div>
+      <div class="now-caption" style="left: 0;">now · day 0</div>
+    </div>
+    <div class="wave-ticks">
+      <span class="tick" style="width: 5%;">W1</span>
+      <span class="tick" style="width: 19%;">W2 · rxn + inv</span>
+      <span class="tick" style="width: 19%;">W3 · GPG</span>
+      <span class="tick" style="width: 41%;">W4 · ammo 1</span>
+      <span class="tick tick-end" style="width: 16%;"><span>W5 · ammo 2</span><span>100%</span></span>
+    </div>
+
+    <div class="anno" style="margin-top: 1.75rem;">
+      <span class="anno-label">wireframe</span>
+      Manufacturing owns the bar (≈267 slot-hours of 100 runs) but
+      <b>BPC job-lock owns the wall-clock</b>: 100 runs live on 8 BPCs
+      holding one job each, so the ammo runs as two serial rounds —
+      8 jobs then 7. The invention top-up (12.67 h) is a parallel branch
+      off W2, well clear of the critical path; a tighter scheduler would
+      start the component job when the tier-2 reactions land rather than
+      at the wave boundary. No dead zones — every purchase (formulas,
+      BPOs, moon materials, Rocket Fuel) completes before W1 installs.
+    </div>
+  </div>
+
+  <!-- Reverse product chain -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse product chain</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Raw materials on the left, target on the right. Each node chip toggles Purchase ⇄ Build — purchased nodes drop out of the job allocation, count toward acquisition instead of the phase state and percent, and their inputs leave the raw-material math (the commodity itself is acquired instead). Phase rows carry a bulk toggle that sets every node at once.</p>
+
+  <div class="chain-flow">
+    <div class="chain-phase">
+      <span class="phase-label">Phase 1</span>
+      <span class="phase-name">Fuel blocks</span>
+      <span class="phase-meta">4 nodes · from stock</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state ready">Stock covers — no jobs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 2</span>
+      <span class="phase-name">First-tier reactions</span>
+      <span class="phase-meta">7 nodes</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 3</span>
+      <span class="phase-name">Second-tier + repeats</span>
+      <span class="phase-meta">6 nodes</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 4</span>
+      <span class="phase-name">Component + direct inputs</span>
+      <span class="phase-meta">3 nodes · manufacturing</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 5</span>
+      <span class="phase-name">Rage HAM ×500,000</span>
+      <span class="phase-meta">1 node · 15 jobs</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state ready">Pool 98 of 100 runs</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The deepest non-ship chain in the program: <b>two reaction tiers
+    beneath a T2 component beneath the deliverable</b> — moon materials
+    in, missiles out, with no hull anywhere. The model's phase
+    numbering (level-by-level, target = 5) interleaves the reaction
+    tiers — SiD / CaeC / VanH recur at phase 3 after appearing at
+    phase 2, because their consumers sit at different depths (the
+    recurring-commodity pattern, cf. the Charon). Phase 1 carries the
+    stock-collapse case: the fuel-block nodes never run because hangar
+    stock (448 Oxygen blocks vs 40 needed) covers the merged campaign.
+  </div>
+
+  <!-- Phase tree -->
+  <details class="phase-row" style="margin-top: 1rem;">
+    <summary>
+      <span class="phase-title">Phase 1 — Fuel blocks</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">4 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state ready">Stock covers — no jobs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <span class="node-gating">Oxygen ×40 · Nitrogen ×15 · Hydrogen ×10 · Helium ×5 — every reaction's fuel, drawn from hangar stock (448 / 2,398 / 933 / 1,027 on hand). The whole ice/PI subtree under these nodes never runs — the campaign aggregation skips phase builds when stock covers the merged need.</span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row" open>
+    <summary>
+      <span class="phase-title">Phase 2 — First-tier reactions</span>
+      <span class="activity-tag rxn">reaction</span>
+      <span class="phase-count">7 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/16658/icon?size=32" alt="">
+        <span class="node-name">Silicon Diborite</span>
+        <span class="node-qty">×200</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge missing">Formula · NPC market</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <span class="node-gating">+ 6 more nodes — Caesarium Cadmide ×200 · Vanadium Hafnite ×200 · Titanium Chromide ×100 · Sulfuric Acid ×100 (formula owned — corp) · Platinum Technite ×100 · Neo Mercurite ×100 — each one 3 h run off R4/R8 moon pairs, 1 job each</span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row" open>
+    <summary>
+      <span class="phase-title">Phase 3 — Second-tier reactions + repeats</span>
+      <span class="activity-tag rxn">reaction</span>
+      <span class="phase-count">6 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/16680/icon?size=32" alt="">
+        <span class="node-name">Phenolic Composites (component batch)</span>
+        <span class="node-qty">×2,100</span>
+        <span class="node-runs">1 run — makes 2,200</span>
+        <span class="node-right">
+          <span class="badge missing">Formula · NPC market</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/16681/icon?size=32" alt="">
+        <span class="node-name">Nanotransistors</span>
+        <span class="node-qty">×600</span>
+        <span class="node-runs">1 run — makes 1,500</span>
+        <span class="node-right">
+          <span class="badge missing">Formula · NPC market</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/16671/icon?size=32" alt="">
+        <span class="node-name">Titanium Carbide</span>
+        <span class="node-qty">×6,600</span>
+        <span class="node-runs">1 run — makes 10,000</span>
+        <span class="node-right">
+          <span class="badge missing">Formula · NPC market</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <span class="node-gating">+ 3 repeat nodes — Silicon Diborite ×100 · Caesarium Cadmide ×100 · Vanadium Hafnite ×100, recurring from phase 2 because their consumers here sit one level deeper (the recurring-commodity pattern). Phenolic Composites itself recurs: this 2,100-unit batch feeds the component, while a 1,200-unit direct batch sits at phase 4 — merged in the plan as one 2-run campaign.</span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row" open>
+    <summary>
+      <span class="phase-title">Phase 4 — Component + direct inputs</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">3 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/11693/icon?size=32" alt="">
+        <span class="node-name">Graviton Pulse Generator</span>
+        <span class="node-qty">×300</span>
+        <span class="node-runs">300 runs · 1 job · 12.5 h</span>
+        <span class="node-right">
+          <span class="badge missing">BPO · NPC market · maxPL 4,000</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/11476/icon?size=32" alt="">
+        <span class="node-name">R.A.M.- Ammunition Tech</span>
+        <span class="node-qty">×100</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge missing">BPO · NPC market</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/16680/icon?size=32" alt="">
+        <span class="node-name">Phenolic Composites (direct batch)</span>
+        <span class="node-qty">×1,200</span>
+        <span class="node-runs">shares the 2-run campaign — batch over-delivery</span>
+        <span class="node-right">
+          <span class="badge missing">Formula · NPC market</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row" open>
+    <summary>
+      <span class="phase-title">Phase 5 — Target</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">1 node · 15 jobs</span>
+      <span class="summary-right">
+        <span class="stage-state ready">Pool 98 of 100 runs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/2679/icon?size=32" alt="">
+        <span class="node-name">Scourge Rage Heavy Assault Missile</span>
+        <span class="node-qty">×500,000</span>
+        <span class="node-runs">100 runs · 15 jobs (max 10 runs/job)</span>
+        <span class="node-right">
+          <span class="badge bpc">BPCs ×7 owned + 1 invented · 108-run pool</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <span class="node-gating">Per run: Rocket Fuel 12 · Phenolic Composites 12 · Graviton Pulse Generator 3 · Morphite 1 · R.A.M. 1 — ×100 for the campaign. Jobs: round 1 = 7 × 10-run (owned BPCs) + 1 × 2-run (the invented BPC topping up the shortfall); round 2 = 7 × 4-run. 7,975 missiles already in inventory count toward delivery.</span>
+      </div>
+    </div>
+  </details>
+
+  <!-- Copy plan -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Blueprint copy plan — invention inputs</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Copies feeding invention, sized by the top-up: BPC count = attempt parallelism, and at 8 min/run the copy phase is a sliver whatever the split.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Commodity</th>
+        <th class="num">BPCs</th>
+        <th>Run counts</th>
+        <th class="num">Copy time</th>
+        <th>Ready by</th>
+        <th>Source</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/26762/bp?size=32" alt="">Scourge Heavy Assault Missile Blueprint</td>
+        <td class="num qty">4</td>
+        <td>4 × 1 run</td>
+        <td class="num">32 min</td>
+        <td class="muted">day 0.02</td>
+        <td class="muted">blitzrage BPO · ME 10 / TE 20 · Amamake</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">Four one-run copies = four parallel invention slots for the top-up's four attempts — the same sizing rule the Trimark set carries (BPC count = min(attempt budget, slot pool); copy time split-invariant), defused by this chain's constants: 8 min/run against the Trimark's 60, 4 attempts against 30. The owned 586-run T1 copy pool would zero the phase; the from-zero chain models it per the 2026-11-20 direction.</p>
+
+  <!-- Invention plan -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Invention plan — the top-up</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">One Rage success tops up the 2-run shortfall; the same attempts roll the Javelin sibling at its own 34%. Successes counted from synced industry jobs; a shortfall re-arms per the retry semantics — at this scale the loop is one batch and, at worst, one re-arm.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Source</th>
+        <th class="num">Attempts</th>
+        <th>Consumes</th>
+        <th>Decryptor</th>
+        <th class="num">Window</th>
+        <th>Confidence</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/26762/bp?size=32" alt="">Scourge HAM BPC ×4</td>
+        <td class="num qty">4</td>
+        <td class="muted">4 BPC runs · 4 + 4 datacores <span class="muted">(stock covers exactly)</span></td>
+        <td class="muted">none — p 0.34 · BPC at 10 runs / ME 2 / TE 4 (the live-evidence base)</td>
+        <td class="num">12.67 h</td>
+        <td class="muted">P(≥1 Rage) 81% · E 1.4 successes</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">Expected outcome: one 10-run Rage BPC against the 2-run shortfall — <b>8 spare runs of BPC residue</b> banked on the pool, never inflating the target. Each attempt also rolls the Javelin sibling: E ≈ 1.4 sibling successes at n = 4, so roughly one 10-run Javelin BPC (≈50,000 missiles) of by-product joins the 8,595 Javelins already held. No decryptor at these odds — the live line's Attainment choice (p_eff 61%) was for bulk production; a 4-attempt top-up doesn't justify the ME/TE cost, and the owned BPCs' stats show what Attainment produced when it mattered.</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    This chain owns the over-delivery half of the residue story (the
+    Trimark set owns under-delivery and the retry loop): surplus BPCs
+    and sibling by-products render as banked inventory on the active
+    plan. The sibling semantics — by-product or miss, and whether both
+    land on one attempt — stay an M8 pin; the 8,595 Javelins in
+    inventory are the live precedent that by-products happen on this
+    very line.
+  </div>
+
+  <!-- Required blueprints -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Required blueprints</h2>
+
+  <p class="meta-line" style="margin: 0 0 0.75rem;"><span style="color: var(--pink);">11 missing</span> · 4 owned — the acquisition tier for this chain is shopping, not copying or inventing: every missing item is a cheap NPC-seeded original.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Blueprint</th>
+        <th>Activity</th>
+        <th>Status</th>
+        <th>Acquisition</th>
+        <th>Est. cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="group-row"><td colspan="5">Owned — the live line</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/2680/bpc?size=32" alt="">Scourge Rage Heavy Assault Missile Blueprint</td>
+        <td><span class="activity-tag inv">invention</span></td>
+        <td><span class="badge owned">7 BPCs · 98 runs</span></td>
+        <td class="muted">top-up batch · see the invention plan above</td>
+        <td class="num qty">8 datacores</td>
+      </tr>
+      <tr>
+        <td colspan="5" class="muted">Scourge HAM Blueprint (original + 3 copies, 586-run pool) · Sulfuric Acid Reaction Formula (corp) · fuel-block BPs — stock makes the blocks moot</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Missing — NPC-seeded originals (no producer in the SDE)</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/17332/bp?size=32" alt="">Graviton Pulse Generator Blueprint</td>
+        <td><span class="activity-tag mfg">manufacture</span></td>
+        <td><span class="badge missing">Missing</span></td>
+        <td class="muted">NPC market · maxPL 4,000 — one job holds all 300 runs</td>
+        <td class="num qty">~15M</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/11872/bp?size=32" alt="">R.A.M.- Ammunition Tech Blueprint</td>
+        <td><span class="activity-tag mfg">manufacture</span></td>
+        <td><span class="badge missing">Missing</span></td>
+        <td class="muted">NPC market · one 42-min run covers the bill</td>
+        <td class="num qty">~2M</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Missing — 9 reaction formulas, cheap originals</td></tr>
+      <tr>
+        <td colspan="5" class="muted">Phenolic Composites · Nanotransistors · Silicon Diborite · Caesarium Cadmide · Vanadium Hafnite · Titanium Carbide · Titanium Chromide · Platinum Technite · Neo Mercurite — buy all before wave 1 installs (the only Sulfuric Acid formula in the chain is the corp's)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Raw materials -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Raw materials — acquisition</h2>
+  <p class="meta-line" style="margin: 0 0 0.5rem;">Chain terminators summed across all stages, measured against the selected pool. Bars fill from asset syncs; green = covered, yellow = partial, pink = under half. Defaults to gaps only so blockers stand out.</p>
+
+  <div style="display: flex; gap: 0.4rem; margin-bottom: 0.75rem;">
+    <button class="chip-button selected" type="button">Gaps only</button>
+    <button class="chip-button" type="button">Show all 32 types</button>
+  </div>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Material</th>
+        <th class="num">Required</th>
+        <th class="num">Available</th>
+        <th style="min-width: 10rem;">Coverage</th>
+        <th>Acquire via</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="group-row"><td colspan="5">Moon materials — R8/R64 reaction stack</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/16643/icon?size=32" alt="">Cadmium</td>
+        <td class="num qty">200</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — Caesarium Cadmide input</span></div></td>
+        <td class="muted">Moon mining / market · avg 3.8k isk</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/16647/icon?size=32" alt="">Caesium</td>
+        <td class="num qty">200</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0%</span></div></td>
+        <td class="muted">Moon mining / market · avg 4.1k isk</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/16642/icon?size=32" alt="">Vanadium</td>
+        <td class="num qty">200</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — Vanadium Hafnite input</span></div></td>
+        <td class="muted">Moon mining / market · avg 3.5k isk</td>
+      </tr>
+      <tr>
+        <td colspan="5" class="muted">+ 7 more R8/R64 types at zero — Hafnium ×200 · Platinum ×100 · Technetium ×100 · Mercury ×100 · Neodymium ×100 · Titanium ×100 · Chromium ×100</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Moon materials — top tier</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/11399/icon?size=32" alt="">Morphite</td>
+        <td class="num qty">100</td>
+        <td class="num">6</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 6%"></div></div><span class="meter-pct">6% — direct ammo input</span></div></td>
+        <td class="muted">Mercoxit mining / market · avg 1.6k isk</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">NPC market goods — no producer in the SDE</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/9830/icon?size=32" alt="">Rocket Fuel</td>
+        <td class="num qty">1,200</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — direct ammo input, 12 per run</span></div></td>
+        <td class="muted">NPC market · seeding verifies at M15</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">21 types fully covered — hidden in this view; "Show all 32 types" lists them (the R4 moon materials run 100× over: Evaporite Deposits 43k on hand against 300 needed; the ice/PI stack sits under fuel-block batches the hangar already covers — 448 Oxygen blocks against 40 needed). Datacores live in the invention plan. Market-average figures illustrative (M15 synced prices).</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The volume story's raw side is a <b>shopping list, not a mountain</b>:
+    eleven gap rows, none over 200 units, against the Typhoon's
+    millions-of-minutes mining bills. The interesting meter is the one
+    that isn't here — the <b>98-of-100 run pool</b> in the invention plan,
+    the availability surface previous chains never had.
+  </div>
+
+  <!-- Job allocation -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — wave 1</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Recommended installs per character, from synced skills and live slot occupancy — eligibility first. Reactions spread across the four Reactions-5 holders (one job per formula per character); blitzrage takes the copies and, with Graviton Physics 4, the component job to follow.</p>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    Fresh plan: every slot shows its recommended job or what it's waiting on.
+    For the in-progress variant (running jobs, residue banked, next-up
+    queues) see <a href="build-plan-active.html">build-plan-active.html</a>.
+    Every gate in this chain is held live — no simulated skills anywhere.
+  </div>
+
+  <!-- Octavia Arbitrage -->
+  <section class="char-card-jobs" style="margin-top: 1rem;">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124297138/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">Octavia Arbitrage</div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 0 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Reaction slots</div>
+    <div class="slot-grid">
+      <div class="slot ready">
+        <div class="slot-head">
+          <img class="type-icon" src="https://images.evetech.net/types/16658/icon?size=32" alt="">
+          <span class="slot-name">Reaction · Silicon Diborite</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">1 run of 200 · 3 h · Evaporite 100 + Silicates 100 + 5 Oxygen blocks · Amamake — Tatara</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install — inputs from stock</span>
+      </div>
+      <div class="slot ready">
+        <div class="slot-head">
+          <img class="type-icon" src="https://images.evetech.net/types/16663/icon?size=32" alt="">
+          <span class="slot-name">Reaction · Caesarium Cadmide</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">1 run of 200 · 3 h · Cadmium 100 + Caesium 100 <span style="color: var(--pink);">(to buy)</span> · 5 Oxygen blocks</span>
+        <span class="slot-meta">waiting on the moon-material purchase (day 0)</span>
+      </div>
+      <div class="slot idle">+ 1 more reaction here — Titanium Chromide</div>
+    </div>
+  </section>
+
+  <!-- blitzrage -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/1634367930/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">blitzrage <span class="badge owned" style="margin-left: 0.4rem;">Every gate held live</span></div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 0 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots (copy)</div>
+    <div class="slot-grid">
+      <div class="slot ready">
+        <div class="slot-head">
+          <img class="type-icon" src="https://images.evetech.net/types/26762/bp?size=32" alt="">
+          <span class="slot-name">Copy · Scourge HAM BPC #1</span>
+          <span class="activity-tag copy">copy</span>
+        </div>
+        <span class="slot-meta">1 run · 8 min · Amamake — own BPO, ME 10 / TE 20</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install</span>
+      </div>
+      <div class="slot idle">+ 3 more one-run copies — 32 min total</div>
+    </div>
+
+    <div class="slot-group-label">Science slots (invention — wave 2)</div>
+    <div class="slot-grid">
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>Invention · top-up attempt 1/4 — 1 BPC run · 1 + 1 datacores · 12.67 h · p 0.34</div>
+        <div class="next-up"><span class="next-label">then</span>Graviton Pulse Generator, 300 runs · 12.5 h — Graviton Physics 4</div>
+        <span class="slot-meta">both install with wave 2, once copies land (day 0.02)</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+</body>
+</html>

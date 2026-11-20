@@ -395,6 +395,22 @@ Two consequences worth stating outright:
   the conclusion. Consequence for process: every mockup section names
   its bucket, so "is this feature actually buildable?" is checkable
   at design time — a section with no bucket is a design bug.
+- **The planner targets commodities, not blueprints** (2026-11-20,
+  from the planner-entry review): search and target selection are the
+  **built commodity + unit count** — the defining request is "10
+  Trimark IIs" or "500,000 Rage missiles", never "run blueprint X N
+  times". The producer blueprint is a **derived input** the planner
+  identifies alongside materials and skills: run math
+  (⌈units ÷ products-per-run⌉) is computed, never asked, which removes
+  the run-count/unit-count ambiguity the blueprint-first framing
+  carried. Edge cases to design at M4: commodities with no producing
+  blueprint (raw materials, NPC goods) answer "market only" — a
+  feature, since buy-vs-build starts from the commodity; the rare
+  multi-producer commodity needs a disambiguation picker; "Match From
+  Inventory" filters to products buildable from owned blueprints.
+  Applied across every set's planner pages (the binding convention's
+  zero-re-orientation rule); build-plan pages were already
+  commodity-framed in their headers.
 
 ---
 

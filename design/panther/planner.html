@@ -46,34 +46,34 @@
   <!-- 1 · Search -->
   <section class="card overflow-visible" style="margin-top: 1.25rem;">
     <div class="card-body">
-      <h2>1 · Find a blueprint</h2>
-      <p class="card-sub">Search the SDE catalog (5,135 blueprints) or match only what the corp owns.</p>
+      <h2>1 · Find a target</h2>
+      <p class="card-sub">Search the buildable catalog (5,014 products) or match only what the corp can build from owned blueprints.</p>
 
       <div style="display: flex; gap: 0.75rem; align-items: flex-start; flex-wrap: wrap;">
         <div class="search-wrap">
-          <input class="search-input" type="text" value="panth" aria-label="Search blueprints">
+          <input class="search-input" type="text" value="panth" aria-label="Search targets">
           <div class="autocomplete">
             <div class="autocomplete-row active">
-              <img src="https://images.evetech.net/types/22441/bpc?size=32" alt="Panther Blueprint">
+              <img src="https://images.evetech.net/types/22440/icon?size=32" alt="Panther">
               <div>
-                <div class="ac-name">Panther Blueprint</div>
-                <div class="ac-sub">Manufacturing · Panther ×1/run · max 1 run/job · invented from Typhoon Blueprint</div>
+                <div class="ac-name">Panther</div>
+                <div class="ac-sub">Battleship · built from Panther Blueprint — 1/run · max 1 run/job · blueprint via invention from the Typhoon Blueprint</div>
               </div>
               <div class="ac-right">
-                <span class="badge missing">Not owned</span>
+                <span class="badge missing">Blueprint not owned</span>
               </div>
             </div>
             <div class="autocomplete-row">
-              <img src="https://images.evetech.net/types/998/bpc?size=32" alt="Typhoon Blueprint">
+              <img src="https://images.evetech.net/types/644/icon?size=32" alt="Typhoon">
               <div>
-                <div class="ac-name">Typhoon Blueprint</div>
-                <div class="ac-sub">Manufacturing · Typhoon ×1/run · max 10 runs/job · invention source for the Panther</div>
+                <div class="ac-name">Typhoon</div>
+                <div class="ac-sub">Battleship · built from Typhoon Blueprint — 1/run · max 10 runs/job · its blueprint is the Panther's invention source</div>
               </div>
               <div class="ac-right">
-                <span class="badge owned">Owned · BPC ×10</span>
+                <span class="badge owned">Blueprint owned · BPC ×10</span>
               </div>
             </div>
-            <div class="autocomplete-footer">2 matches · icons and ownership from the live blueprints table</div>
+            <div class="autocomplete-footer">2 matches · icons from the SDE mirror; blueprint ownership from the live blueprints table</div>
           </div>
         </div>
         <div>
@@ -83,13 +83,15 @@
 
       <div class="anno" style="margin-top: 7rem;">
         <span class="anno-label">wireframe</span>
-        Autocomplete lists every matching blueprint with its icon; an
-        <b>Owned</b> badge appears when a usable copy or original sits in the
-        inventory pool. The invention source surfaces in the sub-line —
-        selecting a T2 blueprint names the T1 blueprint it invents from. With
-        <b>Match From Inventory</b> on, results filter to owned blueprints
-        only — the Panther Blueprint is not owned, so it disappears under
-        that filter (its source, the Typhoon Blueprint, stays).
+        Commodity-first targeting (2026-11-20 decision of record): the
+        search and target are the <b>built commodity</b>; the producer
+        blueprint is a derived input. Autocomplete lists every matching
+        product with its icon and names its producer blueprint — selecting
+        a T2 product names the T1 blueprint it invents from. With <b>Match
+        From Inventory</b> on, results filter to products buildable from
+        owned blueprints — the Panther's blueprint is not owned, so it
+        disappears under that filter (the Typhoon, whose blueprint is
+        owned, stays).
       </div>
     </div>
   </section>
@@ -100,10 +102,10 @@
       <h2>2 · Target build</h2>
 
       <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-        <img class="type-icon-lg" src="https://images.evetech.net/types/22441/bpc?size=64" alt="Panther Blueprint">
+        <img class="type-icon-lg" src="https://images.evetech.net/types/22440/icon?size=64" alt="Panther">
         <div>
-          <div><b>Panther Blueprint</b> <span class="badge missing">Not owned — BPC via invention</span></div>
-          <div class="meta-line">Builds <img class="type-icon" src="https://images.evetech.net/types/22440/icon?size=32" alt=""> Panther ×1 per run · max 1 run per job · invented from <img class="type-icon" src="https://images.evetech.net/types/644/icon?size=32" alt=""> Typhoon Blueprint at 22%</div>
+          <div><b>Panther</b> <span class="badge missing">Blueprint not owned — BPC via invention</span></div>
+          <div class="meta-line">Built from <img class="type-icon" src="https://images.evetech.net/types/22441/bpc?size=32" alt=""> Panther Blueprint — 1 run at 1 per run · max 1 run per job · blueprint invented from <img class="type-icon" src="https://images.evetech.net/types/644/icon?size=32" alt=""> Typhoon Blueprint at 22%</div>
         </div>
         <div style="margin-left: auto; display: flex; gap: 0.75rem; align-items: center;">
           <span class="meta-line">Target count</span>

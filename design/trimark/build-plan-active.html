@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Plan — Large Trimark Armor Pump II ×10 — active — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/trimark/build-plan-active.html</div>
+</aside>
+
+<main class="content">
+  <div class="page-header">
+    <h1><img class="type-icon" style="width:32px;height:32px;" src="https://images.evetech.net/types/26302/icon?size=32" alt=""> Build Plan — Large Trimark Armor Pump II ×10</h1>
+    <div class="actions">
+      <span class="badge plan-state active">Active — day 1.2</span>
+      <span class="pool-picker">Pool
+        <select aria-label="Participant pool">
+          <option>Corp + included characters (8)</option>
+          <option>Corp members only (4)</option>
+        </select>
+      </span>
+      <button class="icon-button" type="button" title="Re-run planner" aria-label="Re-run planner">⟳</button>
+      <button class="icon-button" type="button" title="Export plan" aria-label="Export plan">⭳</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">1.9 d</p>
+      <p class="stat-label">Chain end — re-armed path (was 1.4 d expected; the 40% shortfall branch realized)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--cyan);">8 / 10</p>
+      <p class="stat-label">Invention successes — batch 1 complete at 8 (E was 10.2), batch 2 running at 82% on the remaining 2</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">8 BPCs</p>
+      <p class="stat-label">Held in hangar — manufacturing queued and phase-gated on batch 2</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">10 / 10</p>
+      <p class="stat-label">Salvage provisioned — 2 rigs' worth held while short (material residue)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">8 jobs</p>
+      <p class="stat-label">Running — batch 2 invention attempts across three inventors</p>
+    </div>
+  </div>
+
+  <!-- Wave progress -->
+  <div class="wave-bar">
+    <div class="wave-header">
+      <span class="wave-title">Wave progress — day 1.2 of 1.9 · 65%</span>
+      <button class="legend-tab" type="button">legend ‹</button>
+    </div>
+    <div class="wave-track">
+      <div class="wave-seg done" style="width: 34%;" title="W1 — 30 one-run copies + R.A.M. · day 0–0.63 · delivered day 0.63"></div>
+      <div class="wave-seg done" style="width: 15%;" title="W2 — invention batch 1: 30 attempts · day 0.63–0.9 · 8 successes · shortfall branch realized"></div>
+      <div class="wave-seg done" style="width: 9%;" title="Re-arm copy — 8 one-run BPCs on 2 corp BPOs · day 0.9–1.07"></div>
+      <div class="wave-seg current" style="width: 15%;" title="Invention batch 2 — 8 attempts, P(≥2) 82% · day 1.07–1.34 · running">
+        <div class="seg-fill" style="width: 48%;"></div>
+      </div>
+      <div class="wave-seg ahead" style="width: 28%;" title="W3 — 10 rig builds × 12.5 h · day 1.34–1.86 · gated on batch 2"></div>
+      <div class="now-line" style="left: 65%;"></div>
+      <div class="now-caption" style="left: 65%;">now · day 1.2</div>
+    </div>
+    <div class="wave-ticks">
+      <span class="tick" style="width: 34%;">W1 · copies</span>
+      <span class="tick" style="width: 15%;">W2 · inv 1</span>
+      <span class="tick" style="width: 9%;">re-arm</span>
+      <span class="tick" style="width: 15%;">inv 2</span>
+      <span class="tick tick-end" style="width: 28%;"><span>W3 · rig builds</span><span>100%</span></span>
+    </div>
+
+    <div class="anno" style="margin-top: 1.75rem;">
+      <span class="anno-label">wireframe</span>
+      The realized schedule diverges from the planned bar exactly as the
+      retry semantics predict: batch 1 landed 8 of 10 (a 26%-probability
+      outcome against E 10.2), and the loop inserted a re-arm copy wave
+      plus a second invention wave before the gated build phase. The
+      re-arm segments are <b>scheduled with cause</b> — visible, cancellable,
+      and attributable to the shortfall, never an invisible
+      auto-continuation.
+    </div>
+  </div>
+
+  <!-- Reverse product chain -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse product chain</h2>
+
+  <div class="chain-flow">
+    <div class="chain-phase">
+      <span class="phase-label">Phase 1</span>
+      <span class="phase-name">R.A.M.</span>
+      <span class="phase-meta">1 node · manufacturing</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state complete">✓ Stage complete</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 2</span>
+      <span class="phase-name">Trimark II ×10</span>
+      <span class="phase-meta">1 node · 10 jobs</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">BPCs pending — 8 of 10 held</span>
+      </div>
+    </div>
+  </div>
+
+  <details class="phase-row" open style="margin-top: 1rem;">
+    <summary>
+      <span class="phase-title">Phase 2 — Target</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">1 node · 10 jobs</span>
+      <span class="summary-right">
+        <span class="stage-state missing">BPCs pending — 8 of 10 held</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/26302/icon?size=32" alt="">
+        <span class="node-name">Large Trimark Armor Pump II</span>
+        <span class="node-qty">×10</span>
+        <span class="node-runs">0 of 10 runs delivered</span>
+        <span class="node-right">
+          <span class="badge bpc">8 of 10 BPCs held</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <span class="node-gating">Gated on invention batch 2 — the serial model holds all ten builds until the target lands (the edge is pipelining-eligible: each rig job needs only its own BPC + salvage, so 8 could run now — the M9 question). Salvage for all ten provisioned since day 0; 2 rigs' worth is material residue while short.</span>
+      </div>
+    </div>
+  </details>
+
+  <!-- Invention plan -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Invention plan — 8 of 10 successes · batch 2 running</h2>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Source</th>
+        <th class="num">Attempts</th>
+        <th>Outcome</th>
+        <th>Decryptor</th>
+        <th>Window</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/25895/bp?size=32" alt="">Large Trimark Armor Pump I BPC ×30</td>
+        <td class="num qty">30</td>
+        <td class="muted">8 succeeded (E was 10.2) · 22 failed · 8 T2 BPCs held · 90 + 90 datacores consumed</td>
+        <td class="muted">none — p 0.34</td>
+        <td class="muted">day 0.63 → 0.9</td>
+        <td><span class="stage-state complete">✓ Batch complete</span></td>
+      </tr>
+      <tr>
+        <td class="muted">batch 2 — re-armed</td>
+        <td class="num qty">8</td>
+        <td class="muted">2 successes short — batch sized to the remaining need at 82%</td>
+        <td class="muted">none — p 0.34 · escalation holds for the decision point</td>
+        <td class="muted">day 1.07 → 1.34</td>
+        <td><span class="stage-state missing">Running — 48%</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="loop-state">
+    <div class="loop-head">Target 10 successes · attempt budget 38 · successes counted from synced industry jobs</div>
+    <div class="loop-row">
+      <span class="loop-label">successes</span>
+      <div class="loop-meter"><div class="loop-fill short" style="width: 80%;"></div></div>
+      <span class="loop-frac">8 / 10</span>
+    </div>
+    <div class="loop-row">
+      <span class="loop-label">attempts</span>
+      <div class="loop-meter"><div class="loop-fill" style="width: 79%;"></div></div>
+      <span class="loop-frac">30 of 38 budget</span>
+    </div>
+    <div class="loop-rearm">
+      ⚠ 2 short after batch 1 — batch 2 re-armed, installs day 1.07:
+      8 attempts · P(≥ 2 remaining) 82% · no decryptor (p 0.34) ·
+      +8 source-BPC runs → 8 copy jobs added (4 h on 2 corp BPOs)
+    </div>
+    <div class="loop-held">
+      held while short: 2 rigs' salvage + R.A.M. (material residue) ·
+      8 T2 BPCs in hangar (manufacturing queued, phase-gated)
+    </div>
+  </div>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">Batch 1 landed below its expectation — 8 successes from 30 attempts against E 10.2, a 26%-probability outcome — which is precisely the branch the re-arm exists for. The binomial is memoryless: batch 2's 8 attempts carry the same 34% each, sized so P(≥ 2) reaches 82%. If batch 2 also falls short, the plan blocks at the budget ceiling with the owner decision — extend, escalate decryptor, buy BPCs, or descope to 8 rigs.</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The loop-state card is the retry-semantics surface: progress meters
+    for successes and attempt budget, the re-arm with its cause, and
+    both residue directions while short. The <b>decision point fires
+    only at budget exhaustion</b> — mid-loop there is nothing to decide,
+    the default policy is simply running. A blocked card would replace
+    the re-arm line with the four owner options (extend · escalate ·
+    buy BPCs · descope); spend never auto-escalates. Successes are read
+    from completed industry jobs in the synced jobs table — actuals
+    against expectation, never a deterministic promise.
+  </div>
+
+  <!-- Blueprint copy plan -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Blueprint copy plan — invention inputs</h2>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Commodity</th>
+        <th class="num">BPCs</th>
+        <th>Run counts</th>
+        <th class="num">Copy time</th>
+        <th>Delivered</th>
+        <th>Source</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/25895/bp?size=32" alt="">Large Trimark Armor Pump I Blueprint</td>
+        <td class="num qty">30</td>
+        <td>30 × 1 run</td>
+        <td class="num">15 h</td>
+        <td class="muted">day 0.63 — batch 1's pool</td>
+        <td class="muted">Corp BPO ×2 · ME 10 / TE 20 · Amamake</td>
+      </tr>
+      <tr>
+        <td class="muted">re-arm</td>
+        <td class="num qty">8</td>
+        <td>8 × 1 run</td>
+        <td class="num">4 h</td>
+        <td class="muted">day 1.07 — batch 2's pool</td>
+        <td class="muted">same BPOs — the loop re-arms copying too</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">38 of the corporation's 130-run BPC pool would have covered both batches without a single copy job — the from-zero chain models the copies so the shape exists; live, this phase would have zeroed at plan time. The re-arm's 8 copy jobs are the copy layer responding to the invention loop: the destination is the same (Copy → Invention), the demand is event-driven.</p>
+
+  <!-- Raw materials -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Raw materials — acquisition</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Abbreviated to the rows that moved since the fresh view. The salvage stack was bought to fill before wave 3; datacores are consumed per batch.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Material</th>
+        <th class="num">Required</th>
+        <th class="num">Available</th>
+        <th style="min-width: 10rem;">Coverage</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/25620/icon?size=32" alt="">Interface Circuit</td>
+        <td class="num qty">230</td>
+        <td class="num">230</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill" style="width: 100%"></div></div><span class="meter-pct">100% — held for phase 2</span></div></td>
+        <td class="muted">delivered day 0.4 — 46 units per rig × 2 held as residue while short</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/20416/icon?size=32" alt="">Datacore - Nanite Engineering</td>
+        <td class="num qty">114</td>
+        <td class="num">24</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 21%"></div></div><span class="meter-pct">21% — consumed per batch</span></div></td>
+        <td class="muted">90 consumed by batch 1 · 24 by batch 2 · stock was 21 + 93 bought</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/20171/icon?size=32" alt="">Datacore - Hydromagnetic Physics</td>
+        <td class="num qty">114</td>
+        <td class="num">30</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 26%"></div></div><span class="meter-pct">26% — consumed per batch</span></div></td>
+        <td class="muted">90 consumed by batch 1 · 24 by batch 2 · stock was 30 + 84 bought</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Job allocation -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — in flight</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Batch 2's eight attempts run across the three inventors (simulated Amarr Encryption); the build wave queues next on the Armor Rigging holders.</p>
+
+  <!-- blitzrage -->
+  <section class="char-card-jobs" style="margin-top: 1rem;">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/1634367930/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">blitzrage <span class="badge bpc" style="margin-left: 0.4rem;">Inventor (simulated Amarr Encryption)</span></div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 3 science in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Science slots (invention — batch 2)</div>
+    <div class="slot-grid">
+      <div class="slot running">
+        <div class="slot-head">
+          <img class="type-icon" src="https://images.evetech.net/types/25895/bp?size=32" alt="">
+          <span class="slot-name">Invention · attempt 1/3 here</span>
+          <span class="activity-tag inv">invention</span>
+        </div>
+        <span class="slot-meta">1 BPC run · 3 + 3 datacores · p 0.34 · Amamake</span>
+        <div class="meter"><div class="meter-fill" style="width: 48%;"></div></div>
+        <span class="slot-meta">3.1 h to completion · batch 2 of 2</span>
+      </div>
+      <div class="slot idle">+ 2 more attempts here</div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots — next up</div>
+    <div class="slot-grid">
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>Trimark II build 1/4 here — 12.5 h · needs Armor Rigging 3 (held: 4)</div>
+        <div class="next-up"><span class="next-label">then</span>+ 3 more rig builds — gated on batch 2 (day 1.34)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- schlepzrage -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124139810/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">schlepzrage</div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 3 science in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Science slots (invention — batch 2)</div>
+    <div class="slot-grid">
+      <div class="slot running">
+        <div class="slot-head">
+          <img class="type-icon" src="https://images.evetech.net/types/25895/bp?size=32" alt="">
+          <span class="slot-name">Invention · attempt 1/3 here</span>
+          <span class="activity-tag inv">invention</span>
+        </div>
+        <span class="slot-meta">1 BPC run · 3 + 3 datacores · p 0.34 · Amamake</span>
+        <div class="meter"><div class="meter-fill" style="width: 48%;"></div></div>
+        <span class="slot-meta">3.1 h to completion</span>
+      </div>
+      <div class="slot idle">+ 2 more attempts here · copy pairs complete — BPOs idle</div>
+    </div>
+  </section>
+</main>
+
+</body>
+</html>

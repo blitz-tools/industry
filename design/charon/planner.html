@@ -46,24 +46,24 @@
   <!-- 1 · Search -->
   <section class="card overflow-visible" style="margin-top: 1.25rem;">
     <div class="card-body">
-      <h2>1 · Find a blueprint</h2>
-      <p class="card-sub">Search the SDE catalog (5,135 blueprints) or match only what the corp owns.</p>
+      <h2>1 · Find a target</h2>
+      <p class="card-sub">Search the buildable catalog (5,014 products) or match only what the corp can build from owned blueprints.</p>
 
       <div style="display: flex; gap: 0.75rem; align-items: flex-start; flex-wrap: wrap;">
         <div class="search-wrap">
-          <input class="search-input" type="text" value="charo" aria-label="Search blueprints">
+          <input class="search-input" type="text" value="charo" aria-label="Search targets">
           <div class="autocomplete">
             <div class="autocomplete-row active">
-              <img src="https://images.evetech.net/types/20186/bpc?size=32" alt="Charon Blueprint">
+              <img src="https://images.evetech.net/types/20185/icon?size=32" alt="Charon">
               <div>
-                <div class="ac-name">Charon Blueprint</div>
-                <div class="ac-sub">Manufacturing · Charon ×1/run · max 1 run/job</div>
+                <div class="ac-name">Charon</div>
+                <div class="ac-sub">Freighter · built from Charon Blueprint — 1/run · max 1 run/job</div>
               </div>
               <div class="ac-right">
-                <span class="badge missing">Not owned</span>
+                <span class="badge missing">Blueprint not owned</span>
               </div>
             </div>
-            <div class="autocomplete-footer">1 match · icons and ownership from the live blueprints table</div>
+            <div class="autocomplete-footer">1 match · icons from the SDE mirror; blueprint ownership from the live blueprints table</div>
           </div>
         </div>
         <div>
@@ -73,11 +73,15 @@
 
       <div class="anno" style="margin-top: 7rem;">
         <span class="anno-label">wireframe</span>
-        Autocomplete lists every matching blueprint with its icon; an
-        <b>Owned</b> badge appears when a usable copy or original sits in the
-        inventory pool. With <b>Match From Inventory</b> on, results filter to
-        owned blueprints only — the Charon Blueprint is not owned, so it
-        disappears under that filter. Dropdown height caps with scroll.
+        Commodity-first targeting (2026-11-20 decision of record): the
+        search and target are the <b>built commodity</b>; the producer
+        blueprint is a derived input. Autocomplete lists every matching
+        product with its icon and names its producer blueprint; an
+        <b>Owned</b> badge appears when a usable blueprint sits in the
+        inventory pool. With <b>Match From Inventory</b> on, results filter
+        to products buildable from owned blueprints — the Charon's
+        blueprint is not owned, so it disappears under that filter.
+        Dropdown height caps with scroll.
       </div>
     </div>
   </section>
@@ -88,10 +92,10 @@
       <h2>2 · Target build</h2>
 
       <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-        <img class="type-icon-lg" src="https://images.evetech.net/types/20186/bpc?size=64" alt="Charon Blueprint">
+        <img class="type-icon-lg" src="https://images.evetech.net/types/20185/icon?size=64" alt="Charon">
         <div>
-          <div><b>Charon Blueprint</b> <span class="badge missing">Not owned — BPC via contract</span></div>
-          <div class="meta-line">Builds <img class="type-icon" src="https://images.evetech.net/types/20185/icon?size=32" alt=""> Charon ×1 per run · max 1 run per job</div>
+          <div><b>Charon</b> <span class="badge missing">Blueprint not owned — BPC via contract</span></div>
+          <div class="meta-line">Built from <img class="type-icon" src="https://images.evetech.net/types/20186/bpc?size=32" alt=""> Charon Blueprint — 1 run at 1 per run · max 1 run per job</div>
         </div>
         <div style="margin-left: auto; display: flex; gap: 0.75rem; align-items: center;">
           <span class="meta-line">Target count</span>

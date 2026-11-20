@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Planner — Scourge Rage Heavy Assault Missile — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/rage/planner.html</div>
+</aside>
+
+<main class="content">
+  <h1>Build Planner</h1>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    Both search states are shown stacked — typing state above, selected state
+    below. In the real page the dropdown closes on selection and the rest of
+    the form appears.
+  </div>
+
+  <!-- 1 · Search -->
+  <section class="card overflow-visible" style="margin-top: 1.25rem;">
+    <div class="card-body">
+      <h2>1 · Find a target</h2>
+      <p class="card-sub">Search the buildable catalog (5,014 products) or match only what the corp can build from owned blueprints.</p>
+
+      <div style="display: flex; gap: 0.75rem; align-items: flex-start; flex-wrap: wrap;">
+        <div class="search-wrap">
+          <input class="search-input" type="text" value="scourge rage" aria-label="Search targets">
+          <div class="autocomplete">
+            <div class="autocomplete-row active">
+              <img src="https://images.evetech.net/types/2679/icon?size=32" alt="Scourge Rage Heavy Assault Missile">
+              <div>
+                <div class="ac-name">Scourge Rage Heavy Assault Missile</div>
+                <div class="ac-sub">Ammo · built from Scourge Rage HAM Blueprint — 5,000/run · max 10 runs/job · blueprint via invention at 34% (10 runs per success)</div>
+              </div>
+              <div class="ac-right">
+                <span class="badge owned">7 blueprint copies owned</span>
+              </div>
+            </div>
+            <div class="autocomplete-footer">1 match · icons from the SDE mirror; blueprint ownership from the live blueprints table</div>
+          </div>
+        </div>
+        <div>
+          <button class="chip-button selected" type="button">Match From Inventory</button>
+        </div>
+      </div>
+
+      <div class="anno" style="margin-top: 5rem;">
+        <span class="anno-label">wireframe</span>
+        Commodity-first targeting (2026-11-20 decision of record): the
+        search and target are the <b>built commodity</b>; the producer
+        blueprint is a derived input. This is the first invented
+        blueprint in the program that <b>survives Match From
+        Inventory</b> — seven owned copies — and the sub-line carries
+        the volume signature (5,000 missiles per run) plus the T2 ammo
+        twist: <b>alternative products</b> — the same invention recipe
+        also yields the Javelin variant's blueprint at its own 34%.
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · Target -->
+  <section class="card">
+    <div class="card-body">
+      <h2>2 · Target build</h2>
+
+      <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <img class="type-icon-lg" src="https://images.evetech.net/types/2679/icon?size=64" alt="Scourge Rage Heavy Assault Missile">
+        <div>
+          <div><b>Scourge Rage Heavy Assault Missile</b> <span class="badge bpc">Blueprint pool: 7 copies · 98 runs · ME 1 / TE 8</span></div>
+          <div class="meta-line">Built from <img class="type-icon" src="https://images.evetech.net/types/2680/bpc?size=32" alt=""> Scourge Rage HAM Blueprint — 100 runs at 5,000 per run · max 10 runs/job · blueprint invented from <img class="type-icon" src="https://images.evetech.net/types/26762/bp?size=32" alt=""> Scourge Heavy Assault Missile Blueprint at 34% (10 runs per success)</div>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 0.75rem; align-items: center;">
+          <span class="meta-line">Target count</span>
+          <div class="stepper">
+            <button type="button" aria-label="Decrease">−</button>
+            <span class="stepper-value">500,000</span>
+            <button type="button" aria-label="Increase">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        The first target whose unit count outruns its run count by three
+        orders of magnitude — 500,000 missiles is <b>100 runs × 5,000</b>,
+        and every surface below frames per-run, not per-unit. Against the
+        owned 98-run pool the plan is a <b>2-run top-up</b>: one invention
+        success (10 runs) over-delivers by 8.
+      </div>
+
+      <hr class="divider">
+
+      <h2 style="font-size: 0.95rem;">Requirements at target ×500,000</h2>
+      <p class="card-sub">The full chain for 100 runs, resolved at selection — quantities track the target stepper live. Calculate schedules the plan (phases, waves, allocation, copy sizing, top-up invention); nothing here waits for it.</p>
+
+      <!-- Tier 0: invention inputs (run-pool flavor) -->
+      <details class="phase-row" open>
+        <summary>
+          <span class="phase-title">Invention inputs</span>
+          <span class="phase-count">source BPC · 2 datacores · sibling roll</span>
+          <span class="summary-right">
+            <span class="stage-state ready">98-run pool · top-up 1 success</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <tbody>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/2680/bpc?size=32" alt="">Scourge Rage Heavy Assault Missile Blueprint — owned pool</td>
+                <td class="muted">98 runs of 100 needed (7 copies × 14) · shortfall 2 runs → <b>one success tops up</b>, over-delivering 8 spare runs</td>
+                <td><span class="badge owned">98 / 100</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/26762/bp?size=32" alt="">Scourge Heavy Assault Missile Blueprint</td>
+                <td class="muted">1 run consumed per attempt · expected 2.94 attempts for one success · BPC count = parallelism (copies: 8 min/run on the one BPO)</td>
+                <td><span class="badge owned">586-run pool</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/20418/icon?size=32" alt="">Datacore - Electronic Engineering</td>
+                <td class="muted">1 per attempt · expected ≈3 for one success</td>
+                <td><span class="badge owned">29 on hand</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/20420/icon?size=32" alt="">Datacore - Rocket Science</td>
+                <td class="muted">1 per attempt · expected ≈3 for one success</td>
+                <td><span class="badge owned">4 on hand</span></td>
+              </tr>
+              <tr>
+                <td colspan="3" class="muted"><b>Alternative products</b> — the same attempt recipe carries the Scourge Javelin HAM Blueprint at its own 34%: sibling rolls, not the T3 grade mechanism. Whether a sibling success is by-product or miss (and whether both land on one attempt) is an M8 pin — 8,595 Javelin missiles already in inventory say by-products happen. Decryptor: a T2 slot exists; the owned BPCs' 14 runs / ME 1 / TE 8 match <b>base 10 runs / ME 2 / TE 4 + Attainment</b> exactly — the live line ran Attainment.</td>
+              </tr>
+              <tr>
+                <td colspan="3" class="muted">Skills — Electronic Engineering 1 · Rocket Science 1 · Caldari Encryption Methods 1, all genuinely held by blitzrage. <b>No simulation anywhere in this chain</b> — the first since the Typhoon whose every gate is live.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 1: blueprints -->
+      <details class="phase-row" open>
+        <summary>
+          <span class="phase-title">Blueprints</span>
+          <span class="phase-count">15 entries</span>
+          <span class="summary-right">
+            <span class="stage-state missing">11 missing — shopping list</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <tbody>
+              <tr class="group-row"><td colspan="3">Owned — the live T2 ammo line (blitzrage)</td></tr>
+              <tr>
+                <td colspan="3" class="muted">Scourge Rage HAM Blueprint ×7 BPCs (14 runs, ME 1 / TE 8 — the invented pool) · Scourge HAM Blueprint — 1 original (ME 10 / TE 20) + 3 copies (192 / 195 / 199 runs)</td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Owned — corporation</td></tr>
+              <tr>
+                <td colspan="3" class="muted">Sulfuric Acid Reaction Formula (1 of 10 needed formulas) · Oxygen / Nitrogen / Helium Fuel Block BPCs + Hydrogen originals — moot while block stock covers the reaction fuel</td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Missing — 2 NPC-seeded originals (no producer in the SDE)</td></tr>
+              <tr>
+                <td colspan="3" class="muted">Graviton Pulse Generator Blueprint · R.A.M.- Ammunition Tech Blueprint — cheap market originals (the Panther chain's third acquisition path)</td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Missing — 9 reaction formulas, cheap originals</td></tr>
+              <tr>
+                <td colspan="3" class="muted">Phenolic Composites · Nanotransistors · Silicon Diborite · Caesarium Cadmide · Vanadium Hafnite · Titanium Carbide · Titanium Chromide · Platinum Technite · Neo Mercurite — the whole reaction stack below the deliverable</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 2: intermediates -->
+      <details class="phase-row">
+        <summary>
+          <span class="phase-title">Intermediates</span>
+          <span class="phase-count">12 types · 4 buildable phases</span>
+          <span class="summary-right">
+            <span class="stage-state missing">R8/R64-gated reactions</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <thead>
+              <tr>
+                <th>Phase</th>
+                <th>Intermediates</th>
+                <th class="num">Types</th>
+                <th>Notable</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="muted">5 — target</td>
+                <td class="muted">Scourge Rage HAM</td>
+                <td class="num">1</td>
+                <td class="muted">100 runs × 2.67 h — 15 jobs on 8 BPCs (job-lock), two rounds</td>
+              </tr>
+              <tr>
+                <td class="muted">4 — component + direct inputs</td>
+                <td class="muted">Graviton Pulse Generator · R.A.M. · Phenolic Composites (direct batch)</td>
+                <td class="num">3</td>
+                <td class="muted">GPG: 300 runs × 2.5 min = 12.5 h, one job (maxPL 4,000), needs Graviton Physics 3 (blitzrage holds 4) · direct Phenolic 1,200 rides its own reaction run</td>
+              </tr>
+              <tr>
+                <td class="muted">3 — second-tier reactions + repeats</td>
+                <td class="muted">Phenolic Composites (GPG batch) · Nanotransistors · Titanium Carbide + SiD / CaeC / VanH repeats</td>
+                <td class="num">6</td>
+                <td class="muted">reactions 3 h/run — batch over-delivery: Phenolic 4,400 made vs 3,300 needed, Titanium Carbide 10,000 vs 6,600 · the first-tier repeats are the recurring-commodity pattern</td>
+              </tr>
+              <tr>
+                <td class="muted">2 — first-tier reactions</td>
+                <td class="muted">SiD · CaeC · VanH · TitCh · SulA · PlaT · NeoM</td>
+                <td class="num">7</td>
+                <td class="muted">each one 3 h run off R4/R8 moon pairs — SiD / CaeC / VanH recur at phase 3 for the deeper consumers</td>
+              </tr>
+              <tr>
+                <td class="muted">1 — fuel blocks</td>
+                <td class="muted">Four fuel types</td>
+                <td class="num">4</td>
+                <td class="muted">collapse to stock (448 Oxygen blocks on hand vs 40 needed) — the ice/PI subtree never runs</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 3: raw materials -->
+      <details class="phase-row">
+        <summary>
+          <span class="phase-title">Raw materials</span>
+          <span class="phase-count">32 types</span>
+          <span class="summary-right">
+            <span class="stage-state missing">11 at zero — R8/R64 stack</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th class="num">Types</th>
+                <th>Largest requirement</th>
+                <th>Gaps</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Moon materials</td>
+                <td class="num">14</td>
+                <td class="muted">Evaporite Deposits 300 · Silicates 200 · R8 pairs 200 each</td>
+                <td class="muted"><span style="color: var(--pink);">10 R8/R64 types at zero</span> (Cadmium · Caesium · Vanadium · Hafnium · Platinum · Technetium · Mercury · Neodymium · Titanium · Chromium) · <span style="color: var(--pink);">Morphite 6 of 100</span> — R4s covered 100×</td>
+              </tr>
+              <tr>
+                <td>NPC market goods</td>
+                <td class="num">1</td>
+                <td class="muted">Rocket Fuel 1,200</td>
+                <td class="muted"><span style="color: var(--pink);">0 on hand</span> — no producer in the SDE, NPC-seeded</td>
+              </tr>
+              <tr>
+                <td>Minerals</td>
+                <td class="num">5</td>
+                <td class="muted">Tritanium 556</td>
+                <td class="muted">covered — R.A.M. bill only</td>
+              </tr>
+              <tr>
+                <td>PI commodities · ice products</td>
+                <td class="num">12</td>
+                <td class="muted">Liquid Ozone 2,800 · Oxygen Isotopes 1,350</td>
+                <td class="muted">covered — under the fuel-block subtree that stock collapses</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        The requirement overview inverts the Jackdaw's raw story: the R4
+        moon materials and the entire ice/PI stack are covered by existing
+        stock, while <b>the R8/R64 reaction stack starts at zero</b> — the
+        acquisition story is a shopping list (10 moon types + Rocket Fuel +
+        11 blueprints), not site drops. Recurring commodity: Phenolic
+        Composites appears at two phase depths (direct to the ammo and
+        into the component) — the merged-campaign question.
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Invention summary (owned-copies overlay slot) -->
+  <section class="card">
+    <div class="card-body">
+      <h2>3 · Scourge Rage HAM Blueprint — 98-run pool, top-up summary</h2>
+      <p class="card-sub">The owned-copies overlay is the run pool itself: plan need (100 runs) against owned invented-BPC runs (98), with the 2-run shortfall routed to the invention layer at a confidence target — the inverse of the Panther, where invention was the whole acquisition story.</p>
+
+      <table class="asset-table">
+        <thead>
+          <tr>
+            <th>Attempts bought</th>
+            <th class="num">P(≥1 Rage success)</th>
+            <th class="num">E[Rage runs]</th>
+            <th class="num">E[Javelin siblings]</th>
+            <th>Pool after</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>3</td>
+            <td class="num qty">71%</td>
+            <td class="num qty">1.0</td>
+            <td class="num qty">1.0</td>
+            <td class="muted">108 runs · 8 spare</td>
+          </tr>
+          <tr>
+            <td><span class="muted">4</span> <span class="muted">(selected)</span></td>
+            <td class="num qty">81%</td>
+            <td class="num qty">1.4</td>
+            <td class="num qty">1.4</td>
+            <td class="muted">108 runs · 8 spare</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td class="num qty">95%</td>
+            <td class="num qty">2.4</td>
+            <td class="num qty">2.4</td>
+            <td class="muted">118 runs · 18 spare</td>
+          </tr>
+          <tr>
+            <td colspan="5"><span class="muted">Recipe: 1 + 1 datacores · 1 source-BPC run · 12.67 h per attempt · skills 1/1/1 (all held). One success delivers a 10-run BPC against the 2-run shortfall — </span><b>over-delivery is the expected shape</b><span class="muted">, and the surplus 8 runs are BPC residue: banked on the owned pool for future plans, never inflating this target. Each attempt also rolls the Javelin sibling at its own 34% — at n = 4 the plan expects ≈1.4 sibling successes (≈14 Javelin runs ≈ 70,000 missiles of by-product), joining the 8,595 Javelins already in inventory.</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        All numbers real: probabilities, runs, recipe, and durations from
+        the SDE mirror; the pool, datacores, and Javelin inventory from
+        the live tables (2026-11-20 — 98-run pool, datacores 29 + 4
+        against 4 + 4 at the selected batch, 8,595 Javelins held). The
+        top-up is a replenishment loop like the Trimark's, shrunk to one
+        success: batch, count from synced jobs, re-arm on shortfall —
+        and residue in both directions. The live-BPC reconciliation
+        (base 10 / ME 2 / TE 4 + Attainment) is the M8 evidence this
+        set carries.
+      </div>
+    </div>
+  </section>
+
+  <!-- Calculate bar -->
+  <section class="card">
+    <div class="card-body" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+      <div class="meta-line">
+        Scourge Rage HAM ×500,000 (100 runs) · 15 blueprint entries (11 missing) · 12 intermediates · 32 raw types (11 at zero) · 98-run pool — Calculate schedules the plan
+      </div>
+      <button class="primary" type="button">Calculate</button>
+    </div>
+  </section>
+
+  <p class="meta-line" style="margin-top: 1rem;">
+    Calculate resolves the full reverse chain and opens the build plan →
+    <a href="build-plan.html">build-plan.html</a> (fresh) ·
+    <a href="build-plan-active.html">build-plan-active.html</a> (mid-flight)
+  </p>
+</main>
+
+</body>
+</html>
