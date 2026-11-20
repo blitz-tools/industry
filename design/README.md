@@ -9,6 +9,7 @@ document it visualizes. Shared styles and components live in
 |---|---|
 | `typhoon/` | planner → build plan → active plan — the **reference standard** |
 | `charon/` | planner → build plan → active plan (capital stress test) |
+| `panther/` | planner → build plan → active plan (invention set) |
 
 These are design artifacts for iteration, **not** app code: no build
 step, no JS, nothing wired to the FastAPI app. They are deliberately

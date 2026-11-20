@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Planner — Panther — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/panther/planner.html</div>
+</aside>
+
+<main class="content">
+  <h1>Build Planner</h1>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    Both search states are shown stacked — typing state above, selected state
+    below. In the real page the dropdown closes on selection and the rest of
+    the form appears.
+  </div>
+
+  <!-- 1 · Search -->
+  <section class="card overflow-visible" style="margin-top: 1.25rem;">
+    <div class="card-body">
+      <h2>1 · Find a blueprint</h2>
+      <p class="card-sub">Search the SDE catalog (5,135 blueprints) or match only what the corp owns.</p>
+
+      <div style="display: flex; gap: 0.75rem; align-items: flex-start; flex-wrap: wrap;">
+        <div class="search-wrap">
+          <input class="search-input" type="text" value="panth" aria-label="Search blueprints">
+          <div class="autocomplete">
+            <div class="autocomplete-row active">
+              <img src="https://images.evetech.net/types/22441/bpc?size=32" alt="Panther Blueprint">
+              <div>
+                <div class="ac-name">Panther Blueprint</div>
+                <div class="ac-sub">Manufacturing · Panther ×1/run · max 1 run/job · invented from Typhoon Blueprint</div>
+              </div>
+              <div class="ac-right">
+                <span class="badge missing">Not owned</span>
+              </div>
+            </div>
+            <div class="autocomplete-row">
+              <img src="https://images.evetech.net/types/998/bpc?size=32" alt="Typhoon Blueprint">
+              <div>
+                <div class="ac-name">Typhoon Blueprint</div>
+                <div class="ac-sub">Manufacturing · Typhoon ×1/run · max 10 runs/job · invention source for the Panther</div>
+              </div>
+              <div class="ac-right">
+                <span class="badge owned">Owned · BPC ×10</span>
+              </div>
+            </div>
+            <div class="autocomplete-footer">2 matches · icons and ownership from the live blueprints table</div>
+          </div>
+        </div>
+        <div>
+          <button class="chip-button" type="button">Match From Inventory</button>
+        </div>
+      </div>
+
+      <div class="anno" style="margin-top: 7rem;">
+        <span class="anno-label">wireframe</span>
+        Autocomplete lists every matching blueprint with its icon; an
+        <b>Owned</b> badge appears when a usable copy or original sits in the
+        inventory pool. The invention source surfaces in the sub-line —
+        selecting a T2 blueprint names the T1 blueprint it invents from. With
+        <b>Match From Inventory</b> on, results filter to owned blueprints
+        only — the Panther Blueprint is not owned, so it disappears under
+        that filter (its source, the Typhoon Blueprint, stays).
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · Target -->
+  <section class="card">
+    <div class="card-body">
+      <h2>2 · Target build</h2>
+
+      <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <img class="type-icon-lg" src="https://images.evetech.net/types/22441/bpc?size=64" alt="Panther Blueprint">
+        <div>
+          <div><b>Panther Blueprint</b> <span class="badge missing">Not owned — BPC via invention</span></div>
+          <div class="meta-line">Builds <img class="type-icon" src="https://images.evetech.net/types/22440/icon?size=32" alt=""> Panther ×1 per run · max 1 run per job · invented from <img class="type-icon" src="https://images.evetech.net/types/644/icon?size=32" alt=""> Typhoon Blueprint at 22%</div>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 0.75rem; align-items: center;">
+          <span class="meta-line">Target count</span>
+          <div class="stepper">
+            <button type="button" aria-label="Decrease">−</button>
+            <span class="stepper-value">1</span>
+            <button type="button" aria-label="Increase">+</button>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <h2 style="font-size: 0.95rem;">Requirements at target ×1</h2>
+      <p class="card-sub">The full chain for one build, resolved at selection — quantities track the target stepper live. Calculate schedules the plan (phases, waves, allocation, invention plan, copy plan); nothing here waits for it.</p>
+
+      <!-- Tier 0: invention inputs -->
+      <details class="phase-row" open>
+        <summary>
+          <span class="phase-title">Invention inputs</span>
+          <span class="phase-count">source BPC · 2 datacores · decryptor</span>
+          <span class="summary-right">
+            <span class="stage-state missing">datacore gap · sole inventor</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <tbody>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/998/bpc?size=32" alt="">Typhoon Blueprint (source)</td>
+                <td class="muted">1 run consumed per attempt · 10 BPCs / 52 runs in pool — ≈11 expected successes of fuel</td>
+                <td><span class="badge owned">Owned · BPC ×10</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/20172/icon?size=32" alt="">Datacore - Minmatar Starship Engineering</td>
+                <td class="muted">32 per attempt · expected ≈145 per success</td>
+                <td><span class="badge missing">53 on hand</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/20411/icon?size=32" alt="">Datacore - High Energy Physics</td>
+                <td class="muted">32 per attempt · expected ≈145 per success</td>
+                <td><span class="badge missing">11 on hand</span></td>
+              </tr>
+              <tr>
+                <td colspan="3" class="muted">Decryptor — optional modifier to probability / ME (Material Efficiency) / TE (Time Efficiency) / runs. Selection lands on the <b>calculated plan</b>, not here: all eight ship decryptors are held in stock.</td>
+              </tr>
+              <tr>
+                <td colspan="3" class="muted">Skills — High Energy Physics · Minmatar Starship Engineering · Minmatar Encryption Methods: <span style="color: var(--pink);">only blitzrage holds all three</span> (4 / 4 / 1); invention jobs serialize onto one character</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 1: blueprints -->
+      <details class="phase-row" open>
+        <summary>
+          <span class="phase-title">Blueprints</span>
+          <span class="phase-count">48 types</span>
+          <span class="summary-right">
+            <span class="stage-state missing">33 missing — three acquisition paths</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <tbody>
+              <tr class="group-row"><td colspan="3">Target — invented</td></tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/22441/bpc?size=32" alt="">Panther Blueprint</td>
+                <td class="muted">invented from the Typhoon Blueprint at 22% — see the invention tier above</td>
+                <td><span class="badge missing">Invent</span></td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Missing — 9 manufacturing BPOs (NPC-seeded originals)</td></tr>
+              <tr>
+                <td colspan="3" class="muted">7 T2 component BPOs (Plasma Thruster · Nanomechanical Microprocessor · Fernite Carbide Composite Armor Plate · Ladar Sensor Cluster · Nuclear Reactor Unit · Deflection Shield Emitter · Electrolytic Capacitor Unit) + Capital Jump Drive + R.A.M.- Starship Tech — no producer in the SDE (Static Data Export); cheap originals bought on the market, never contracted BPCs</td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Missing — 23 reaction formulas</td></tr>
+              <tr>
+                <td colspan="3" class="muted">The T2 advanced-reaction stack: Fernite Carbide · Sylramic Fibers · Fullerides · Phenolic Composites · Nanotransistors · Hypersynaptic Fibers · Ferrogel · Fermionic Condensates · Plasmonic Metamaterials + 14 simpler formulas (BPOs, cheap originals off market)</td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Owned — 15 (the Typhoon world carries over intact)</td></tr>
+              <tr>
+                <td colspan="3" class="muted">Typhoon BPCs ×10 (52 runs) · AIPS (Auto-Integrity Preservation Seal) BPO ×22 · LSBU (Life Support Backup Unit) BPO ×28 · CTR (Core Temperature Regulator) BPO ×34 · 4 fuel-block sets · 7 R4 reaction formulas</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 2: intermediates -->
+      <details class="phase-row">
+        <summary>
+          <span class="phase-title">Intermediates</span>
+          <span class="phase-count">62 types · 6 phases</span>
+          <span class="summary-right">
+            <span class="stage-state missing">23 formula-gated nodes</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <thead>
+              <tr>
+                <th>Phase</th>
+                <th>Intermediates</th>
+                <th class="num">Types</th>
+                <th>Notable</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="muted">6 — target</td>
+                <td class="muted">Panther</td>
+                <td class="num">1</td>
+                <td class="muted">100 h build · needs Capital Ship Construction — Octavia qualifies</td>
+              </tr>
+              <tr>
+                <td class="muted">5 — hull + T2 components</td>
+                <td class="muted">Typhoon hull · 7 T2 components · Capital Jump Drive · R.A.M.</td>
+                <td class="num">11</td>
+                <td class="muted">Armor Plate ×18,750 (one 130 h max-run job) · Microprocessor ×6,300 · the whole Typhoon chain rides under the hull node</td>
+              </tr>
+              <tr>
+                <td class="muted">4 — advanced materials + T1 components</td>
+                <td class="muted">10 advanced reaction products + AIPS / CTR / LSBU</td>
+                <td class="num">13</td>
+                <td class="muted">Fernite Carbide ×1,055,573 · Sylramic Fibers ×220,956</td>
+              </tr>
+              <tr>
+                <td class="muted">3 — reactions</td>
+                <td class="muted">21 reaction products + fuel blocks (recur at phases 1–3)</td>
+                <td class="num">25</td>
+                <td class="muted">Fernite Alloy ×16,300 · Ceramic Powder ×14,300</td>
+              </tr>
+              <tr>
+                <td class="muted">2 — R4 reactions</td>
+                <td class="muted">R4 intermediates + fuel blocks</td>
+                <td class="num">9</td>
+                <td class="muted">CP (Carbon Polymers) / SA / CF / TP / OOS — the Typhoon's stack, again</td>
+              </tr>
+              <tr>
+                <td class="muted">1 — fuel blocks</td>
+                <td class="muted">Four fuel types</td>
+                <td class="num">4</td>
+                <td class="muted">Hydrogen ×875 · Oxygen ×145 · Nitrogen / Helium ×215 each</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 3: raw materials -->
+      <details class="phase-row">
+        <summary>
+          <span class="phase-title">Raw materials</span>
+          <span class="phase-count">45 types</span>
+          <span class="summary-right">
+            <span class="stage-state missing">datacores · morphite · T2 moons at zero</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th class="num">Types</th>
+                <th>Largest requirement</th>
+                <th>Gaps</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Minerals</td>
+                <td class="num">7</td>
+                <td class="muted">Tritanium 5,380,556 · Pyerite 3,248,444</td>
+                <td class="muted">5 partial</td>
+              </tr>
+              <tr>
+                <td>Moon materials</td>
+                <td class="num">17</td>
+                <td class="muted">Evaporite Deposits 9,900 · Vanadium 9,600 · Scandium 8,200</td>
+                <td class="muted"><span style="color: var(--pink);">Morphite 6 of 900</span> · T2 reaction moons at zero</td>
+              </tr>
+              <tr>
+                <td>PI commodities</td>
+                <td class="num">11</td>
+                <td class="muted">Coolant 675 · Enriched Uranium 300</td>
+                <td class="muted">4 partial · <span style="color: var(--pink);">Wetware Mainframe 0 of 3</span> (tier-4, feeds Capital Jump Drives)</td>
+              </tr>
+              <tr>
+                <td>Ice products</td>
+                <td class="num">9</td>
+                <td class="muted">Liquid Ozone 26,250 · Hydrogen Isotopes 19,800</td>
+                <td class="muted">2 partial</td>
+              </tr>
+              <tr>
+                <td>NPC market goods</td>
+                <td class="num">1</td>
+                <td class="muted">Construction Blocks 450</td>
+                <td class="muted"><span style="color: var(--pink);">3 on hand</span> — NPC-seeded, no blueprint exists</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        The requirement overview resolves at selection and tracks the target
+        stepper live. <b>Invention joins as its own input tier</b>
+        (source-BPC → invented-BPC, kept deliberately simple here per the
+        M8 decision): the source blueprint, the two datacores with stock
+        against expected, and the decryptor pointer — the rich math
+        (decryptor selection, success probability, inventory vs purchase)
+        lands on the <b>calculated plan</b>. Blueprints now carry
+        <b>three acquisition paths</b>: invented (the ship), NPC-seeded
+        market originals (T2 component BPOs — no producer exists in the
+        SDE), and cheap originals (reaction formulas). The T1 hull rides
+        inside the chain: the Typhoon's whole component and reaction stack
+        sits under the phase-5 hull node. Calculate schedules the plan;
+        totals, waves, and allocation land on the build plan.
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Invention summary (owned-copies overlay slot) -->
+  <section class="card">
+    <div class="card-body">
+      <h2>3 · Panther Blueprint — no copies owned, invention summary</h2>
+      <p class="card-sub">The owned-copies overlay becomes an invention summary when the blueprint is invented rather than owned or contracted. Recipe from the SDE; stock and skills from the live tables.</p>
+
+      <table class="asset-table">
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th class="num">Probability</th>
+            <th>Per attempt</th>
+            <th>Expected per success</th>
+            <th>Confidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/998/bpc?size=32" alt="">Typhoon Blueprint <span class="muted">(activity 8 · 53.33 h)</span></td>
+            <td class="num qty">22%</td>
+            <td class="muted">32 + 32 datacores · 1 source-BPC run</td>
+            <td class="muted">4.55 attempts · ≈145 of each datacore</td>
+            <td class="muted">10 attempts → 92% · 7 → 82% · 4 → 63%</td>
+          </tr>
+          <tr>
+            <td colspan="5"><span class="muted">Skills gate: </span><b>blitzrage only</b><span class="muted"> (High Energy Physics 4 · Minmatar Starship Engineering 4 · Minmatar Encryption Methods 1) — every invention job lands on one character. Datacores are the practical gate: 53 + 11 on hand against 320 + 320 for a 10-attempt batch.</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        All numbers real: probability and recipe from the SDE mirror,
+        durations from activity 8, stock and skill holders from the live
+        tables (2026-11-19). The decryptor scenarios — eight held in stock,
+        modifiers pinned from ESI (EVE Swagger Interface) dogma — land on
+        the calculated plan's <b>invention plan</b> section, alongside the
+        batch-size choice (attempts in parallel, one per source BPC).
+        Invention is a <b>parallel branch</b>: it gates only the final
+        build, so attempts install in wave 1 alongside the earliest
+        material jobs.
+      </div>
+    </div>
+  </section>
+
+  <!-- Calculate bar -->
+  <section class="card">
+    <div class="card-body" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+      <div class="meta-line">
+        Panther ×1 · 48 blueprints (33 missing) · 62 intermediates · 45 raw types · chain resolved — Calculate schedules the plan
+      </div>
+      <button class="primary" type="button">Calculate</button>
+    </div>
+  </section>
+
+  <p class="meta-line" style="margin-top: 1rem;">
+    Calculate resolves the full reverse chain and opens the build plan →
+    <a href="build-plan.html">build-plan.html</a> (fresh) ·
+    <a href="build-plan-active.html">build-plan-active.html</a> (mid-flight)
+  </p>
+</main>
+
+</body>
+</html>

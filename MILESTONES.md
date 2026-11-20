@@ -348,6 +348,28 @@ Two consequences worth stating outright:
   fixed-vs-EV question). The practical gate is datacore acquisition,
   not scheduling. Worked numbers: `reference/chains/PANTHER-CHAIN.md`'s
   parallel-invention-branch section. (M8/M9.)
+- **Corp access and material distribution** (2026-11-19, from the
+  Panther mockup work): jobs install from hangars the installer can
+  access — corp-affiliation is a real eligibility dimension alongside
+  skills and slots. Plan participation defaults to the corp's members;
+  out-of-corp roster characters join only when explicitly included
+  (a per-plan "request access" choice), and their jobs need a
+  **distribution step** — an in-game contract or station trade moving
+  the materials and blueprints to somewhere they can install from —
+  which is itself a plan item with procurement lead, informed by M15's
+  contract/market data. Live grounding: blitzrage, the roster's only
+  invention-skill holder, is out-of-corp (1413715023 vs the main's
+  98830898) — every invented-blueprint plan routes its critical jobs
+  through an out-of-corp character. (M4/M9.)
+- **Unresolvable paths force an acquisition fallback** (2026-11-19):
+  extends the skill gate — when the participant pool cannot cover an
+  activity (e.g. no inventor for the target blueprint's invention),
+  that acquisition path is unresolvable in-plan and falls back to
+  contract/market purchase, surfaced **distinctly from
+  blueprint-missing** (the gating reason reads "no eligible
+  character," not "no blueprint") with remediation actions: include
+  the out-of-corp skill holder (adding the distribution step) or
+  purchase instead. (M4/M5.)
 - **Slider is three positions, not a continuous bias** (2026-11-18):
   **profit** (left — build in-corp at maximum efficiency), **balanced**
   (middle — farming: farm chain portions to friends at below-market
