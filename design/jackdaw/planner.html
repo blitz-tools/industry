@@ -109,6 +109,57 @@
 
       <hr class="divider">
 
+      <!-- Plan participants -->
+      <h2 style="font-size: 0.95rem;">Plan participants</h2>
+      <p class="card-sub">Who the plan may assign work to — set before Calculate, because eligibility depends on it: skill gates, wave allocation, and the stock meters all resolve against this pool. The corporation follows the main character (set on the Roster) and scopes the shared material pool plus the member set; corp members default to all included and take materials from the office hangars directly, while characters in other corporations need a distribution step (contract / station trade) before their jobs can install. The build plan's pool picker re-runs the calculation against a different pool (what-if); this section sets the pool it starts from.</p>
+
+      <p class="meta-line" style="margin: 0 0 0.75rem;">Corporation: <b>blitz and blitz holdings</b> — from the main character schlepzrage (Director); it scopes the shared material pool (hangars, blueprints, assets) and defines the member set. To target a different corporation, change the main character on the Roster.</p>
+
+      <table class="asset-table">
+        <tbody>
+          <tr class="group-row"><td colspan="3">Corp members — blitz and blitz holdings · all included by default</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2124139810/portrait?size=32" alt="">schlepzrage <span class="badge owned" style="margin-left: 0.4rem;">main · Director</span></td>
+            <td class="muted">authorizes the corporation's data and hangar access</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2124297138/portrait?size=32" alt="">Octavia Arbitrage</td>
+            <td class="muted">component and fuel-block builds</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2123535366/portrait?size=32" alt="">theblitzrage I</td>
+            <td class="muted">component and fuel-block builds</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr class="group-row"><td colspan="3">Other corporations — included per plan</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/1634367930/portrait?size=32" alt="">blitzrage <span class="badge owned" style="margin-left: 0.4rem;">Simulated inventor</span></td>
+            <td class="muted">The Dark Tribe — nobody holds Sleeper Encryption Methods in any pool (simulated per the 2026-11-19 convention); blitzrage is the featured holder, both sciences at 4, so the invention inputs carry the distribution step</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td colspan="3" class="muted">+ 4 more out-of-corp characters — include any the same way</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        Every rostered character is offered for inclusion today — the
+        roster is the application owner's own accounts, so "other
+        corporations" characters are assumable. <b>Per-character
+        assignment eligibility</b> (which out-of-corp characters are
+        valid to include at all — candidate surface: a Roster flag) is
+        an open configuration question, recorded in TODO.md; the
+        corp-member / other-corporation segregation stays regardless,
+        since only corp members have hangar access and everything
+        else rides the distribution step.
+      </div>
+
+      <hr class="divider">
+
       <h2 style="font-size: 0.95rem;">Requirements at target ×1</h2>
       <p class="card-sub">The full chain for one build, resolved at selection — quantities track the target stepper live. Calculate schedules the plan (phases, waves, allocation, invention plan); nothing here waits for it.</p>
 
@@ -153,7 +204,7 @@
                 <td colspan="3" class="muted">No decryptor — T3 reverse engineering has no decryptor slot: the relic grade sets <b>both</b> the probability and the BPC runs, and ME (Material Efficiency) / TE (Time Efficiency) are fixed per grade (M8 pin). The T2 decision axes don't exist here — see the invention summary below.</td>
               </tr>
               <tr>
-                <td colspan="3" class="muted">Skills — Sleeper Encryption Methods 1 · Plasma Physics 1 · Mechanical Engineering 1, all at level 1: <b>blitzrage</b> (simulated per the 2026-11-19 convention — the roster's only 4/4 science holder; live, nobody holds the encryption skill). One relic consumed per attempt, no job-lock: attempts parallelize across slots.</td>
+                <td colspan="3" class="muted">Skills — Sleeper Encryption Methods 1 · Plasma Physics 1 · Mechanical Engineering 1, all at level 1: <b>blitzrage</b> (simulated per the 2026-11-19 convention — the roster's only 4/4 science holder, out-of-corp and included; live, nobody holds the encryption skill in any pool). One relic consumed per attempt, no job-lock: attempts parallelize across slots.</td>
               </tr>
             </tbody>
           </table>

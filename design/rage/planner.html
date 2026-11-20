@@ -117,6 +117,57 @@
 
       <hr class="divider">
 
+      <!-- Plan participants -->
+      <h2 style="font-size: 0.95rem;">Plan participants</h2>
+      <p class="card-sub">Who the plan may assign work to — set before Calculate, because eligibility depends on it: skill gates, wave allocation, and the stock meters all resolve against this pool. The corporation follows the main character (set on the Roster) and scopes the shared material pool plus the member set; corp members default to all included and take materials from the office hangars directly, while characters in other corporations need a distribution step (contract / station trade) before their jobs can install. The build plan's pool picker re-runs the calculation against a different pool (what-if); this section sets the pool it starts from.</p>
+
+      <p class="meta-line" style="margin: 0 0 0.75rem;">Corporation: <b>blitz and blitz holdings</b> — from the main character schlepzrage (Director); it scopes the shared material pool (hangars, blueprints, assets) and defines the member set. To target a different corporation, change the main character on the Roster.</p>
+
+      <table class="asset-table">
+        <tbody>
+          <tr class="group-row"><td colspan="3">Corp members — blitz and blitz holdings · all included by default</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2124139810/portrait?size=32" alt="">schlepzrage <span class="badge owned" style="margin-left: 0.4rem;">main · Director</span></td>
+            <td class="muted">authorizes the corporation's data and hangar access</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2124297138/portrait?size=32" alt="">Octavia Arbitrage</td>
+            <td class="muted">reactions and manufacturing slots — no corp member holds the invention or component gates</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2123535366/portrait?size=32" alt="">theblitzrage I</td>
+            <td class="muted">reactions and manufacturing slots</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr class="group-row"><td colspan="3">Other corporations — included per plan</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/1634367930/portrait?size=32" alt="">blitzrage <span class="badge owned" style="margin-left: 0.4rem;">Carries every gate</span></td>
+            <td class="muted">The Dark Tribe — Caldari Encryption 1 · Electronic Engineering 1 · Rocket Science 1 (invention) · Graviton Physics 4 (component build gate) · Reactions 5 · Industry 5: the whole chain's gates in one character outside the corp</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td colspan="3" class="muted">+ 4 more out-of-corp characters — include any the same way. A corp-only pool breaks this chain: no other character holds Caldari Encryption Methods or Graviton Physics 3, so the "every gate held live" claim is this pool's claim</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        Every rostered character is offered for inclusion today — the
+        roster is the application owner's own accounts, so "other
+        corporations" characters are assumable. <b>Per-character
+        assignment eligibility</b> (which out-of-corp characters are
+        valid to include at all — candidate surface: a Roster flag) is
+        an open configuration question, recorded in TODO.md; the
+        corp-member / other-corporation segregation stays regardless,
+        since only corp members have hangar access and everything
+        else rides the distribution step.
+      </div>
+
+      <hr class="divider">
+
       <h2 style="font-size: 0.95rem;">Requirements at target ×500,000</h2>
       <p class="card-sub">The full chain for 100 runs, resolved at selection — quantities track the target stepper live. Calculate schedules the plan (phases, waves, allocation, copy sizing, top-up invention); nothing here waits for it.</p>
 
@@ -156,7 +207,7 @@
                 <td colspan="3" class="muted"><b>Alternative products</b> — the same attempt recipe carries the Scourge Javelin HAM Blueprint at its own 34%: sibling rolls, not the T3 grade mechanism. Whether a sibling success is by-product or miss (and whether both land on one attempt) is an M8 pin — 8,595 Javelin missiles already in inventory say by-products happen. Decryptor: a T2 slot exists; the owned BPCs' 14 runs / ME 1 / TE 8 match <b>base 10 runs / ME 2 / TE 4 + Attainment</b> exactly — the live line ran Attainment.</td>
               </tr>
               <tr>
-                <td colspan="3" class="muted">Skills — Electronic Engineering 1 · Rocket Science 1 · Caldari Encryption Methods 1, all genuinely held by blitzrage. <b>No simulation anywhere in this chain</b> — the first since the Typhoon whose every gate is live.</td>
+                <td colspan="3" class="muted">Skills — Electronic Engineering 1 · Rocket Science 1 · Caldari Encryption Methods 1, all genuinely held by blitzrage — out-of-corp and <b>included</b> (see Plan participants). <b>No simulation anywhere in this chain</b> — the first since the Typhoon whose every gate is live, a claim that is pool-relative: a corp-only pool breaks it (no other holder of the encryption or component gates).</td>
               </tr>
             </tbody>
           </table>
