@@ -285,6 +285,50 @@ Prerequisite work for anything multi-user:
 - Deployment note: an access restriction in front of the app remains
   required wherever it is exposed (SSO-only login today).
 
+### Licensing & legal notices (CCP + open source)
+
+(per product direction, 2026-11-20)
+
+The app uses ESI, EVE SSO, the SDE mirror, and EVE image assets —
+all under CCP's Developer License Agreement, which requires
+preserving CCP's IP notices. The repo already ships a **GPLv3
+LICENSE**; this item aligns everything around it.
+
+1. **CCP proprietary notice — UI footer / About screen** (app base
+   template's footer; the mockups' `.sidebar-footer` is the shape):
+   - Standard copyright & trademark footer:
+     *"© 2014–2026 CCP hf. All rights reserved. "EVE", "EVE Online",
+     "CCP", and all related logos and images are trademarks or
+     registered trademarks of CCP hf."*
+   - Non-affiliation disclaimer alongside it:
+     *"soliton is an independent third-party application and is not
+     affiliated with, endorsed, or sponsored by CCP hf."*
+2. **Open-source repository & distribution notices**:
+   - Amend the GPLv3 **LICENSE** (or add a preamble note) stating it
+     covers the source code only and grants no open-source rights to
+     CCP's copyrighted game data, icons, or trademarks.
+   - **Third-party dependency notices** (THIRD_PARTY_NOTICES file or
+     an About page): the copyright notices and license texts of the
+     open-source dependencies — generated via `pip-licenses`
+     (Python); relevant because Docker images and bundled web assets
+     are distributed. **Repo-specific**: the app also renders images
+     from `images.evetech.net` (community image proxy) — include it
+     in the attribution review.
+   - **Self-hosting note in README.md**: anyone deploying their own
+     public instance with their own EVE SSO client ID must accept
+     CCP's Developer License Agreement themselves on the EVE
+     Developers Portal — say so explicitly to save contributors
+     confusion.
+3. **Additional disclosures (if applicable)**:
+   - **Privacy policy** (applies — the app stores character IDs,
+     refresh tokens, and ESI data): a footer link explaining what
+     data is stored, how tokens are secured, and how users revoke
+     access or delete their data (the forget/revoke flows already
+     exist).
+   - **Donation / ad disclaimer**: only if donations or ads are ever
+     accepted — voluntary donations must not unlock gated features
+     (CCP Developer License FAQ).
+
 ---
 
 ## Smaller items / ideas
