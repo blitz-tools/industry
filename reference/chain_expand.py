@@ -117,7 +117,7 @@ RAW_CATEGORIES = {
         "Fullerite-C28", "Fullerite-C32", "Fullerite-C50", "Fullerite-C60",
         "Fullerite-C70", "Fullerite-C72", "Fullerite-C84", "Fullerite-C320",
         "Fullerite-C540", "Amber Mykoserocin", "Golden Mykoserocin",
-        "Amber Cytoserocin", "Golden Cytoserocin",
+        "Amber Cytoserocin", "Golden Cytoserocin", "Lime Cytoserocin",
     ],
     # Market-acquired NPC goods: molecular-forging tools used in gas
     # reactions, construction blocks consumed by T2 components. Group
@@ -130,6 +130,11 @@ RAW_CATEGORIES = {
         # SDE — NPC-seeded per community docs, verify against M15
         # market data.
         "Rocket Fuel",
+        # Booster-chain consumables (Crash chain): Spirits ('General'
+        # group) and Hydrochloric Acid ('Biohazard' group) — no
+        # producers, NPC trade goods.
+        "Spirits",
+        "Hydrochloric Acid",
     ],
     # Sleeper salvage (w-space site drops) consumed by hybrid tech
     # components. The SDE group 'Ancient Salvage' maps cleanly (19
