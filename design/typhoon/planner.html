@@ -118,6 +118,52 @@
 
       <hr class="divider">
 
+      <!-- Plan participants -->
+      <h2 style="font-size: 0.95rem;">Plan participants</h2>
+      <p class="card-sub">Who the plan may assign work to — set before Calculate, because eligibility depends on it: skill gates, wave allocation, and the stock meters all resolve against this pool. The corporation follows the main character (set on the Roster) and scopes the shared material pool plus the member set; corp members default to all included and take materials from the office hangars directly, while characters in other corporations need a distribution step (contract / station trade) before their jobs can install. The build plan's pool picker re-runs the calculation against a different pool (what-if); this section sets the pool it starts from.</p>
+
+      <p class="meta-line" style="margin: 0 0 0.75rem;">Corporation: <b>blitz and blitz holdings</b> — from the main character schlepzrage (Director); it scopes the shared material pool (hangars, blueprints, assets) and defines the member set. To target a different corporation, change the main character on the Roster.</p>
+
+      <table class="asset-table">
+        <tbody>
+          <tr class="group-row"><td colspan="3">Corp members — blitz and blitz holdings · all included by default</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2124139810/portrait?size=32" alt="">schlepzrage <span class="badge owned" style="margin-left: 0.4rem;">main · Director</span></td>
+            <td class="muted">authorizes the corporation's data and hangar access</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2124297138/portrait?size=32" alt="">Octavia Arbitrage</td>
+            <td class="muted">Industry 5 — the build gate</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2123535366/portrait?size=32" alt="">theblitzrage I</td>
+            <td class="muted">manufacturing and copy slots</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr class="group-row"><td colspan="3">Other corporations — included per plan</td></tr>
+          <tr>
+            <td colspan="3" class="muted">+ 5 out-of-corp characters (blitzrage · theblitzrage · Storm Ragez · schlurpzrage · scoopsrage) — no gate depends on them; include for slot count only</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        Every rostered character is offered for inclusion today — the
+        roster is the application owner's own accounts, so "other
+        corporations" characters are assumable. <b>Per-character
+        assignment eligibility</b> (which out-of-corp characters are
+        valid to include at all — candidate surface: a Roster flag) is
+        an open configuration question, recorded in TODO.md; the
+        corp-member / other-corporation segregation stays regardless,
+        since only corp members have hangar access and everything
+        else rides the distribution step.
+      </div>
+
+      <hr class="divider">
+
       <h2 style="font-size: 0.95rem;">Requirements at target ×10</h2>
       <p class="card-sub">The full chain for one build, resolved at selection — quantities track the target stepper live. Calculate schedules the plan (phases, waves, allocation, copy plan); nothing here waits for it.</p>
 

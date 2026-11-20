@@ -109,6 +109,57 @@
 
       <hr class="divider">
 
+      <!-- Plan participants -->
+      <h2 style="font-size: 0.95rem;">Plan participants</h2>
+      <p class="card-sub">Who the plan may assign work to — set before Calculate, because eligibility depends on it: skill gates, wave allocation, and the stock meters all resolve against this pool. The corporation follows the main character (set on the Roster) and scopes the shared material pool plus the member set; corp members default to all included and take materials from the office hangars directly, while characters in other corporations need a distribution step (contract / station trade) before their jobs can install. The build plan's pool picker re-runs the calculation against a different pool (what-if); this section sets the pool it starts from.</p>
+
+      <p class="meta-line" style="margin: 0 0 0.75rem;">Corporation: <b>blitz and blitz holdings</b> — from the main character schlepzrage (Director); it scopes the shared material pool (hangars, blueprints, assets) and defines the member set. To target a different corporation, change the main character on the Roster.</p>
+
+      <table class="asset-table">
+        <tbody>
+          <tr class="group-row"><td colspan="3">Corp members — blitz and blitz holdings · all included by default</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2124139810/portrait?size=32" alt="">schlepzrage <span class="badge owned" style="margin-left: 0.4rem;">main · Director</span></td>
+            <td class="muted">authorizes the corporation's data and hangar access</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2124297138/portrait?size=32" alt="">Octavia Arbitrage</td>
+            <td class="muted">no corp member holds the Armor Rigging 3 build gate — manufacturing eligibility comes from the included other-corp holders</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2123535366/portrait?size=32" alt="">theblitzrage I</td>
+            <td class="muted">same — build gate sits outside the corp</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr class="group-row"><td colspan="3">Other corporations — included per plan</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/1634367930/portrait?size=32" alt="">blitzrage <span class="badge owned" style="margin-left: 0.4rem;">Inventor (simulated) + build gate</span></td>
+            <td class="muted">The Dark Tribe — Armor Rigging 4 · both sciences 4; Amarr Encryption Methods has 0 holders in any pool (simulated per the 2026-11-19 convention)</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td colspan="3" class="muted">+ theblitzrage (Armor Rigging 4) · Storm Ragez (Armor Rigging 3) — the only other build-gate holders, all out-of-corp: a corp-only pool breaks the manufacturing gate even with the encryption skill simulated</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        Every rostered character is offered for inclusion today — the
+        roster is the application owner's own accounts, so "other
+        corporations" characters are assumable. <b>Per-character
+        assignment eligibility</b> (which out-of-corp characters are
+        valid to include at all — candidate surface: a Roster flag) is
+        an open configuration question, recorded in TODO.md; the
+        corp-member / other-corporation segregation stays regardless,
+        since only corp members have hangar access and everything
+        else rides the distribution step.
+      </div>
+
+      <hr class="divider">
+
       <h2 style="font-size: 0.95rem;">Requirements at target ×10</h2>
       <p class="card-sub">The full chain for ten builds, resolved at selection — quantities track the target stepper live. Calculate schedules the plan (phases, waves, allocation, copy sizing, invention plan); nothing here waits for it.</p>
 
@@ -143,7 +194,7 @@
                 <td colspan="3" class="muted">Decryptor — a T2 slot exists (unlike T3), selection lands on the calculated plan. At max 1 run/job the max-run modifiers are wasted: a 5-run BPC still builds one rig per job. Probability multipliers are what compound across ten successes — see the invention summary below.</td>
               </tr>
               <tr>
-                <td colspan="3" class="muted">Skills — Hydromagnetic Physics 1 · Nanite Engineering 1 · Amarr Encryption Methods 1. <b>Amarr Encryption Methods simulated</b> per the 2026-11-19 convention (nobody holds it; the sole live gap in this chain — both sciences are genuinely held at 4 by blitzrage, and the Armor Rigging 3 build gate is genuinely held by three characters).</td>
+                <td colspan="3" class="muted">Skills — Hydromagnetic Physics 1 · Nanite Engineering 1 · Amarr Encryption Methods 1, checked against the selected pool: <b>Amarr Encryption Methods has 0 holders in any pool</b> (simulated per the 2026-11-19 convention — the sole live gap); both sciences are genuinely held at 4 by blitzrage and the Armor Rigging 3 build gate by three characters — <b>all out-of-corp, all included</b> (see Plan participants: a corp-only pool breaks the build gate).</td>
               </tr>
             </tbody>
           </table>

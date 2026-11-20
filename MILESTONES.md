@@ -411,6 +411,35 @@ Two consequences worth stating outright:
   Applied across every set's planner pages (the binding convention's
   zero-re-orientation rule); build-plan pages were already
   commodity-framed in their headers.
+- **The planner selects its participant pool at plan time**
+  (2026-11-20, from the planner-entry review): pool selection is a
+  planner input, not a post-calculation switch — a **Plan
+  participants** section on the planner set before Calculate,
+  because eligibility depends on it: skill gates, wave allocation,
+  and the stock meters all resolve against the pool. The
+  **corporation follows the main character** (set on the Roster —
+  changing the corp target means changing the main; no planner-side
+  selector) and scopes the shared material pool plus the member
+  set; **corp members default to all included** with per-member
+  toggles (exclusion is the exception, not the default), while
+  characters in **other corporations** are included per plan with
+  the distribution step as their inclusion cost. The build-plan
+  header's pool picker remains as the what-if re-run control.
+  Consequences: pool-relative eligibility claims surface on the
+  planner itself (the Rage chain's "every gate held" is true only
+  with blitzrage — The Dark Tribe — included; a corp-only pool
+  breaks it exactly as the Panther's scoped scenario showed, and
+  the Trimark's build gate sits entirely outside the corp, held
+  only by chlorokitties / Dark Tribe characters); the
+  panther-scoped page's participants markup was promoted to the
+  standard flow as the section's shape. The roster spans three
+  corporations (blitz and blitz holdings · chlorokitties · The Dark
+  Tribe) — the grouping renders per-corporation. Open item
+  (TODO.md): per-character **assignment eligibility** — today all
+  rostered characters are in scope (the owner's own accounts); a
+  Roster-side flag will gate which other-corporation characters are
+  valid for inclusion at all, with the corp/other-corp segregation
+  staying regardless (distribution procedures differ).
 
 ---
 

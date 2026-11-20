@@ -180,6 +180,86 @@ and corporation, completed history included) are already synced into
   Unlocked — Station Containers are in the 'Audit Log Secure
   Container' group).
 
+### Contract matches in acquisition fallbacks
+
+(surfaced by `design/panther/planner-scoped.html`'s Fallback section,
+2026-11-20)
+
+- The unresolvable-path fallbacks ("no eligible character" gating,
+  missing-blueprint contract acquisition) currently bottom out at
+  "watch the contracts for a listing and re-calculate when one
+  appears" — a dead end with no evidence. Once M15's contracts sync
+  is live, these sections should list **matching contracts**:
+  every listing that satisfies the requirement (item-exchange
+  contracts whose items match the needed blueprint/commodity), each
+  with its **contract price**, so the owner can see at a glance
+  whether any exist and what they cost.
+- Mechanics already decided (M15 + the Charon/Panther contract
+  work): per-region listing + items sweep into `contracts` /
+  `contract_items`, ETag-cached, hub regions; exclusive-contents
+  matching and the item-exchange + volume-band pre-filter exist from
+  the missing-blueprint decisions. The fallback list is a query over
+  those local tables — same-bundle matching (the Charon's
+  same-type-bundle corner) and tight-volume single-item matches
+  first.
+- Empty state stays honest: "no listings in the synced hub set" with
+  the sync-source line, never an error.
+
+### Skill-plan calculator for participant gaps
+
+(surfaced by `design/panther/planner-scoped.html`'s Plan participants
+section, 2026-11-20)
+
+- The participants section surfaces the state where the
+  default-included corp members **lack the skill set to create the
+  commodity** (the scoped Panther: no corp member holds the
+  invention skills). Today the remediation is manual — include an
+  out-of-corp holder, or train someone by hand.
+- Future feature: a button on that state that **calculates a skill
+  plan across the characters** identifying the fastest path to
+  satisfying the requirement's skill set — training time per skill
+  per character (from the synced skill queues and skill points),
+  prerequisites included, and crucially **splitting skills across
+  characters** so requirements are satisfied sooner (two characters
+  each training half the gate list in parallel beats one training
+  all of it, exactly like job parallelism).
+- Shape: the same chain-tree treatment the product planner gives
+  materials — a dependency tree over skills (prerequisites), a
+  parallelism analysis across characters' training queues, and a
+  recommended assignment with end dates. Extends M13 (skill gap
+  analysis & training recommendations — see MILESTONES.md) from
+  single-character recs to a **multi-character fastest-path
+  optimizer**; the plan-time gate that surfaces the state is
+  recorded in MILESTONES ("unresolvable paths force an acquisition
+  fallback").
+
+### Plan-assignment eligibility for out-of-corp characters
+
+(surfaced by the Plan participants mockup work, 2026-11-20)
+
+- The planner's **Plan participants** section offers any rostered
+  character for per-plan inclusion. The implicit assumption: every
+  rostered character belongs to the application owner, so all are in
+  scope for assignment — true today (the roster is the owner's own
+  accounts across three corporations: blitz and blitz holdings,
+  chlorokitties, The Dark Tribe).
+- **Missing**: a configuration determining which out-of-corp
+  characters are *valid* for inclusion at all — a per-character
+  "available for plan assignment" eligibility flag. Candidate
+  surface: the **Roster screen** (a per-card toggle alongside
+  `is_main`). Corp members could carry the same flag (default on) so
+  an inactive member is excluded roster-wide rather than per plan.
+- The **corp-member vs other-corporations segregation stays**
+  regardless of the flag: out-of-corp characters have no hangar
+  access, so their work requires the distribution step (contract /
+  station trade) to export inputs and import outputs back to the corp
+  hangars — a separate set of in-game procedures the plan already
+  models as the per-plan inclusion cost.
+- Interactions when built: the participants section's Include
+  controls offer only eligibility-flagged characters; the capability
+  analysis (M12) and capsuleer bidding (M14) consume the same
+  eligible set.
+
 ---
 
 ## Platform / administration

@@ -37,6 +37,15 @@ set; once settled they apply to every set (decisions graduate to
   unit count; the producer blueprint is a derived input named in the
   autocomplete sub-line and target card. Every set's planner follows
   this — blueprint-first search is superseded.
+- **Pool selection happens on the planner** (2026-11-20 decision of
+  record): a Plan participants section (the corporation follows the
+  main character set on the Roster — no planner-side selector; corp
+  members default to all included with per-member toggles;
+  other-corporation characters included per plan with the
+  distribution step) sits between the target and the requirement
+  tiers, set before Calculate — eligibility, allocation, and stock
+  meters resolve against it. The build-plan header's picker is the
+  what-if re-run control.
 - Dashed yellow `.anno` boxes are wireframe annotations and would
   never ship.
 - Data provenance is documented per set in that set's README:
