@@ -423,10 +423,20 @@ button.primary {
   margin-right: 0.4rem;
 }
 
+/* Target-build row breathing (2026-11-20): scoped via the large
+ * commodity icon — it appears exactly once per page, in the Target
+ * build row. The icon gets margin around it, and the name line
+ * ("Target <chip>") gets space before the "Built from …" meta-line
+ * directly under it. */
 .type-icon-lg {
   width: 48px;
   height: 48px;
   border-radius: 4px;
+  margin: 0.3rem 0.5rem 0.3rem 0;
+}
+
+.type-icon-lg + div > div:first-child {
+  margin-bottom: 0.4rem;
 }
 
 .type-icon-none {
