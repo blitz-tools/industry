@@ -941,16 +941,30 @@ designed.
   engineering is to-be-determined** — the author doesn't have
   significant T3 production experience, so the T3 portions of this
   milestone get designed at pickup (against SDE data and community
-  docs) rather than pre-planned in detail here.
+  docs) rather than pre-planned in detail here. The Jackdaw chain
+  reference (2026-11-19) established the SDE shape for the app side:
+  the relic item itself carries activity 8 (no source blueprint),
+  relic grades set both probability and BPC runs per success, recipes
+  are multi-product (one per racial output), and there is no
+  job-lock (each attempt consumes its relic).
 - Chain view gains probabilistic nodes: an invention node shows the
-  underlying copies required and the decryptor choice.
-- Subsystem/hull interdependencies for T3 ships (hull + subsystems
-  planned together as one target set).
+  underlying copies required and the decryptor choice (T2) or the
+  relic grade and attempts-to-buy confidence (T3).
+- ~~Subsystem/hull interdependencies for T3 ships (hull + subsystems
+  planned together as one target set).~~ Corrected 2026-11-19:
+  subsystems are independent products — no hull's material list
+  includes them, so there is no chain interdependency to model.
+  Multi-target planning (several deliverables in one plan) remains a
+  possible target-set UI feature, not a chain mechanic; drop it from
+  scope unless a product need appears.
 
 **Validation**: a T2 ship (e.g. a Panther, since the Typhoon chain is
 known — its T2 variant) resolves from moon reactions through component
 invention through manufacturing to the ship, with the Typhoon-chain
-knowledge as the sanity anchor.
+knowledge as the sanity anchor. A T3 ship (the Jackdaw —
+`reference/chains/JACKDAW-CHAIN.md`) resolves from relic invention
+through polymer reactions and Sleeper salvage through hybrid tech
+components to the ship.
 
 ---
 

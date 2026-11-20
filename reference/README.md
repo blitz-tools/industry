@@ -43,6 +43,15 @@ the T1 hull riding inside the chain as a build input, capital-component
 crossover (Capital Jump Drives), T2 components at 1/run volumes
 (18,750-run armor-plate jobs), and the NPC-seeded T2 component BPO
 (Blueprint Original) acquisition path.
+`JACKDAW-CHAIN.md` (Jackdaw T3 tactical destroyer, 2026-11-19) is the
+reverse-engineering stress test: relic-based invention (the relic item
+itself carries activity 8 — no source blueprint; three grades setting
+both probability and BPC runs, 26/21/14% at 20/10/3 runs), the
+multi-product recipe shape (all four racial tactical destroyers per
+relic), no decryptors and no job-lock, two new terminator classes
+(relics, Sleeper salvage), polymer reactions consuming minerals
+directly, invention over-delivery (one success = 20 ships' worth), and
+the drop-sourced BPC acquisition path (1000-run component copies).
 
 New chains are added to stress the models with more complex structures
 (deeper phase stacks, capital components, invention/T2 layers) and
@@ -70,14 +79,18 @@ runtime; nothing here is learned or guessed at run time.
   RCF (Reinforced Carbon Fiber) 8 per-branch runs → 7 aggregated)
 - terminators: types with no producing blueprint (minerals, moon
   materials, PI (Planetary Industry) commodities, ice products, gas
-  from harvestable clouds, NPC-seeded market goods) — leaves to
-  acquire, never recursed; raw categories are hardcoded here, M5
-  classifies via invGroups/invCategories — validated against the
-  Charon chain (2026-11-18): the SDE groups map cleanly except
+  from harvestable clouds, NPC-seeded market goods, Sleeper salvage) —
+  leaves to acquire, never recursed; raw categories are hardcoded
+  here, M5 classifies via invGroups/invCategories — validated against
+  the Charon chain (2026-11-18): the SDE groups map cleanly except
   molecular-forging tools ('Commodities' catch-all), which need a
   name-list fallback; the Panther chain (2026-11-19) added Morphite
   (SDE files it under 'Mineral' despite being the top moon material)
-  and Construction Blocks (no blueprint exists — NPC-seeded)
+  and Construction Blocks (no blueprint exists — NPC-seeded); the
+  Jackdaw chain (2026-11-19) added the Sleeper salvage ('Ancient
+  Salvage' group, maps cleanly) and a second walk-invisible
+  terminator class, the invention relics themselves (*Ancient
+  Relics* category — they enter only through the invention overlay)
 - invention (activity 8) is an overlay, never a walk step: the
   invented blueprint's build inputs resolve through the normal walk,
   and the invention recipe (source BPC, probability, datacores,
@@ -90,7 +103,17 @@ runtime; nothing here is learned or guessed at run time.
   pinned from live ESI dogma (2026-11-19) in `DECRYPTORS` — the dogma
   tables are not part of the SDE mirror; invented-BPC base ME
   (Material Efficiency)/TE (Time Efficiency) (−4/−4 per community
-  docs) and module base runs are NOT in SDE/ESI — pin at M8
+  docs) and module base runs are NOT in SDE/ESI — pin at M8. The
+  overlay dispatches on the probability rows for the product
+  blueprint (Jackdaw chain, 2026-11-19): one row renders the T2
+  recipe; multiple rows render the **T3 relic grades** — the relic
+  item itself carries activity 8 (no source blueprint), the grade
+  sets both probability and BPC runs per success (the activity-8
+  product quantity, 20/10/3 for small hull sections), recipes are
+  multi-product (all four racial tactical destroyers per relic — the
+  job targets one output), and there is no job-lock (each attempt
+  consumes its relic). T3 BPC ME/TE is fixed per grade and decryptors
+  do not apply — both community-documented, pin at M8
 - cycle detection: NOT implemented (T1 manufacturing has none); M5 must
   add it defensively
 
@@ -144,7 +167,11 @@ runtime; nothing here is learned or guessed at run time.
   BPO job-lock behavior. Invention pins (M8's dogma task, surfaced by
   the Panther chain): invented-BPC base ME/TE (−4/−4 assumed), module
   invention base runs, whether skill levels modify invention
-  probability (assumed not, post-Crius).
+  probability (assumed not, post-Crius). T3 pins (surfaced by the
+  Jackdaw chain): relic-grade BPC ME/TE values, decryptor
+  non-applicability to reverse engineering, and the drop-sourcing of
+  hybrid tech component BPCs (no producer, no invention recipe, no
+  NPC seeding per community docs — verify against M15 market data).
 - Known simplifications: serial phases (no pipelining — parked open
   question in MILESTONES.md), one skill multiplier per model run (real
   assignments weight per character), facilities/rigs not yet multiplied
