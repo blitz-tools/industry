@@ -1306,10 +1306,18 @@ recorded.
   Merged is simplest but ties up inputs early; per-phase is
   pipelining-adjacent. — M5/M9.
 - Invention pins (surfaced by `reference/chains/PANTHER-CHAIN.md`,
-  2026-11-19): the invented-BPC base ME/TE (−4/−4 assumed from
-  community docs — not in SDE/ESI), module invention base runs
-  (ships are 1 + the decryptor's max-run modifier), and whether skill
-  levels modify invention probability (assumed not, post-Crius).
+  2026-11-19; extended by `TRIMARK-CHAIN.md` / `RAGE-CHAIN.md`,
+  2026-11-20): the invented-BPC base ME/TE (−4/−4 assumed from
+  community docs — not in SDE/ESI; live evidence from the Rage chain
+  points to **2/4**: base + Attainment reproduces the owned ammo
+  BPCs' 14 runs / ME 1 / TE 8 exactly, while the owned rig BPCs at
+  2 runs / ME 0 / TE 0 match no decryptor row from any candidate
+  base), BPC runs per success (SDE activity-8 product quantity —
+  1 ships/rigs, 10 T2 ammo — with the rig counterexample above),
+  whether skill levels modify invention probability (assumed not,
+  post-Crius), and **alternative-product semantics** (T2 ammo
+  recipes carry sibling BPCs at their own probability rows — by
+  product or miss, and whether both land on one attempt).
   Decryptor modifiers themselves ARE pinned (live ESI dogma,
   2026-11-19, carried in `reference/chain_expand.py`'s `DECRYPTORS`).
   — M8.
@@ -1318,5 +1326,97 @@ recorded.
   slot-hour formula in the reference model (the BPO-bound reaction
   branch only triggers for all-reaction phases). Refine for mixed
   phases. — M9.
+- Availability meters beyond material stock (surfaced by
+  `TRIMARK-CHAIN.md` / `RAGE-CHAIN.md`, 2026-11-20): (a) **run-pool
+  arithmetic** — plan run-need vs owned invented-BPC runs of the
+  right type, summed across copies, with the shortfall routed to the
+  invention layer at a confidence target (the Rage chain's 98/100
+  edge); (b) **invention-input sufficiency** — source-BPC runs vs
+  attempts bought, an availability check rather than a schedule when
+  pre-stocked (the Trimark chain's 130-run corp inventory); (c)
+  **deterministic over-delivery** — reaction batch minimums and
+  multi-run invention successes produce surplus-expected quantities
+  that belong in the same expected-plus-confidence presentation as
+  probabilistic inputs, or the plan rounds targets up to batch size.
+  — M6.
+- Copy-layer sizing (surfaced by `TRIMARK-CHAIN.md` /
+  `RAGE-CHAIN.md`, 2026-11-20, per product direction): T2 plans model
+  copying their invention inputs from BPOs — BPC count is the
+  invention-parallelism knob (job-lock: one attempt per BPC at a
+  time), copy wall-clock is split-invariant (total runs × copy rate ÷
+  BPO count), so the sizing rule is BPC count = min(attempt budget,
+  invention slot pool), runs per BPC = ⌈budget ÷ count⌉. Design
+  consequences: (a) the copy phase can own the wall-clock (Trimark:
+  18 h BPO-bound vs 6.5 h invention at full parallelism), making BPO
+  count a bottleneck asset; (b) the copy→invention hand-off is the
+  cheapest pipelining edge in the model (completed copies can start
+  inventing immediately — no material dependency); (c) max
+  parallelism commits the full attempt budget before any success
+  information, so staging trades wall-clock for early-stop savings;
+  (d) owned source-BPC runs remain an availability overlay that can
+  zero the phase. — M6/M9.
+- Copy destinations: **Copy → Invention vs Copy → Manufacturing**
+  (surfaced by `TRIMARK-CHAIN.md` / `RAGE-CHAIN.md`, 2026-11-20, per
+  product direction; `PANTHER-CHAIN.md`'s BPC-pool note is the live
+  example). The copy phase is one activity with two consumption
+  use-cases, and the next consumer of the copied runs determines
+  which: **invention** copies are structurally mandatory (invention
+  consumes BPC runs — BPOs cannot be invention sources; 1 run per
+  attempt, burned on failure; budget = attempts bought at a
+  confidence target), while **manufacturing** copies are an economic
+  option over the BPO's job-lock (copy-vs-direct, break-even, slot
+  ceiling, min-BPOs — the Typhoon analysis; runs consumed
+  deterministically into units, budget = run-need). The chain's
+  structure picks the mix: pure invention-destination when the source
+  BPO's product isn't itself built (Trimark, Rage — T2 BPCs
+  additionally cannot be copied, so their manufacturing has no copy
+  option at all), pure manufacturing-destination in T1 chains
+  (Typhoon, Charon), and **both in one copy wave** when the invention
+  source's T1 product is also a build input (Panther: the Typhoon BPC
+  pool's 52 runs feed 10 invention attempts and the hull build's 1
+  run). The copy wave itself is destination-blind — the destination
+  lives in the run earmark, not the job. Design consequences:
+  (a) the same BPO's copy queue must merge both demands (the M12
+  min-BPO analysis sums them); (b) copied runs need per-destination
+  earmarking so one destination can't silently eat the other's
+  budget; (c) the BPC-count sizing rule applies per destination with
+  different budgets — attempt budget vs run-need. — M6/M9/M12.
+- Invention under-delivery and retry semantics (surfaced by the
+  Trimark II / Rage chains, 2026-11-20, per product direction): the
+  invention layer's output is probabilistic, so the plan needs
+  closed-loop semantics rather than a one-shot phase. Design:
+  (a) **the target is the requirement and never silently shrinks** —
+  under-delivery is a retry condition, not a target update (an
+  elastic/market target that follows availability is a target-type
+  distinction to model at M6, not an invention-layer behavior);
+  (b) invention runs as a **replenishment loop** — attempts in
+  batches (one wave's BPC pool), successes checked against target
+  after each batch, next batch re-armed sized to the remaining need
+  at the confidence target (the binomial is memoryless — same
+  recomputation), the re-arm presenting as a scheduled-with-cause,
+  cancellable wave; success detection is a join over the synced
+  `industry_jobs` table (both sides, completed history included);
+  (c) **budget ceiling with an owner decision at exhaustion** —
+  extend budget, escalate decryptor, buy BPCs, or descope; never
+  auto-escalate spend (unbounded retry is a cost runaway);
+  (d) **residue is tracked in both directions** (term per product
+  owner): surplus BPCs from over-delivery are banked as plan-visible
+  inventory for future plans and never inflate the current target
+  (surplus is an asset, not a debt to consume); provisioned-but-
+  unconsumed materials from under-delivery stay visible against the
+  plan until it completes or is descoped — they don't silently
+  return to the shared pool (disposition ties into plan-scoped
+  bucketing); expected residue is a function of the chosen
+  confidence and belongs on the plan surface; (e) **display**:
+  invention job cards carry p_eff with the base→effective breakdown
+  and the decryptor's modifiers (p ×mult, ME/TE/runs) — decryptor
+  choice is per-attempt, so retries can escalate as a loop policy;
+  wave/phase cards carry batch size, P(≥ remaining target in batch),
+  and cumulative successes/attempts progress; (f) the
+  invention→manufacturing edge is **pipelining-eligible with
+  probabilistic partial delivery** — per-unit manufacturing can
+  start on whatever BPCs exist (each job needs only its own BPC +
+  materials); v1 keeps phases serial, the second natural pipelining
+  candidate after the copy→invention hand-off. — M6/M9.
 - Plan re-planning semantics: mid-flight adjustments (add runs, swap a
   facility) — amend in place vs. fork a new plan — M6.

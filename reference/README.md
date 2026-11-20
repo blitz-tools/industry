@@ -52,6 +52,21 @@ relic), no decryptors and no job-lock, two new terminator classes
 (relics, Sleeper salvage), polymer reactions consuming minerals
 directly, invention over-delivery (one success = 20 ships' worth), and
 the drop-sourced BPC acquisition path (1000-run component copies).
+`TRIMARK-CHAIN.md` (Large Trimark Armor Pump II T2 rig, 2026-11-20) is
+the medium-volume invention and first non-ship stress test: ten
+invention successes at 34% (binomial planning to a confidence target),
+maxProductionLimit 1 manufacturing (every unit its own job — volume
+scales job count), the wreck-salvage terminator class with T1/T2
+condition tiers, and the copy plan pre-satisfied by inventory (the
+corporation's live T1 Trimark copy operation). `RAGE-CHAIN.md`
+(Scourge Rage T2 heavy assault missile, 2026-11-20) is the
+production-volume consumable: 5,000 missiles per run against a 98-run
+owned BPC pool (the run-pool top-up edge), alternative-product
+invention (Javelin siblings on the same recipe), deterministic
+reaction-batch over-delivery, two reaction tiers beneath a non-ship
+deliverable, and the live-BPC reconciliation that puts the
+invented-base ME/TE pin at 2/4 (Attainment + base reproduces the
+owned 14-run ME 1 / TE 8 BPCs exactly).
 
 New chains are added to stress the models with more complex structures
 (deeper phase stacks, capital components, invention/T2 layers) and
@@ -90,26 +105,56 @@ runtime; nothing here is learned or guessed at run time.
   Jackdaw chain (2026-11-19) added the Sleeper salvage ('Ancient
   Salvage' group, maps cleanly) and a second walk-invisible
   terminator class, the invention relics themselves (*Ancient
-  Relics* category — they enter only through the invention overlay)
+  Relics* category — they enter only through the invention overlay);
+  the Trimark II chain (2026-11-20) added the wreck salvage
+  ('Salvaged Materials' group, 41 types, maps cleanly — T1 rigs eat
+  the damaged variants, T2 the intact ones); the Rage chain
+  (2026-11-20) added Rocket Fuel (no blueprint exists — NPC-seeded,
+  like Construction Blocks)
 - invention (activity 8) is an overlay, never a walk step: the
   invented blueprint's build inputs resolve through the normal walk,
   and the invention recipe (source BPC, probability, datacores,
   skills, T1 runs consumed per attempt — implicit in the game, absent
   from the SDE materials) reports as its own layer with
   expected-value math (attempts = 1/p, confidence 1−(1−p)ⁿ) and a
-  decryptor scenario table. Expected quantities stay OUT of the
+  decryptor scenario table. T2 plans also model their **copy layer**
+  (2026-11-20 direction, Trimark II / Rage chains): invention inputs
+  are copied from BPOs rather than assumed — BPC count is the
+  invention-parallelism knob (one active job per blueprint), copy
+  time is split-invariant across run-count choices, so the sizing
+  rule is BPC count = min(attempt budget, invention slot pool) with
+  runs per BPC = ⌈budget ÷ count⌉; the copy phase is BPO-bound and
+  can own the wall-clock (Trimark: 18 h copy vs 6.5 h invention at
+  full parallelism). Owned source-BPC runs remain an availability
+  overlay that can zero the phase. The copy phase has two consumption
+  **destinations** — Copy → Invention (mandatory: invention consumes
+  BPC runs, one per attempt, budget = confidence-targeted attempts)
+  and Copy → Manufacturing (optional: the copy-vs-direct economics of
+  the Typhoon analysis, deterministic run-need) — which coexist in
+  one copy wave when an invention source's T1 product is also a build
+  input (the Panther's Typhoon BPC pool); see MILESTONES.md's
+  copy-destinations entry. Expected quantities stay OUT of the
   deterministic raw-material table — probabilistic inputs present as
   expected + confidence (the M8 decision). Decryptor modifiers are
   pinned from live ESI dogma (2026-11-19) in `DECRYPTORS` — the dogma
   tables are not part of the SDE mirror; invented-BPC base ME
-  (Material Efficiency)/TE (Time Efficiency) (−4/−4 per community
-  docs) and module base runs are NOT in SDE/ESI — pin at M8. The
-  overlay dispatches on the probability rows for the product
-  blueprint (Jackdaw chain, 2026-11-19): one row renders the T2
-  recipe; multiple rows render the **T3 relic grades** — the relic
-  item itself carries activity 8 (no source blueprint), the grade
-  sets both probability and BPC runs per success (the activity-8
-  product quantity, 20/10/3 for small hull sections), recipes are
+  (Material Efficiency)/TE (Time Efficiency) is NOT in SDE/ESI — the
+  −4/−4 community value is now challenged by live evidence (Rage
+  chain, 2026-11-20: base 2/4 + Attainment reproduces the owned
+  14-run ME 1 / TE 8 BPCs exactly; the owned rig BPCs at 2 runs /
+  0 / 0 match no row) — pin at M8. BPC runs per success is the
+  activity-8 product quantity (1 for ships and rigs, 10 for T2
+  ammo); owned BPCs always render their ESI-synced values and only
+  projections use the SDE quantity. The overlay dispatches on the
+  probability rows for the product blueprint: one row renders the T2
+  recipe — which may carry **alternative products** (Rage chain,
+  2026-11-20: the same source recipe holds the Javelin BPC's
+  probability row too — sibling rolls, not the T3 grade mechanism;
+  by-product-or-miss semantics pin at M8); multiple rows render the
+  **T3 relic grades** (Jackdaw chain, 2026-11-19) — the relic item
+  itself carries activity 8 (no source blueprint), the grade sets
+  both probability and BPC runs per success (the activity-8 product
+  quantity, 20/10/3 for small hull sections), recipes are
   multi-product (all four racial tactical destroyers per relic — the
   job targets one output), and there is no job-lock (each attempt
   consumes its relic). T3 BPC ME/TE is fixed per grade and decryptors
@@ -165,13 +210,20 @@ runtime; nothing here is learned or guessed at run time.
 - Unverified inputs (M4's dogma task): skill→time/copy multipliers,
   whether copying is skill-reducible, reaction slot semantics, exact
   BPO job-lock behavior. Invention pins (M8's dogma task, surfaced by
-  the Panther chain): invented-BPC base ME/TE (−4/−4 assumed), module
-  invention base runs, whether skill levels modify invention
-  probability (assumed not, post-Crius). T3 pins (surfaced by the
-  Jackdaw chain): relic-grade BPC ME/TE values, decryptor
-  non-applicability to reverse engineering, and the drop-sourcing of
-  hybrid tech component BPCs (no producer, no invention recipe, no
-  NPC seeding per community docs — verify against M15 market data).
+  the Panther chain): invented-BPC base ME/TE (−4/−4 assumed — live
+  evidence from the Rage chain 2026-11-20 points to 2/4: base +
+  Attainment reproduces the owned ammo BPCs' 14 runs / ME 1 / TE 8
+  exactly, while the owned rig BPCs at 2 runs / ME 0 / TE 0 match no
+  decryptor row from any candidate base), whether skill levels modify
+  invention probability (assumed not, post-Crius), and
+  alternative-product semantics (T2 ammo recipes carry sibling BPCs
+  at their own probabilities — by-product or miss, and whether both
+  can land on one attempt). T3 pins (surfaced by the Jackdaw chain):
+  relic-grade BPC ME/TE values, decryptor non-applicability to
+  reverse engineering, and the drop-sourcing of hybrid tech
+  component BPCs (no producer, no invention recipe, no NPC seeding
+  per community docs — verify against M15 market data). Rocket
+  Fuel's NPC seeding (Rage chain) verifies against M15 too.
 - Known simplifications: serial phases (no pipelining — parked open
   question in MILESTONES.md), one skill multiplier per model run (real
   assignments weight per character), facilities/rigs not yet multiplied

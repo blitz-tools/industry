@@ -14,26 +14,38 @@ Pinned by the 2026-11 proof-outs:
   `ramActivities` labels reactions as 9, but the data lives on 11).
 - Terminators are types with no producing blueprint. The raw-category lists
   below are hardcoded to the chains resolved so far (Typhoon, Charon,
-  Panther, Jackdaw); M5 should classify through invGroups/invCategories
-  instead — the SDE groups map cleanly for everything except
-  molecular-forging tools ('Commodities' catch-all) and Morphite (filed
-  under 'Mineral' despite being the top moon material) — both need the
-  name-list fallback. T3 adds two terminator classes the material walk
-  never sees (they enter only through the invention overlay): the
-  invention relics themselves ('Ancient Relics' category, e.g. Sleeper
-  Hull Relics) and the Sleeper salvage ('Ancient Salvage' group, 19
-  types — maps cleanly) that feeds the hybrid tech components.
+  Panther, Jackdaw, Trimark II, Scourge Rage HAM); M5 should classify
+  through invGroups/invCategories instead — the SDE groups map cleanly
+  for everything except molecular-forging tools ('Commodities'
+  catch-all) and Morphite (filed under 'Mineral' despite being the top
+  moon material) — both need the name-list fallback. T3 adds two
+  terminator classes the material walk never sees (they enter only
+  through the invention overlay): the invention relics themselves
+  ('Ancient Relics' category, e.g. Sleeper Hull Relics) and the Sleeper
+  salvage ('Ancient Salvage' group, 19 types — maps cleanly) that feeds
+  the hybrid tech components. T2 rig chains add the wreck salvage
+  ('Salvaged Materials' group, 41 types — maps cleanly) that rig
+  manufacturing consumes (T1 rigs eat the damaged variants — Fried/
+  Contaminated/Smashed; T2 the intact ones).
 - Invention (activity 8) is an overlay, not part of the material walk:
   the invented blueprint's build inputs resolve normally, and the
   invention recipe (source BPC, probability, datacores, skills) is
   reported by the invention-layer section at the end. The source-BPC
   run consumed per attempt is implicit in the game (1 run/attempt) and
-  absent from the SDE material list. Two flavors, dispatched on the
+  absent from the SDE material list. Three flavors, dispatched on the
   probability rows for the product blueprint: T2 has one source BPC
-  (decryptor scenarios apply); T3 reverse engineering has one row per
-  relic grade — the relic item itself carries activity 8, the grade
-  sets both probability and BPC runs (the activity-8 product quantity),
+  (decryptor scenarios apply) — its activity-8 recipe may carry
+  alternative products alongside the target (T2 ammo: Rage or Javelin
+  BPC, each with its own probability row — sibling rolls, not the T3
+  grade mechanism); T3 reverse engineering has one row per relic
+  grade — the relic item itself carries activity 8, the grade sets
+  both probability and BPC runs (the activity-8 product quantity),
   and the T2 decryptor/base-ME conventions do not apply (pin at M8).
+  BPC runs per success is the activity-8 product quantity in the SDE
+  (1 for ships and rigs, 10 for T2 ammo) — the live blueprints table
+  can disagree (owned rig BPCs read 2 runs), so owned BPCs always
+  report their ESI-synced values and only projections use the SDE
+  quantity (pin at M8).
 - Cycle detection is NOT implemented here (the manufacturing chain has none);
   M5's resolver must add it defensively per the milestone scope.
 """
@@ -114,6 +126,10 @@ RAW_CATEGORIES = {
     "npc market goods": [
         "AG-Composite Molecular Condenser",
         "Construction Blocks",
+        # T2-ammo fuel additive: no producing blueprint anywhere in the
+        # SDE — NPC-seeded per community docs, verify against M15
+        # market data.
+        "Rocket Fuel",
     ],
     # Sleeper salvage (w-space site drops) consumed by hybrid tech
     # components. The SDE group 'Ancient Salvage' maps cleanly (19
@@ -127,6 +143,14 @@ RAW_CATEGORIES = {
         "Emergent Combat Intelligence", "Heuristic Selfassemblers",
         "Jump Drive Control Nexus", "Thermoelectric Catalysts",
         "Emergent Combat Analyzer",
+    ],
+    # Wreck salvage (k-space, salvager module) consumed by rig
+    # manufacturing. The SDE group 'Salvaged Materials' maps cleanly
+    # (41 types); the 3 below are the Trimark II chain's members —
+    # T2 rigs eat the intact variants, T1 the damaged ones (Fried/
+    # Contaminated/Smashed), which this chain never walks.
+    "wreck salvage": [
+        "Interface Circuit", "Intact Armor Plates", "Nanite Compound",
     ],
 }
 
@@ -298,6 +322,15 @@ def invention_section(db, product_bp_id, bpcs_needed=1):
     if src is None:
         return []
     source_bp, p, mats, skills = src
+    base_runs = srcs[0][2]
+    siblings = [
+        type_name(db, t)
+        for (t,) in db.execute(
+            "SELECT DISTINCT productTypeID FROM sde_industryActivityProducts"
+            " WHERE typeID=? AND activityID=8 AND productTypeID != ?",
+            (source_bp, product_bp_id),
+        )
+    ]
     out = [
         f"=== invention layer: {type_name(db, product_bp_id)} ===",
         f"source: {type_name(db, source_bp)} (blueprint {source_bp},"
@@ -309,6 +342,21 @@ def invention_section(db, product_bp_id, bpcs_needed=1):
         "skills: " + ", ".join(f"{s} {lvl}" for s, lvl in skills),
         "T1 consumption: 1 run of the source BPC per attempt (implicit,"
         " not in the SDE material list)",
+        f"BPC runs per success: {base_runs:,} (SDE activity-8 product"
+        " quantity). Owned BPCs report their ESI-synced runs instead —"
+        " live rig BPCs read 2 against an SDE 1 (unexplained — pin"
+        " at M8)",
+    ]
+    if siblings:
+        out.append(
+            "alternative products: "
+            + ", ".join(siblings)
+            + " — the same attempt recipe carries their probability rows"
+            " too (sibling rolls, not the T3 grade mechanism); the"
+            " planner must decide whether successes on siblings count"
+            " as by-products or misses — pin at M8"
+        )
+    out += [
         "",
         f"need {bpcs_needed} successful invention(s);"
         f" expected attempts each = 1/p = {1 / p:.2f}",
@@ -328,12 +376,12 @@ def invention_section(db, product_bp_id, bpcs_needed=1):
         p_eff = p * mult
         out.append(
             f"  {name:24s} {p_eff:.2f}  {1 / p_eff:11.2f}"
-            f"  {BASE_INVENTED_ME + me:+5d}  {te:+d}  {1 + runmod}"
+            f"  {BASE_INVENTED_ME + me:+5d}  {te:+d}  {base_runs + runmod:,}"
         )
     out.append(
-        "\n  runs = invented-BPC run count (ship base 1 + max-run"
-        " modifier); more runs per BPC mean fewer inventions per ship"
-        " at scale. Module base runs differ — pin at M8."
+        f"\n  runs = invented-BPC run count ({base_runs:,} base +"
+        " max-run modifier); more runs per BPC mean fewer inventions"
+        " at scale"
     )
     return out
 

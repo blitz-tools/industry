@@ -1599,7 +1599,11 @@ copy-vs-direct. Two constraints shape it in practice:
 
 - **BPC pool**: 10 BPCs cap a single batch (52 runs total — a shared
   resource that also feeds the hull build's 1 run). More attempts per
-  window need copied or purchased BPCs.
+  window need copied or purchased BPCs. *(2026-11-20: this pool is
+  the recorded example of the copy-destination duality — one BPO's
+  copies feeding both invention attempts and manufacturing runs, with
+  different consumption semantics; see MILESTONES.md's
+  copy-destinations entry.)*
 - **Datacores are the real gate**: a 10-attempt batch needs 320 of
   each type; stock is 53 and 11. Acquisition, not scheduling, gates
   the invention branch.
