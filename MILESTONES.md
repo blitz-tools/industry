@@ -636,7 +636,10 @@ never belonged to that layer).*
 - "Structures" admin page, CRUD per the TODO spec: activity
   (manufacturing/invention/reactions), structure name, structure type
   (NPC station; Raitaru/Azbel/Sotiyo for engineering complexes; Athanor/
-  Tatara when activity = reactions), ME rig (none/T1/T2), TE rig,
+  Tatara when activity = reactions — pin whether biochemical
+  reaction formulas need a distinct facility class, the historical
+  drug-lab array, or refinery reaction slots cover them: surfaced by
+  `reference/chains/CRASH-CHAIN.md`, 2026-11-20), ME rig (none/T1/T2), TE rig,
   system security (high/low/null), solar system (type-ahead against
   `universe_locations`/ESI), tax rate, default-per-activity checkbox.
 - Rig/security multipliers: confirm exact values from CCP structure
@@ -1346,10 +1349,14 @@ recorded.
 - Recurring commodities across phases (surfaced by
   `reference/chains/CHARON-CHAIN.md`, 2026-11-18): the same type can
   appear in multiple phases when its consumers sit at different
-  depths (Charon: fuel blocks at phases 1–3, PO/RCF at 3–4). Build
+  depths (Charon: fuel blocks at phases 1–3, PO/RCF at 3–4; Crash
+  chain: Nitrogen Fuel Block at three levels, Water at two). Build
   one merged campaign at the earliest need, or per-phase campaigns?
   Merged is simplest but ties up inputs early; per-phase is
-  pipelining-adjacent. — M5/M9.
+  pipelining-adjacent — and the Crash chain (2026-11-20) priced the
+  question: level-split run rounding bought 40 extra Nitrogen blocks
+  against the merged campaign at ×100 (47 vs 46 fuel-block runs).
+  — M5/M9.
 - Invention pins (surfaced by `reference/chains/PANTHER-CHAIN.md`,
   2026-11-19; extended by `TRIMARK-CHAIN.md` / `RAGE-CHAIN.md`,
   2026-11-20): the invented-BPC base ME/TE (−4/−4 assumed from

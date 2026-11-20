@@ -66,7 +66,18 @@ invention (Javelin siblings on the same recipe), deterministic
 reaction-batch over-delivery, two reaction tiers beneath a non-ship
 deliverable, and the live-BPC reconciliation that puts the
 invented-base ME/TE pin at 2/4 (Attainment + base reproduces the
-owned 14-run ME 1 / TE 8 BPCs exactly).
+owned 14-run ME 1 / TE 8 BPCs exactly). `CRASH-CHAIN.md` (Strong
+Crash booster ×100, 2026-11-20) is the reaction-terminal chain: a
+three-tier biochemical reaction stack with **cross-drug
+dependencies** (Strong Crash consumes the Standard Crash, Blue Pill,
+and Frentix lines — the first DAG-shaped chain), a thin
+manufacturing cap gated by the Drug Manufacturing skill family
+(nobody holds the level-5 gate — simulated), batch-cascade
+over-delivery three tiers deep, Nitrogen Fuel Block recurring at
+three phase levels with a measurable level-split rounding cost, new
+terminators (three cytoserocins, Spirits, Hydrochloric Acid), and a
+contraband logistics note (boosters are highsec contraband —
+community-documented, not in SDE).
 
 New chains are added to stress the models with more complex structures
 (deeper phase stacks, capital components, invention/T2 layers) and
