@@ -46,24 +46,24 @@
   <!-- 1 · Search -->
   <section class="card overflow-visible" style="margin-top: 1.25rem;">
     <div class="card-body">
-      <h2>1 · Find a blueprint</h2>
-      <p class="card-sub">Search the SDE catalog (5,135 blueprints) or match only what the corp owns.</p>
+      <h2>1 · Find a target</h2>
+      <p class="card-sub">Search the buildable catalog (5,014 products) or match only what the corp can build from owned blueprints.</p>
 
       <div style="display: flex; gap: 0.75rem; align-items: flex-start; flex-wrap: wrap;">
         <div class="search-wrap">
-          <input class="search-input" type="text" value="jackd" aria-label="Search blueprints">
+          <input class="search-input" type="text" value="jackd" aria-label="Search targets">
           <div class="autocomplete">
             <div class="autocomplete-row active">
-              <img src="https://images.evetech.net/types/34829/bpc?size=32" alt="Jackdaw Blueprint">
+              <img src="https://images.evetech.net/types/34828/icon?size=32" alt="Jackdaw">
               <div>
-                <div class="ac-name">Jackdaw Blueprint</div>
-                <div class="ac-sub">Manufacturing · Jackdaw ×1/run · max 1 run/job · invented from Small Hull Section relics at 26/21/14%</div>
+                <div class="ac-name">Jackdaw</div>
+                <div class="ac-sub">Tactical destroyer · built from Jackdaw Blueprint — 1/run · max 1 run/job · blueprint via relic reverse engineering at 26/21/14%</div>
               </div>
               <div class="ac-right">
-                <span class="badge missing">Not owned</span>
+                <span class="badge missing">Blueprint not owned</span>
               </div>
             </div>
-            <div class="autocomplete-footer">1 match · icons and ownership from the live blueprints table</div>
+            <div class="autocomplete-footer">1 match · icons from the SDE mirror; blueprint ownership from the live blueprints table</div>
           </div>
         </div>
         <div>
@@ -73,13 +73,15 @@
 
       <div class="anno" style="margin-top: 5rem;">
         <span class="anno-label">wireframe</span>
-        The T3 autocomplete sub-line differs from the T2 shape: there is
-        <b>no source blueprint</b> — the relic item itself carries the
-        invention activity, so the sub-line names the relic family and the
-        three grade probabilities. With <b>Match From Inventory</b> on, the
-        Jackdaw Blueprint disappears (not owned); its world below — the
-        component BPCs, formulas, fuel blocks — stays reachable through the
-        chain, not the search.
+        Commodity-first targeting (2026-11-20 decision of record): the
+        search and target are the <b>built commodity</b>; the producer
+        blueprint is a derived input. The T3 autocomplete sub-line differs
+        from the T2 shape: there is <b>no source blueprint</b> — the relic
+        item itself carries the invention activity, so the sub-line names
+        the relic family and the three grade probabilities. With <b>Match
+        From Inventory</b> on, the Jackdaw disappears (its blueprint isn't
+        owned); its world below — the component BPCs, formulas, fuel
+        blocks — stays reachable through the chain, not the search.
       </div>
     </div>
   </section>
@@ -90,10 +92,10 @@
       <h2>2 · Target build</h2>
 
       <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-        <img class="type-icon-lg" src="https://images.evetech.net/types/34829/bpc?size=64" alt="Jackdaw Blueprint">
+        <img class="type-icon-lg" src="https://images.evetech.net/types/34828/icon?size=64" alt="Jackdaw">
         <div>
-          <div><b>Jackdaw Blueprint</b> <span class="badge missing">Not owned — BPC via relic invention</span></div>
-          <div class="meta-line">Builds <img class="type-icon" src="https://images.evetech.net/types/34828/icon?size=32" alt=""> Jackdaw ×1 per run · max 1 run/job · invented from <span class="type-icon-none" title="Ancient Relics have no icon"></span> Sleeper Hull Relics at 26/21/14% (grade-set)</div>
+          <div><b>Jackdaw</b> <span class="badge missing">Blueprint not owned — BPC via relic invention</span></div>
+          <div class="meta-line">Built from <img class="type-icon" src="https://images.evetech.net/types/34829/bpc?size=32" alt=""> Jackdaw Blueprint — 1 run at 1 per run · max 1 run/job · blueprint invented from <span class="type-icon-none" title="Ancient Relics have no icon"></span> Sleeper Hull Relics at 26/21/14% (grade-set)</div>
         </div>
         <div style="margin-left: auto; display: flex; gap: 0.75rem; align-items: center;">
           <span class="meta-line">Target count</span>

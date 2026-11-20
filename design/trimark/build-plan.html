@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Plan — Large Trimark Armor Pump II ×10 — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/trimark/build-plan.html</div>
+</aside>
+
+<main class="content">
+  <div class="page-header">
+    <h1><img class="type-icon" style="width:32px;height:32px;" src="https://images.evetech.net/types/26302/icon?size=32" alt=""> Build Plan — Large Trimark Armor Pump II ×10</h1>
+    <div class="actions">
+      <span class="badge plan-state">Draft</span>
+      <span class="pool-picker">Pool
+        <select aria-label="Participant pool">
+          <option>Corp + included characters (8)</option>
+          <option>Corp members only (4)</option>
+        </select>
+      </span>
+      <button class="icon-button" type="button" title="Re-run planner" aria-label="Re-run planner">⟳</button>
+      <button class="icon-button" type="button" title="Export plan" aria-label="Export plan">⭳</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">1.4 d</p>
+      <p class="stat-label">Chain end — expected path (the re-arm branch, 40%, adds 0.45 d)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">30 + 8</p>
+      <p class="stat-label">Invention attempts — batch 1 sized to expectation (E 10.2, 60%), re-arm covers the shortfall branch (82% on remaining)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">1 blueprint</p>
+      <p class="stat-label">To acquire (R.A.M. BPO, NPC-seeded) — 2 owned</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">31 jobs</p>
+      <p class="stat-label">Wave 1 — 30 one-run copies (pairs rolling on 2 corp BPOs, 15 h) + R.A.M.</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">8 types</p>
+      <p class="stat-label">Raw materials to obtain — 4 at zero (3 salvage · Isogen)</p>
+    </div>
+  </div>
+
+  <!-- Wave progress -->
+  <div class="wave-bar">
+    <div class="wave-header">
+      <span class="wave-title">Wave progress — day 0 of 1.4 · 0%</span>
+      <button class="legend-tab" type="button">legend ›</button>
+    </div>
+    <div class="wave-track">
+      <div class="wave-seg ahead" style="width: 44%;" title="W1 — 30 one-run copy jobs on 2 corp BPOs + R.A.M. · 31 jobs · day 0–0.63"></div>
+      <div class="wave-seg ahead" style="width: 19%;" title="W2 — invention batch 1: 30 attempts in parallel · 6.5 h · day 0.63–0.9"></div>
+      <div class="wave-seg ahead" style="width: 37%;" title="W3 — 10 rig builds × 12.5 h, one per invented BPC · day 0.9–1.4"></div>
+      <div class="now-line" style="left: 0;"></div>
+      <div class="now-caption" style="left: 0;">now · day 0</div>
+    </div>
+    <div class="wave-ticks">
+      <span class="tick" style="width: 44%;">W1 · copies</span>
+      <span class="tick" style="width: 19%;">W2 · invention</span>
+      <span class="tick tick-end" style="width: 37%;"><span>W3 · rig builds</span><span>100%</span></span>
+    </div>
+
+    <div class="anno" style="margin-top: 1.75rem;">
+      <span class="anno-label">wireframe</span>
+      The first bar in the program with <b>no dead zones</b>: the 15 h copy
+      phase is long enough to absorb every market purchase (salvage,
+      datacores, the R.A.M. BPO), so nothing waits between waves. The
+      copy phase — not invention — owns the wall-clock: BPO-bound at
+      2 runs/h on the corporation's two originals, against invention's
+      single 6.5 h wave at full parallelism. The re-arm branch (batch 2,
+      40% odds) inserts a copy pair + a second 6.5 h invention wave
+      before W3 — see the active plan for that state realized.
+    </div>
+  </div>
+
+  <!-- Reverse product chain -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse product chain</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Raw materials on the left, target on the right. Each node chip toggles Purchase ⇄ Build — purchased nodes drop out of the job allocation, count toward acquisition instead of the phase state and percent, and their inputs leave the raw-material math (the commodity itself is acquired instead). Phase rows carry a bulk toggle that sets every node at once.</p>
+
+  <div class="chain-flow">
+    <div class="chain-phase">
+      <span class="phase-label">Phase 1</span>
+      <span class="phase-name">R.A.M.</span>
+      <span class="phase-meta">1 node · manufacturing</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state ready">Ready to build</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 2</span>
+      <span class="phase-name">Trimark II ×10</span>
+      <span class="phase-meta">1 node · 10 jobs</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">BPCs pending invention</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Three phases, two of them buildable — the shallowest chain in the
+    program (the Jackdaw ran four buildable phases, the Charon seven).
+    No reactions, no nested T1
+    product, no components: the rig world is <b>salvage in, rigs out</b>,
+    with invention supplying the blueprint. The copy layer sits beside
+    this chain, feeding invention rather than any phase.
+  </div>
+
+  <!-- Phase tree -->
+  <details class="phase-row" open style="margin-top: 1rem;">
+    <summary>
+      <span class="phase-title">Phase 1 — R.A.M.</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">1 node</span>
+      <span class="summary-right">
+        <span class="stage-state ready">Ready to build</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/11475/icon?size=32" alt="">
+        <span class="node-name">R.A.M.- Armor/Hull Tech</span>
+        <span class="node-qty">×10</span>
+        <span class="node-runs">1 run</span>
+        <span class="node-right">
+          <span class="badge missing">BPO · NPC market</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row" open>
+    <summary>
+      <span class="phase-title">Phase 2 — Target</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">1 node · 10 jobs</span>
+      <span class="summary-right">
+        <span class="stage-state missing">BPCs pending invention</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/26302/icon?size=32" alt="">
+        <span class="node-name">Large Trimark Armor Pump II</span>
+        <span class="node-qty">×10</span>
+        <span class="node-runs">10 runs · 10 jobs (max 1 run/job)</span>
+        <span class="node-right">
+          <span class="badge bpc">BPCs · invented · 1 run each · ME / TE per decryptor</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <span class="node-gating">Each rig consumes its own BPC — Interface Circuit ×23 · Intact Armor Plates ×20 · Nanite Compound ×15 · R.A.M. ×1 per job; ten jobs' salvage is provisioned as one merged campaign (Interface Circuit 230 · Intact Armor Plates 200 · Nanite Compound 150)</span>
+      </div>
+    </div>
+  </details>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    maxProductionLimit 1 reshapes the target node: no run stacking, no
+    even split — <b>ten identical jobs</b>, each with its own installation
+    overhead, each gated on its own invented BPC. Manufacturing
+    concurrency is literally the invention phase's success count
+    arriving.
+  </div>
+
+  <!-- Copy plan -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Blueprint copy plan — invention inputs</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Copies feeding invention, not manufacturing: BPC count is the invention-parallelism knob (one attempt per BPC, job-lock), and total copy time is split-invariant — 2 × 18-run copies and 30 × 1-run copies cost the same BPO-hours, so the split is a pure parallelism decision.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Commodity</th>
+        <th class="num">BPCs</th>
+        <th>Run counts</th>
+        <th class="num">Copy time</th>
+        <th>Ready by</th>
+        <th>Source</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/25895/bp?size=32" alt="">Large Trimark Armor Pump I Blueprint</td>
+        <td class="num qty">30</td>
+        <td>30 × 1 run</td>
+        <td class="num">15 h</td>
+        <td class="muted">day 0.63</td>
+        <td class="muted">Corp BPO ×2 · ME 10 / TE 20 · Amamake</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">Sizing: 30 one-run BPCs = 30 parallel invention slots for batch 1's 30 attempts — copy wall-clock is BPO-bound (30 runs × 1 h ÷ 2 BPOs), identical for any split, so full parallelism costs nothing extra. The re-arm branch adds 8 more one-run copies (4 h). The corporation's existing 130-run BPC pool would zero this phase outright — the from-zero chain is modeled per the 2026-11-20 direction, with owned runs as the availability overlay.</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    First chain whose copy plan is <b>Copy → Invention</b> (mandatory —
+    invention consumes BPC runs, BPOs can't be invention sources), the
+    destination the copy-destinations decision records. The sizing rule:
+    BPC count = min(attempt budget, invention slot pool); runs per BPC =
+    ⌈budget ÷ count⌉. The two corp BPOs are the wall-clock bottleneck
+    asset — a third would cut the 15 h copy floor to 10 h.
+  </div>
+
+  <!-- Invention plan -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Invention plan</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Ten successes at 34% as a replenishment loop, not a one-shot phase: batch 1 installs with the copies, successes are counted from synced industry jobs when it completes, and a shortfall re-arms the next batch sized to the remaining need. The target never silently shrinks — 7 successes is a blocked plan with an owner decision, not a 7-rig plan.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Source</th>
+        <th class="num">Attempts</th>
+        <th>Consumes</th>
+        <th>Decryptor</th>
+        <th class="num">Window</th>
+        <th>Confidence</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/25895/bp?size=32" alt="">Large Trimark Armor Pump I BPC ×30</td>
+        <td class="num qty">30</td>
+        <td class="muted">30 BPC runs · 90 + 90 datacores <span style="color: var(--pink);">(69 + 60 to buy)</span></td>
+        <td class="muted">none — p 0.34 base · BPC at ME −4 / TE −4 per the pinned scenarios (M8 pin — live evidence favors 2/4; see the Rage set)</td>
+        <td class="num">6.5 h</td>
+        <td class="muted">P(≥10) 60% · E[successes] 10.2</td>
+      </tr>
+      <tr>
+        <td class="muted">batch 2 — conditional</td>
+        <td class="num qty">8</td>
+        <td class="muted">8 BPC runs · 24 + 24 datacores · 8 copy jobs added (4 h)</td>
+        <td class="muted">none — p 0.34 (escalation option at the decision point)</td>
+        <td class="num">6.5 h</td>
+        <td class="muted">re-armed on shortfall: P(≥ remaining) 82%</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">Batch 1 is sized to expectation (E[successes] 10.2 = the ten needed) rather than to confidence — the 40% shortfall branch costs one re-arm wave (+10.5 h including the added copies), while sizing batch 1 to 80% up front would spend 105 + 105 datacores before any information arrives. Expected residue at the 30-attempt batch: E[successes] 10.2 against 10 — a razor-thin ≈0.2 surplus BPCs; the 80% budget would expect ≈2. Failed attempts consume their BPC run either way — the attempt budget is the spend, success or fail.</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The retry-semantics direction realized: attempts in batches, a
+    memoryless re-arm sized to the remaining need, and a <b>budget
+    ceiling with an owner decision at exhaustion</b> — extend budget,
+    escalate decryptor (Attainment p_eff 61% at ME/TE cost), buy BPCs,
+    or descope. Never auto-escalates spend. Residue is tracked in both
+    directions: surplus BPCs bank for future plans (never inflating
+    this target); provisioned-but-unconsumed salvage stays visible
+    against the plan while blocked. The invention→manufacturing edge is
+    pipelining-eligible (each rig job needs only its own BPC + salvage)
+    — v1 keeps the phases serial.
+  </div>
+
+  <!-- Required blueprints -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Required blueprints</h2>
+
+  <p class="meta-line" style="margin: 0 0 0.75rem;"><span style="color: var(--pink);">1 missing</span> · 2 owned — the smallest blueprint footprint in the program (the Jackdaw's was 23). One acquisition, and it's the cheapest path in the catalog.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Blueprint</th>
+        <th>Activity</th>
+        <th>Status</th>
+        <th>Acquisition</th>
+        <th>Est. cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="group-row"><td colspan="5">Invented</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/26303/bpc?size=32" alt="">Large Trimark Armor Pump II Blueprint</td>
+        <td><span class="activity-tag inv">invention</span></td>
+        <td><span class="badge missing">Missing</span></td>
+        <td class="muted">staged batches · see the invention plan above</td>
+        <td class="num qty">~168 datacores</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Owned — corporation (the live copy operation)</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/25895/bp?size=32" alt="">Large Trimark Armor Pump I Blueprint</td>
+        <td><span class="activity-tag copy">copy</span></td>
+        <td><span class="badge owned">Owned</span></td>
+        <td class="muted">2 originals (ME 10 / TE 20) + 7 BPCs, 130 runs — pool covers the from-zero copy plan 3.4×</td>
+        <td class="num qty">—</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">NPC-seeded original — no producer in the SDE</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/11873/bp?size=32" alt="">R.A.M.- Armor/Hull Tech Blueprint</td>
+        <td><span class="activity-tag mfg">manufacture</span></td>
+        <td><span class="badge missing">Missing</span></td>
+        <td class="muted">NPC market · one 42-min run covers the bill</td>
+        <td class="num qty">~2M</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Raw materials -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Raw materials — acquisition</h2>
+  <p class="meta-line" style="margin: 0 0 0.5rem;">Chain terminators summed across all stages, measured against the selected pool. Bars fill from asset syncs; green = covered, yellow = partial, pink = under half. Defaults to gaps only so blockers stand out.</p>
+
+  <div style="display: flex; gap: 0.4rem; margin-bottom: 0.75rem;">
+    <button class="chip-button selected" type="button">Gaps only</button>
+    <button class="chip-button" type="button">Show all 8 types</button>
+  </div>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Material</th>
+        <th class="num">Required</th>
+        <th class="num">Available</th>
+        <th style="min-width: 10rem;">Coverage</th>
+        <th>Acquire via</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="group-row"><td colspan="5">Wreck salvage — k-space drops, intact tier</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/25620/icon?size=32" alt="">Interface Circuit</td>
+        <td class="num qty">230</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — direct rig input</span></div></td>
+        <td class="muted">Wreck salvaging / market · avg 120k isk</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/25624/icon?size=32" alt="">Intact Armor Plates</td>
+        <td class="num qty">200</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0%</span></div></td>
+        <td class="muted">Wreck salvaging / market · avg 150k isk</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/25609/icon?size=32" alt="">Nanite Compound</td>
+        <td class="num qty">150</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0%</span></div></td>
+        <td class="muted">Wreck salvaging / market · avg 90k isk</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Minerals</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/37/icon?size=32" alt="">Isogen</td>
+        <td class="num qty">82</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — R.A.M. input</span></div></td>
+        <td class="muted">Mining / market · avg 260 isk</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">4 types fully covered — hidden in this view; "Show all 8 types" lists them (Tritanium 97.4M on hand against 556 needed). Datacores live in the invention plan, not here — expected-value quantities stay out of the deterministic acquisition table. Market-average figures illustrative (M15 synced prices).</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The smallest raw table in the program — four gap rows, three of them
+    the new <b>wreck-salvage terminator class</b> (k-space drops via
+    salvager module; the damaged-tier variants that T1 rigs eat are
+    irrelevant to this plan — a condition-tier pairing the buy-vs-build
+    layer can surface). A deliberately minimal acquisition surface to
+    contrast the volume story on the ammo side.
+  </div>
+
+  <!-- Job allocation -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — wave 1</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Recommended installs per character, from synced skills and live slot occupancy — eligibility first. The copy pairs roll on the two corp BPOs (factory roles: schlepzrage + Octavia), R.A.M. goes anywhere with slots, and invention installs in wave 2 once copies land. Amarr Encryption Methods is simulated per the program convention — any of the three spread characters may hold it.</p>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    Fresh plan: every slot shows its recommended job or what it's waiting on.
+    For the in-progress variant (running jobs, the retry loop mid-flight,
+    next-up queues) see <a href="build-plan-active.html">build-plan-active.html</a>.
+  </div>
+
+  <!-- schlepzrage -->
+  <section class="char-card-jobs" style="margin-top: 1rem;">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124139810/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">schlepzrage</div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 0 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots (copy)</div>
+    <div class="slot-grid">
+      <div class="slot ready">
+        <div class="slot-head">
+          <img class="type-icon" src="https://images.evetech.net/types/25895/bp?size=32" alt="">
+          <span class="slot-name">Copy · Trimark I BPC #1</span>
+          <span class="activity-tag copy">copy</span>
+        </div>
+        <span class="slot-meta">1 run · 1 h · Amamake — corp BPO A · first of 15 rolling pairs</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install</span>
+      </div>
+      <div class="slot idle">+ 14 more copy pairs — BPO A frees hourly</div>
+    </div>
+  </section>
+
+  <!-- Octavia Arbitrage -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124297138/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">Octavia Arbitrage</div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 0 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots (copy + R.A.M.)</div>
+    <div class="slot-grid">
+      <div class="slot ready">
+        <div class="slot-head">
+          <img class="type-icon" src="https://images.evetech.net/types/25895/bp?size=32" alt="">
+          <span class="slot-name">Copy · Trimark I BPC #2</span>
+          <span class="activity-tag copy">copy</span>
+        </div>
+        <span class="slot-meta">1 run · 1 h · Amamake — corp BPO B · first of 15 rolling pairs</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install</span>
+      </div>
+      <div class="slot ready">
+        <div class="slot-head">
+          <img class="type-icon" src="https://images.evetech.net/types/11873/bp?size=32" alt="">
+          <span class="slot-name">R.A.M.- Armor/Hull Tech</span>
+          <span class="activity-tag mfg">manufacture</span>
+        </div>
+        <span class="slot-meta">1 run of 100 · 42 min · needs the NPC-market BPO (day 0 purchase)</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- blitzrage -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/1634367930/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">blitzrage <span class="badge bpc" style="margin-left: 0.4rem;">Inventor (simulated Amarr Encryption)</span></div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 0 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Science slots (invention — wave 2)</div>
+    <div class="slot-grid">
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>Invention · attempt 1/10 here — 1 BPC run · 3 + 3 datacores · 6.5 h · p 0.34</div>
+        <div class="next-up"><span class="next-label">then</span>+ 9 more attempts — installs with wave 2, once the copy wave lands (day 0.63)</div>
+        <span class="slot-meta">batch 1 splits 10 / 10 / 10 across three inventors</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+</body>
+</html>

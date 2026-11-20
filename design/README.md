@@ -9,8 +9,10 @@ document it visualizes. Shared styles and components live in
 |---|---|
 | `typhoon/` | planner → build plan → active plan — the **reference standard** |
 | `charon/` | planner → build plan → active plan (capital stress test) |
-| `panther/` | planner → build plan → active plan (invention set) |
+| `panther/` | planner + scoped variant → build plan → active plan (invention set) |
 | `jackdaw/` | planner → build plan → active plan (T3 relic-invention set) |
+| `trimark/` | planner → build plan → active plan (T2 rig set — retry loop) |
+| `rage/` | planner → build plan → active plan (T2 ammo set — run pool + residue) |
 
 These are design artifacts for iteration, **not** app code: no build
 step, no JS, nothing wired to the FastAPI app. They are deliberately
@@ -30,6 +32,11 @@ set; once settled they apply to every set (decisions graduate to
 - Styles come from `../shared/mockups.css` — design tokens and
   component shapes copied from `app/static/style.css`, which remains
   the styling source of truth.
+- **Planner entry is commodity-first** (2026-11-20 decision of
+  record, MILESTONES.md): search and target are the built commodity +
+  unit count; the producer blueprint is a derived input named in the
+  autocomplete sub-line and target card. Every set's planner follows
+  this — blueprint-first search is superseded.
 - Dashed yellow `.anno` boxes are wireframe annotations and would
   never ship.
 - Data provenance is documented per set in that set's README:

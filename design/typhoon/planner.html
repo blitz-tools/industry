@@ -46,34 +46,34 @@
   <!-- 1 · Search -->
   <section class="card overflow-visible" style="margin-top: 1.25rem;">
     <div class="card-body">
-      <h2>1 · Find a blueprint</h2>
-      <p class="card-sub">Search the SDE catalog (5,135 blueprints) or match only what the corp owns.</p>
+      <h2>1 · Find a target</h2>
+      <p class="card-sub">Search the buildable catalog (5,014 products) or match only what the corp can build from owned blueprints.</p>
 
       <div style="display: flex; gap: 0.75rem; align-items: flex-start; flex-wrap: wrap;">
         <div class="search-wrap">
-          <input class="search-input" type="text" value="typh" aria-label="Search blueprints">
+          <input class="search-input" type="text" value="typh" aria-label="Search targets">
           <div class="autocomplete">
             <div class="autocomplete-row active">
-              <img src="https://images.evetech.net/types/998/bpc?size=32" alt="Typhoon Blueprint">
+              <img src="https://images.evetech.net/types/644/icon?size=32" alt="Typhoon">
               <div>
-                <div class="ac-name">Typhoon Blueprint</div>
-                <div class="ac-sub">Manufacturing · Typhoon ×1/run · max 10 runs/job</div>
+                <div class="ac-name">Typhoon</div>
+                <div class="ac-sub">Battleship · built from Typhoon Blueprint — 1/run · max 10 runs/job</div>
               </div>
               <div class="ac-right">
-                <span class="badge owned">Owned · BPC ×10</span>
+                <span class="badge owned">Blueprint owned · BPC ×10</span>
               </div>
             </div>
             <div class="autocomplete-row">
-              <img src="https://images.evetech.net/types/32312/bp?size=32" alt="Typhoon Fleet Issue Blueprint">
+              <img src="https://images.evetech.net/types/32311/icon?size=32" alt="Typhoon Fleet Issue">
               <div>
-                <div class="ac-name">Typhoon Fleet Issue Blueprint</div>
-                <div class="ac-sub">Manufacturing · Typhoon Fleet Issue ×1/run · max 10 runs/job</div>
+                <div class="ac-name">Typhoon Fleet Issue</div>
+                <div class="ac-sub">Battleship · built from Typhoon Fleet Issue Blueprint — 1/run · max 10 runs/job</div>
               </div>
               <div class="ac-right">
-                <span class="badge missing">Not owned</span>
+                <span class="badge missing">Blueprint not owned</span>
               </div>
             </div>
-            <div class="autocomplete-footer">2 matches · icons and ownership from the live blueprints table</div>
+            <div class="autocomplete-footer">2 matches · icons from the SDE mirror; blueprint ownership from the live blueprints table</div>
           </div>
         </div>
         <div>
@@ -83,10 +83,14 @@
 
       <div class="anno" style="margin-top: 12rem;">
         <span class="anno-label">wireframe</span>
-        Autocomplete lists every matching blueprint with its icon; an
-        <b>Owned</b> badge appears when a usable copy or original sits in the
-        inventory pool. With <b>Match From Inventory</b> on, results filter to
-        owned blueprints only. Dropdown height caps with scroll.
+        Commodity-first targeting (2026-11-20 decision of record): the
+        search and target are the <b>built commodity</b>; the producer
+        blueprint is a derived input. Autocomplete lists every matching
+        product with its icon and names its producer blueprint; an
+        <b>Owned</b> badge appears when a usable blueprint sits in the
+        inventory pool. With <b>Match From Inventory</b> on, results filter
+        to products buildable from owned blueprints. Dropdown height caps
+        with scroll.
       </div>
     </div>
   </section>
@@ -97,10 +101,10 @@
       <h2>2 · Target build</h2>
 
       <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-        <img class="type-icon-lg" src="https://images.evetech.net/types/998/bpc?size=64" alt="Typhoon Blueprint">
+        <img class="type-icon-lg" src="https://images.evetech.net/types/644/icon?size=64" alt="Typhoon">
         <div>
-          <div><b>Typhoon Blueprint</b> <span class="badge bpc">BPC ×10</span></div>
-          <div class="meta-line">Builds <img class="type-icon" src="https://images.evetech.net/types/644/icon?size=32" alt=""> Typhoon ×1 per run · max 10 runs per job</div>
+          <div><b>Typhoon</b> <span class="badge bpc">Blueprint pool: BPC ×10</span></div>
+          <div class="meta-line">Built from <img class="type-icon" src="https://images.evetech.net/types/998/bpc?size=32" alt=""> Typhoon Blueprint — 10 runs at 1 per run · max 10 runs per job</div>
         </div>
         <div style="margin-left: auto; display: flex; gap: 0.75rem; align-items: center;">
           <span class="meta-line">Target count</span>

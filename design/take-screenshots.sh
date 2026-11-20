@@ -8,6 +8,10 @@
 #   width   viewport width, default 1440
 # Output: design/<set>/screenshots/<name>.png (existing files
 #         overwritten)
+#
+# Run ONLY when the product owner asks for screenshots (2026-11-20):
+# regenerating PNGs per commit bloats the repository — they are not
+# part of the normal set workflow and are never auto-captured.
 
 set -euo pipefail
 

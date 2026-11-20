@@ -587,7 +587,7 @@ base, and the base just gained live evidence toward 2/4.
 | Oxygen / Nitrogen / Hydrogen / Helium Fuel Block Blueprint | manufacturing | owned (corporation + Octavia) — moot while block stock covers need |
 
 Fifteen blueprints, one held in the needed set beyond the invention
-pair (Sulfuric Acid, corporation) — the formula gap (8 of 9 reaction
+pair (Sulfuric Acid, corporation) — the formula gap (9 of 10 reaction
 formulas) is this chain's acquisition story, all cheap NPC-seeded
 originals per the Panther-chain precedent. The T1 BPO is the live
 line's workhorse: its ~586 runs of owned copies make the
@@ -662,7 +662,7 @@ invention-input check a formality.
   32-minute copy sliver, both in parallel with the reaction tiers.
   Serial model total ≈ 2.3 days — a short plan whose interesting
   stress is scheduling shape, not duration.
-- **Reaction-formula ownership gap** (1 of 9 needed) — all
+- **Reaction-formula ownership gap** (1 of 10 needed) — all
   NPC-seeded originals; the acquisition tier for this chain is
   shopping, not copying or inventing.
 - **Rocket Fuel** is the second NPC-seeded consumable terminator

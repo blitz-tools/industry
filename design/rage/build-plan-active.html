@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Plan — Scourge Rage HAM ×500,000 — active — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/rage/build-plan-active.html</div>
+</aside>
+
+<main class="content">
+  <div class="page-header">
+    <h1><img class="type-icon" style="width:32px;height:32px;" src="https://images.evetech.net/types/2679/icon?size=32" alt=""> Build Plan — Scourge Rage HAM ×500,000</h1>
+    <div class="actions">
+      <span class="badge plan-state active">Active — day 1.5</span>
+      <span class="pool-picker">Pool
+        <select aria-label="Participant pool">
+          <option>Corp + included characters (8)</option>
+          <option>Corp members only (4)</option>
+        </select>
+      </span>
+      <button class="icon-button" type="button" title="Re-run planner" aria-label="Re-run planner">⟳</button>
+      <button class="icon-button" type="button" title="Export plan" aria-label="Export plan">⭳</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">2.7 d</p>
+      <p class="stat-label">Chain end — on schedule; round 2 of ammo manufacturing is the tail</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--cyan);">1 + 1</p>
+      <p class="stat-label">Top-up outcome — 1 Rage success (E 1.4) + 1 Javelin sibling: the by-product realized, banked as residue</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">30%</p>
+      <p class="stat-label">Ammo round 1 — 7 jobs running, 0.78 d to round 2 (360,000 missiles in flight)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">10,000 / 500,000</p>
+      <p class="stat-label">Missiles delivered — the 2-run top-up job landed day 1.39; the seven 10-run jobs land day 2.28 · 7,975 held from prior production count toward the target</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">7 jobs</p>
+      <p class="stat-label">Running — the 10-round manufacturing jobs across Industry-5 holders; the 2-run top-up delivered</p>
+    </div>
+  </div>
+
+  <!-- Wave progress -->
+  <div class="wave-bar">
+    <div class="wave-header">
+      <span class="wave-title">Wave progress — day 1.5 of 2.7 · 55%</span>
+      <button class="legend-tab" type="button">legend ‹</button>
+    </div>
+    <div class="wave-track">
+      <div class="wave-seg done" style="width: 5%;" title="W1 — 7 simple reactions + 4 copies + R.A.M. · day 0–0.13 · delivered day 0.13"></div>
+      <div class="wave-seg done" style="width: 19%;" title="W2 — tier-2 reactions + invention top-up · day 0.13–0.65 · 1 Rage + 1 Javelin success"></div>
+      <div class="wave-seg done" style="width: 19%;" title="W3 — Graviton Pulse Generator, 300 runs · day 0.65–1.17 · delivered day 1.17"></div>
+      <div class="wave-seg current" style="width: 41%;" title="W4 — ammo round 1: 8 jobs (72 runs) · day 1.17–2.28 · running">
+        <div class="seg-fill" style="width: 30%;"></div>
+      </div>
+      <div class="wave-seg ahead" style="width: 16%;" title="W5 — round 2: 7 × 4-run jobs · day 2.28–2.73"></div>
+      <div class="now-line" style="left: 55%;"></div>
+      <div class="now-caption" style="left: 55%;">now · day 1.5</div>
+    </div>
+    <div class="wave-ticks">
+      <span class="tick" style="width: 5%;">W1</span>
+      <span class="tick" style="width: 19%;">W2 · rxn + inv</span>
+      <span class="tick" style="width: 19%;">W3 · GPG</span>
+      <span class="tick" style="width: 41%;">W4 · ammo 1</span>
+      <span class="tick tick-end" style="width: 16%;"><span>W5 · ammo 2</span><span>100%</span></span>
+    </div>
+
+    <div class="anno" style="margin-top: 1.75rem;">
+      <span class="anno-label">wireframe</span>
+      The realized schedule matches the planned bar — the top-up landed
+      its one needed success inside wave 2 (with a Javelin sibling
+      alongside), so no re-arm segments were inserted. Compare the
+      Trimark active page, where the same loop realized its shortfall
+      branch: same semantics, different dice.
+    </div>
+  </div>
+
+  <!-- Reverse product chain -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse product chain</h2>
+
+  <div class="chain-flow">
+    <div class="chain-phase">
+      <span class="phase-label">Phase 1</span>
+      <span class="phase-name">Fuel blocks</span>
+      <span class="phase-meta">4 nodes · from stock</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state complete">Stock covers — no jobs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 2</span>
+      <span class="phase-name">First-tier reactions</span>
+      <span class="phase-meta">7 reaction nodes</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state complete">✓ Stage complete</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 3</span>
+      <span class="phase-name">Second-tier + repeats</span>
+      <span class="phase-meta">6 reaction nodes</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state complete">✓ Stage complete</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 4</span>
+      <span class="phase-name">Component + direct inputs</span>
+      <span class="phase-meta">3 nodes · manufacturing</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state complete">✓ Stage complete</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 5</span>
+      <span class="phase-name">Rage HAM ×500,000</span>
+      <span class="phase-meta">1 node · 15 jobs</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">In progress — round 1 of 2</span>
+      </div>
+    </div>
+  </div>
+
+  <details class="phase-row" open style="margin-top: 1rem;">
+    <summary>
+      <span class="phase-title">Phase 5 — Target</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">1 node · 15 jobs</span>
+      <span class="summary-right">
+        <span class="stage-state missing">In progress — round 1 of 2</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/2679/icon?size=32" alt="">
+        <span class="node-name">Scourge Rage Heavy Assault Missile</span>
+        <span class="node-qty">×500,000</span>
+        <span class="node-runs">72 of 100 runs in flight · 2 delivered</span>
+        <span class="node-right">
+          <span class="badge bpc">8 BPCs · 108-run pool</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <span class="node-gating">Round 1 (8 jobs, 72 runs) at 30% — the 2-run top-up job on the invented BPC delivered first (day 1.39, 10,000 missiles; shortest job lands first); the owned pool's seven 10-run jobs run to day 2.28, then round 2 (7 × 4-run, 28 runs) installs. Delivered units meter counts jobs' 5,000-per-run output as they land; the 7,975 missiles held from prior production offset the target.</span>
+      </div>
+    </div>
+  </details>
+
+  <!-- Invention plan -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Invention plan — complete</h2>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Source</th>
+        <th class="num">Attempts</th>
+        <th>Outcome</th>
+        <th>Decryptor</th>
+        <th>Window</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/26762/bp?size=32" alt="">Scourge HAM BPC ×4</td>
+        <td class="num qty">4</td>
+        <td class="muted">1 Rage + 1 Javelin succeeded (E 1.4 each) · 2 failed — 10-run Rage BPC tops up the pool; Javelin sibling banked</td>
+        <td class="muted">none — p 0.34</td>
+        <td class="muted">day 0.13 → 0.65</td>
+        <td><span class="stage-state complete">✓ Stage complete</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">The top-up landed its one needed success and a sibling alongside — both rolls inside their expectations, no re-arm required. The pool now holds 108 runs against the 100 needed: the over-delivery realized, and the surplus is inventory, not waste.</p>
+
+  <div class="residue-card">
+    <div class="residue-group">BPC — banked, available to future plans (never raises this target)</div>
+    <ul>
+      <li>Scourge Javelin Heavy Assault Missile Blueprint ×1 · 10 runs — sibling by-product: 1 of 4 top-up attempts landed Javelin (E 1.4); joins the 8,595 Javelin missiles already held</li>
+      <li>Scourge Rage runs ×8 spare — the 10-run success against the 2-run shortfall; carried on the owned pool (108 of 100 used)</li>
+    </ul>
+    <div class="residue-group">Reaction batches — deterministic over-delivery</div>
+    <ul>
+      <li>Phenolic Composites +1,100 — 2 runs of 2,200 against 3,300 needed · Nanotransistors +900 · Titanium Carbide +3,400</li>
+      <li>3 of 4 fuel-block batches partially unused — blocks drawn from stock, not built, so the surplus stays as stock</li>
+    </ul>
+    <div class="residue-note">Residue is tracked, not hidden: banked BPCs and spare runs are plan-visible inventory with a future-plan disposition; reaction surpluses are the batch-minimum floor, known at plan time. Nothing here inflates the 500,000 target — surplus is an asset, not a debt to consume.</div>
+  </div>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The residue card is this set's contribution: the over-delivery half
+    of the probabilistic-outcome story, shown as first-class inventory
+    rather than buried in prose. Its asymmetry is deliberate — surplus
+    BPCs bank forward, they never grow the target; the Trimark set
+    carries the mirror card (material held while short). The Javelin
+    sibling landing mid-batch is the live answer to the alternative-
+    product question this chain surfaced: by-products happen, and the
+    planner should show them, not fold them into "successes".
+  </div>
+
+  <!-- Blueprint copy plan -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Blueprint copy plan — invention inputs</h2>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Commodity</th>
+        <th class="num">BPCs</th>
+        <th>Run counts</th>
+        <th class="num">Copy time</th>
+        <th>Delivered</th>
+        <th>Source</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/26762/bp?size=32" alt="">Scourge Heavy Assault Missile Blueprint</td>
+        <td class="num qty">4</td>
+        <td>4 × 1 run</td>
+        <td class="num">32 min</td>
+        <td class="muted">day 0.02 — all four consumed by the top-up batch</td>
+        <td class="muted">blitzrage BPO · ME 10 / TE 20 · Amamake</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">The copy layer's complete lifecycle fit inside half an hour — the sizing rule's constants (8 min/run, one BPO, four attempts) defuse the decision that owns the Trimark's timeline. Nothing queued, nothing pending.</p>
+
+  <!-- Raw materials -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Raw materials — acquisition</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Abbreviated to the rows that moved since the fresh view. The R8/R64 stack was bought to fill before wave 1; reaction inputs are committed to delivered jobs.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Material</th>
+        <th class="num">Required</th>
+        <th class="num">Available</th>
+        <th style="min-width: 10rem;">Coverage</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/16643/icon?size=32" alt="">Cadmium</td>
+        <td class="num qty">200</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill" style="width: 100%"></div></div><span class="meter-pct">100% — committed</span></div></td>
+        <td class="muted">delivered day 0 — consumed by the Caesarium Cadmide run</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/9830/icon?size=32" alt="">Rocket Fuel</td>
+        <td class="num qty">1,200</td>
+        <td class="num">816</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 68%"></div></div><span class="meter-pct">68% — consumed per job</span></div></td>
+        <td class="muted">384 consumed by the 32 runs in flight · remainder committed to rounds 1–2</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/11399/icon?size=32" alt="">Morphite</td>
+        <td class="num qty">100</td>
+        <td class="num">40</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 40%"></div></div><span class="meter-pct">40% — 1 per run</span></div></td>
+        <td class="muted">60 consumed by runs in flight · remainder committed</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Job allocation -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — in flight</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Round 1's eight manufacturing jobs spread across the Industry-5 holders; round 2 queues behind them on the same BPCs (job-lock — one job per BPC at a time).</p>
+
+  <!-- blitzrage -->
+  <section class="char-card-jobs" style="margin-top: 1rem;">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/1634367930/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">blitzrage</div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 3 manufacturing in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots (ammo round 1)</div>
+    <div class="slot-grid">
+      <div class="slot running">
+        <div class="slot-head">
+          <img class="type-icon" src="https://images.evetech.net/types/2680/bpc?size=32" alt="">
+          <span class="slot-name">Ammo · 10-run job 1/3 here</span>
+          <span class="activity-tag mfg">manufacture</span>
+        </div>
+        <span class="slot-meta">BPC 1 (owned, 14 runs) · 10 runs × 2.67 h · 50,000 missiles · Amamake</span>
+        <div class="meter"><div class="meter-fill" style="width: 30%;"></div></div>
+        <span class="slot-meta">18.7 h to completion · round 1 of 2</span>
+      </div>
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>Round 2 · 4-run job 1/3 here — 10.7 h, installs day 2.28 on the same BPCs</div>
+        <span class="slot-meta">+ 2 more round-1 jobs running</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Octavia Arbitrage -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124297138/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">Octavia Arbitrage</div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 3 manufacturing in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots (ammo round 1)</div>
+    <div class="slot-grid">
+      <div class="slot done">
+        <div class="slot-head">
+          <img class="type-icon" src="https://images.evetech.net/types/2680/bpc?size=32" alt="">
+          <span class="slot-name">Ammo · 2-run top-up job</span>
+          <span class="activity-tag mfg">manufacture</span>
+        </div>
+        <span class="slot-meta">Invented BPC (10 runs, ME 1 / TE 8) · 2 runs × 2.67 h · 10,000 missiles — the shortfall filler</span>
+        <span class="slot-meta">delivered day 1.39 — shortest job lands first · 8 spare runs stay on the BPC (residue)</span>
+      </div>
+      <div class="slot idle">+ 1 more round-1 job running here · reactions complete — slots free</div>
+    </div>
+  </section>
+</main>
+
+</body>
+</html>

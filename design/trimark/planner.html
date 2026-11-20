@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Planner — Large Trimark Armor Pump II — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/trimark/planner.html</div>
+</aside>
+
+<main class="content">
+  <h1>Build Planner</h1>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    Both search states are shown stacked — typing state above, selected state
+    below. In the real page the dropdown closes on selection and the rest of
+    the form appears.
+  </div>
+
+  <!-- 1 · Search -->
+  <section class="card overflow-visible" style="margin-top: 1.25rem;">
+    <div class="card-body">
+      <h2>1 · Find a target</h2>
+      <p class="card-sub">Search the buildable catalog (5,014 products) or match only what the corp can build from owned blueprints.</p>
+
+      <div style="display: flex; gap: 0.75rem; align-items: flex-start; flex-wrap: wrap;">
+        <div class="search-wrap">
+          <input class="search-input" type="text" value="large trimark armor pump ii" aria-label="Search targets">
+          <div class="autocomplete">
+            <div class="autocomplete-row active">
+              <img src="https://images.evetech.net/types/26302/icon?size=32" alt="Large Trimark Armor Pump II">
+              <div>
+                <div class="ac-name">Large Trimark Armor Pump II</div>
+                <div class="ac-sub">Rig · built from Large Trimark Armor Pump II Blueprint — 1/run · max 1 run/job · blueprint via invention from the T1 rig BP at 34%</div>
+              </div>
+              <div class="ac-right">
+                <span class="badge missing">Blueprint not owned</span>
+              </div>
+            </div>
+            <div class="autocomplete-footer">1 match · icons from the SDE mirror; blueprint ownership from the live blueprints table</div>
+          </div>
+        </div>
+        <div>
+          <button class="chip-button" type="button">Match From Inventory</button>
+        </div>
+      </div>
+
+      <div class="anno" style="margin-top: 5rem;">
+        <span class="anno-label">wireframe</span>
+        Commodity-first targeting (2026-11-20 decision of record): the
+        search and target are the <b>built commodity</b>; blueprints are
+        derived inputs the planner identifies, alongside materials and
+        skills. The autocomplete row names the producer blueprint and
+        its acquisition state; the run math (⌈units ÷ per-run⌉) is
+        computed, never asked. With <b>Match From Inventory</b> on, this
+        target disappears (its blueprint isn't owned) but the chain
+        below stays reachable — the corporation <b>owns the T1 source
+        BPOs</b>, so the invention layer's inputs still resolve.
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · Target -->
+  <section class="card">
+    <div class="card-body">
+      <h2>2 · Target build</h2>
+
+      <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <img class="type-icon-lg" src="https://images.evetech.net/types/26302/icon?size=64" alt="Large Trimark Armor Pump II">
+        <div>
+          <div><b>Large Trimark Armor Pump II</b> <span class="badge missing">Blueprint not owned — BPC via invention</span></div>
+          <div class="meta-line">Built from <img class="type-icon" src="https://images.evetech.net/types/26303/bpc?size=32" alt=""> Large Trimark Armor Pump II Blueprint — 10 runs at 1 per run · max 1 run/job, every rig its own 12.5 h job · blueprint invented from <img class="type-icon" src="https://images.evetech.net/types/25895/bp?size=32" alt=""> Large Trimark Armor Pump I Blueprint at 34% (1 run per success)</div>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 0.75rem; align-items: center;">
+          <span class="meta-line">Target count</span>
+          <div class="stepper">
+            <button type="button" aria-label="Decrease">−</button>
+            <span class="stepper-value">10</span>
+            <button type="button" aria-label="Increase">+</button>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <h2 style="font-size: 0.95rem;">Requirements at target ×10</h2>
+      <p class="card-sub">The full chain for ten builds, resolved at selection — quantities track the target stepper live. Calculate schedules the plan (phases, waves, allocation, copy sizing, invention plan); nothing here waits for it.</p>
+
+      <!-- Tier 0: invention inputs (T2 rig flavor) -->
+      <details class="phase-row" open>
+        <summary>
+          <span class="phase-title">Invention inputs</span>
+          <span class="phase-count">source BPC · 2 datacores</span>
+          <span class="summary-right">
+            <span class="stage-state missing">datacore gap · copy check green</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <tbody>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/25895/bp?size=32" alt="">Large Trimark Armor Pump I Blueprint</td>
+                <td class="muted">1 run consumed per attempt · expected ≈29.4 attempts for ten successes · BPC count = invention parallelism (one attempt per BPC, job-lock)</td>
+                <td><span class="badge owned">130-run pool</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/20416/icon?size=32" alt="">Datacore - Nanite Engineering</td>
+                <td class="muted">3 per attempt · expected ≈88 for ten successes</td>
+                <td><span class="badge missing">21 on hand</span></td>
+              </tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/20171/icon?size=32" alt="">Datacore - Hydromagnetic Physics</td>
+                <td class="muted">3 per attempt · expected ≈88 for ten successes</td>
+                <td><span class="badge owned">30 on hand</span></td>
+              </tr>
+              <tr>
+                <td colspan="3" class="muted">Decryptor — a T2 slot exists (unlike T3), selection lands on the calculated plan. At max 1 run/job the max-run modifiers are wasted: a 5-run BPC still builds one rig per job. Probability multipliers are what compound across ten successes — see the invention summary below.</td>
+              </tr>
+              <tr>
+                <td colspan="3" class="muted">Skills — Hydromagnetic Physics 1 · Nanite Engineering 1 · Amarr Encryption Methods 1. <b>Amarr Encryption Methods simulated</b> per the 2026-11-19 convention (nobody holds it; the sole live gap in this chain — both sciences are genuinely held at 4 by blitzrage, and the Armor Rigging 3 build gate is genuinely held by three characters).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 1: blueprints -->
+      <details class="phase-row" open>
+        <summary>
+          <span class="phase-title">Blueprints</span>
+          <span class="phase-count">3 types</span>
+          <span class="summary-right">
+            <span class="stage-state ready">2 owned — 1 missing</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <tbody>
+              <tr class="group-row"><td colspan="3">Target — invented</td></tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/26303/bpc?size=32" alt="">Large Trimark Armor Pump II Blueprint</td>
+                <td class="muted">invented from the corporation's T1 Trimark BPOs — see the invention tier above</td>
+                <td><span class="badge missing">Invent</span></td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Owned — the live T1 copy operation (corporation)</td></tr>
+              <tr>
+                <td colspan="3" class="muted">Large Trimark Armor Pump I Blueprint — 2 originals (ME 10 / TE 20) + 7 BPCs: 2 × 40-run max-run, 5 × 10-run. The 130-run pool is the invention input; the copy check is source-BPC runs ≥ attempts bought, and 130 covers the 80% budget almost fourfold. A from-zero plan would copy instead — the sizing rule and its wall-clock cost land on the calculated plan.</td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Missing — 1 NPC-seeded original</td></tr>
+              <tr>
+                <td colspan="3" class="muted">R.A.M.- Armor/Hull Tech Blueprint — no producer in the SDE (Static Data Export), cheap original bought on the market (same as the Panther chain)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 2: intermediates -->
+      <details class="phase-row">
+        <summary>
+          <span class="phase-title">Intermediates</span>
+          <span class="phase-count">1 type · 2 buildable phases</span>
+          <span class="summary-right">
+            <span class="stage-state missing">salvage-gated phase 1</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <thead>
+              <tr>
+                <th>Phase</th>
+                <th>Intermediates</th>
+                <th class="num">Types</th>
+                <th>Notable</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="muted">2 — target</td>
+                <td class="muted">Large Trimark Armor Pump II</td>
+                <td class="num">1</td>
+                <td class="muted">10 jobs × 12.5 h — max 1 run/job, concurrency = invention successes in hand · needs Armor Rigging 3 (held: blitzrage 4, theblitzrage 4, Storm Ragez 3)</td>
+              </tr>
+              <tr>
+                <td class="muted">1 — R.A.M.</td>
+                <td class="muted">R.A.M.- Armor/Hull Tech</td>
+                <td class="num">1</td>
+                <td class="muted">×10 from one 42-min run of 100 — the only buildable below the target</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 3: raw materials -->
+      <details class="phase-row">
+        <summary>
+          <span class="phase-title">Raw materials</span>
+          <span class="phase-count">8 types</span>
+          <span class="summary-right">
+            <span class="stage-state missing">4 at zero — the salvage stack</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th class="num">Types</th>
+                <th>Largest requirement</th>
+                <th>Gaps</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Wreck salvage</td>
+                <td class="num">3</td>
+                <td class="muted">Interface Circuit 230 · Intact Armor Plates 200 · Nanite Compound 150</td>
+                <td class="muted"><span style="color: var(--pink);">all 3 at zero</span> — k-space wreck drops / market</td>
+              </tr>
+              <tr>
+                <td>Minerals</td>
+                <td class="num">5</td>
+                <td class="muted">Tritanium 556 · Pyerite 444</td>
+                <td class="muted"><span style="color: var(--pink);">Isogen 0 of 82</span> — the rest covered</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        The shallowest chain in the program: three phases, one buildable
+        intermediate, eight raw types — <b>the smallest acquisition surface
+        yet</b> (the Jackdaw's was 43 types). The rig world's signature is
+        the <b>condition-tier salvage pair</b>: T1 rigs eat the damaged
+        variants (Fried / Contaminated), T2 the intact ones — zero stock of
+        all three intact types makes the raw story market-pure. The
+        corporation's live T1 copy operation turns the invention-input
+        check green where the Panther had to plan a copy queue and the
+        Jackdaw had no copy plan at all.
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Invention summary (owned-copies overlay slot) -->
+  <section class="card">
+    <div class="card-body">
+      <h2>3 · Large Trimark Armor Pump II Blueprint — no copies owned, invention summary</h2>
+      <p class="card-sub">The owned-copies overlay becomes a T2 invention summary: ten successes needed, so the batch math is binomial — buying to expectation succeeds only half the time, and the decryptor question is attempts-vs-cost with no runs payoff.</p>
+
+      <table class="asset-table">
+        <thead>
+          <tr>
+            <th>Decryptor</th>
+            <th class="num">p_eff</th>
+            <th class="num">E[attempts]/success</th>
+            <th class="num">E[attempts] ×10</th>
+            <th class="num">ME_eff</th>
+            <th class="num">TE</th>
+            <th class="num">Runs</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="muted">(none)</span> <span class="muted">(selected)</span></td>
+            <td class="num qty">0.34</td>
+            <td class="num qty">2.94</td>
+            <td class="num qty">29.4</td>
+            <td class="num qty">−4</td>
+            <td class="num qty">−4</td>
+            <td class="num qty">1</td>
+          </tr>
+          <tr>
+            <td>Accelerant</td>
+            <td class="num qty">0.41</td>
+            <td class="num qty">2.45</td>
+            <td class="num qty">24.5</td>
+            <td class="num qty">−2</td>
+            <td class="num qty">+10</td>
+            <td class="num qty">2</td>
+          </tr>
+          <tr>
+            <td>Attainment</td>
+            <td class="num qty">0.61</td>
+            <td class="num qty">1.63</td>
+            <td class="num qty">16.3</td>
+            <td class="num qty">−5</td>
+            <td class="num qty">+4</td>
+            <td class="num qty">5</td>
+          </tr>
+          <tr>
+            <td>Parity</td>
+            <td class="num qty">0.51</td>
+            <td class="num qty">1.96</td>
+            <td class="num qty">19.6</td>
+            <td class="num qty">−3</td>
+            <td class="num qty">−2</td>
+            <td class="num qty">4</td>
+          </tr>
+          <tr>
+            <td>Symmetry</td>
+            <td class="num qty">0.34</td>
+            <td class="num qty">2.94</td>
+            <td class="num qty">29.4</td>
+            <td class="num qty">−3</td>
+            <td class="num qty">+8</td>
+            <td class="num qty">3</td>
+          </tr>
+          <tr>
+            <td>Optimized Attainment</td>
+            <td class="num qty">0.65</td>
+            <td class="num qty">1.55</td>
+            <td class="num qty">15.5</td>
+            <td class="num qty">−3</td>
+            <td class="num qty">−2</td>
+            <td class="num qty">3</td>
+          </tr>
+          <tr>
+            <td colspan="7"><span class="muted">+ Augmentation 0.20 · Process 0.37 · Optimized Augmentation 0.31 — full table in the chain reference. Recipe: 3 + 3 datacores · 1 source-BPC run · 6.5 h per attempt · skills 1/1/1. </span><b>Ten successes is binomial planning</b><span class="muted">: P(≥10) = 33% at 25 attempts, 55% at the expected 29, 80% at 35, 92% at 40 — buying to the mean under-supplies half the time, so the plan buys attempts to a confidence target. Decryptor modifiers are pinned from live ESI dogma; the base ME/TE is a pin at M8 (live evidence points to 2/4, not −4/−4 — see the Rage set).</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        All numbers real: probability, recipe, and durations from the SDE
+        mirror; datacore stock from the live tables (2026-11-20 — 21 + 30
+        against ≈88 + 88 expected, the widest relative datacore gap in the
+        program). The batch decision on the <b>calculated plan</b> is
+        attempts-to-buy (confidence) <b>plus batch staging</b> — the
+        retry-semantics direction: attempts go out in batches, successes
+        are counted from synced industry jobs, and a shortfall re-arms the
+        next batch sized to the remaining need.
+      </div>
+    </div>
+  </section>
+
+  <!-- Calculate bar -->
+  <section class="card">
+    <div class="card-body" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+      <div class="meta-line">
+        Large Trimark Armor Pump II ×10 · 3 blueprints (1 missing) · 1 intermediate · 8 raw types (4 at zero) · chain resolved — Calculate schedules the plan
+      </div>
+      <button class="primary" type="button">Calculate</button>
+    </div>
+  </section>
+
+  <p class="meta-line" style="margin-top: 1rem;">
+    Calculate resolves the full reverse chain and opens the build plan →
+    <a href="build-plan.html">build-plan.html</a> (fresh) ·
+    <a href="build-plan-active.html">build-plan-active.html</a> (mid-flight)
+  </p>
+</main>
+
+</body>
+</html>
