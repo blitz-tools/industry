@@ -180,6 +180,51 @@ and corporation, completed history included) are already synced into
   Unlocked — Station Containers are in the 'Audit Log Secure
   Container' group).
 
+### LP stores & faction BPCs — data layer + acquisition mechanic
+
+(recorded 2026-11-21, per product direction; feeds the planned
+faction-components mockup set — design/README.md list item 6)
+
+**The mechanic**: faction commodities' BPCs are purchasable only
+from **LP stores** — faction ammo, faction-equivalent hulls (e.g.
+the Typhoon Fleet Issue's BPC comes from an LP store, not
+invention). LP (Loyalty Points) is a separate, faction-typed
+currency earned through missions, faction warfare, and similar;
+there is no in-game market for LP itself, but characters can
+transfer LP among each other. LP is spendable only at the matching
+faction's LP store, located in NPC stations, and the store's
+offering list determines what is purchasable. This is the **fifth
+blueprint acquisition path** (invented · contracted · NPC-seeded ·
+drop-sourced · LP-earned).
+
+**Findings against current data (2026-11-21)**:
+
+- The SDE mirror has **no LP tables** — LP store offers (LP cost +
+  ISK + required items per offer) are not in the fuzzwork dump.
+  The acquisition catalog needs a new source: a community dataset,
+  a different dump, or curated pin tables with verification paths.
+- The registered ESI scopes include **no loyalty scope** — LP
+  balances are not synced today. Character LP is exposed via
+  `/characters/{id}/loyalty/points/` (per-faction balances) under a
+  loyalty scope that needs portal registration + re-auth.
+- Faction BPs are **BPC-only**: the Typhoon Fleet Issue Blueprint
+  (32312, maxPL 10) has no producer anywhere in the SDE — build
+  side fully covered by the chain walk, acquisition side entirely
+  LP-shaped.
+- The corporation is recorded (product owner, 2026-11-21) as
+  holding LP balances across various faction types — verify at
+  pickup whether that means character-held balances across the
+  roster (the ESI-exposed shape) or a corporation LP concept, and
+  model the LP-transfer-between-characters mechanic (it behaves
+  like a wallet with balances, not a market commodity).
+
+**Design surfaces the set will need**: LP balances per character
+per faction (wallet-style), the faction-matching constraint
+(store ↔ LP type), offer browsing (what BPCs cost in LP + ISK +
+items), and the acquisition plan node ("earn or transfer N LP,
+then purchase the BPC") — including the earn-side lead time,
+which is gameplay (missions/FW), not industry.
+
 ### M5 expander: test harness + whole-catalog census (future, may-build)
 
 (recorded 2026-11-21, per product direction — build at M5, not before)
