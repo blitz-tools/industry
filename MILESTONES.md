@@ -843,6 +843,12 @@ against in-game numbers.
 
 ## M5 — Planner: full chain resolution & phase view
 
+*Build note (2026-11-21): the reference-chain test harness and the
+whole-catalog `--all` census — validating this implementation against
+`reference/chain_expand.py`'s golden outputs, then against every
+buildable product per SDE release — are recorded in TODO.md as
+may-build validation tools for this milestone.*
+
 *The recursive BOM explosion — the heart of the system. Turns one
 blueprint into an ordered set of production phases. This is the
 reverse-then-rebuild of the end goal: raw-material inputs on one end,
