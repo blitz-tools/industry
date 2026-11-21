@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Plan — Strong Crash Booster ×100 — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/crash/build-plan.html</div>
+</aside>
+
+<main class="content">
+  <div class="page-header">
+    <h1><img class="type-icon" style="width:32px;height:32px;" src="https://images.evetech.net/types/10152/icon?size=32" alt=""> Build Plan — Strong Crash Booster ×100</h1>
+    <div class="actions">
+      <span class="badge plan-state">Draft</span>
+      <span class="pool-picker">Pool
+        <select aria-label="Participant pool">
+          <option>Corp + included characters (8)</option>
+          <option>Corp members only (4)</option>
+        </select>
+      </span>
+      <button class="icon-button" type="button" title="Re-run planner" aria-label="Re-run planner">⟳</button>
+      <button class="icon-button" type="button" title="Export plan" aria-label="Export plan">⭳</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">9.1 d</p>
+      <p class="stat-label">Chain end — reaction-dominated: three 2.4 d reaction tiers, a 1.4 d manufacturing cap, and a half-day acquisition front</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">460 runs</p>
+      <p class="stat-label">Reactions — five formulas × 92 runs × 3 h ≈ 95% of the plan's slot-hours</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">~21 originals</p>
+      <p class="stat-label">Blueprints to acquire — ≈4 formula originals per line (one per reactor) + the booster BP; none owned</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">276 jobs</p>
+      <p class="stat-label">First wave — the standard tier: 3 drug lines × 92 reaction runs (fuel blocks from stock, no jobs)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">5 types</p>
+      <p class="stat-label">Raw materials to obtain — 3 cytoserocins + Spirits + Hydrochloric Acid, all at zero</p>
+    </div>
+  </div>
+
+  <!-- Wave progress -->
+  <div class="wave-bar">
+    <div class="wave-header">
+      <span class="wave-title">Wave progress — day 0 of 9.1 · 0%</span>
+      <button class="legend-tab" type="button">legend ›</button>
+    </div>
+    <div class="wave-track">
+      <div class="wave-seg dead" style="width: 5%;" title="Dead 0.5 d — gas harvest / purchase (1,840 × 3), Spirits, Hydrochloric Acid, formula originals, booster BP"></div>
+      <div class="wave-seg ahead" style="width: 26%;" title="W1 — standard tier: Crash + Blue Pill lines, 184 runs across both · day 0.5–2.9"></div>
+      <div class="wave-seg ahead" style="width: 26%;" title="W2 — improved tier: 92 runs consuming both standard lines · day 2.9–5.3"></div>
+      <div class="wave-seg ahead" style="width: 26%;" title="W3 — strong tier: 92 runs consuming improved + the Frentix line (92 runs, parallel) · day 5.3–7.7"></div>
+      <div class="wave-seg ahead" style="width: 17%;" title="W4 — booster manufacture: one max job, 33.3 h, Drug Manufacturing 5 (simulated) · day 7.7–9.1"></div>
+      <div class="now-line" style="left: 0;"></div>
+      <div class="now-caption" style="left: 0;">now · day 0</div>
+    </div>
+    <div class="wave-ticks">
+      <span class="tick" style="width: 5%;">acquire</span>
+      <span class="tick" style="width: 26%;">W1 · standard</span>
+      <span class="tick" style="width: 26%;">W2 · improved</span>
+      <span class="tick" style="width: 26%;">W3 · strong</span>
+      <span class="tick tick-end" style="width: 17%;"><span>W4 · manufacture</span><span>100%</span></span>
+    </div>
+
+    <div class="anno" style="margin-top: 1.75rem;">
+      <span class="anno-label">wireframe</span>
+      The reaction-terminal bar: three near-equal reaction tiers own
+      78% of the plan and the manufacturing cap is a 17% sliver —
+      the inverse of the Charon (build 54%) and Jackdaw (build 80%)
+      profiles. The Frentix standard line runs <b>inside W3</b>,
+      parallel with the strong tier (it feeds only strong), which is
+      the cross-drug DAG scheduling as waves: the standard tier's
+      other two lines finish a full tier earlier because improved
+      needs them sooner. Fuel blocks never wave — stock covers all
+      47 runs' worth.
+    </div>
+  </div>
+
+  <!-- Reverse product chain -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse product chain</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Raw materials on the left, target on the right. Each node chip toggles Purchase ⇄ Build — purchased nodes drop out of the job allocation, count toward acquisition instead of the phase state and percent, and their inputs leave the raw-material math. Phase rows carry a bulk toggle that sets every node at once.</p>
+
+  <div class="chain-flow">
+    <div class="chain-phase">
+      <span class="phase-label">Phase 1</span>
+      <span class="phase-name">Fuel blocks</span>
+      <span class="phase-meta">2 nodes · from stock</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state ready">Stock covers — no jobs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 2</span>
+      <span class="phase-name">Standard lines</span>
+      <span class="phase-meta">2 nodes · Crash + Blue Pill</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 3</span>
+      <span class="phase-name">Improved + Frentix</span>
+      <span class="phase-meta">2 nodes · cross-drug tier</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 4</span>
+      <span class="phase-name">Strong tier</span>
+      <span class="phase-meta">1 node · reaction</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 5</span>
+      <span class="phase-name">Booster ×100</span>
+      <span class="phase-meta">1 node · one max job</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The first <b>DAG-shaped chain flow</b>: the Frentix line joins at
+    phase 3 (parallel with improved) rather than phase 2, because the
+    strong tier — not improved — consumes it. The model's
+    level-by-level phases place it there; a naive tree render would
+    put all three standard lines together and mis-state the schedule.
+    Nitrogen Fuel Block recurs at three levels in the phase tables
+    (the strong, improved, and both standard lines' fuel) — collapsed
+    here to the stock-covered phase-1 strip.
+  </div>
+
+  <!-- Phase tree -->
+  <details class="phase-row" style="margin-top: 1rem;">
+    <summary>
+      <span class="phase-title">Phase 1 — Fuel blocks</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">2 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state ready">Stock covers — no jobs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </summary>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <span class="node-gating">Nitrogen ×1,840 · Helium ×460 — every tier's reaction fuel, drawn from hangar stock (2,398 / 1,027 on hand). The whole ice/PI subtree under these nodes never runs; the from-zero chain's 47 block runs (with the level-split rounding's one extra) are moot against stock.</span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row" open>
+    <summary>
+      <span class="phase-title">Phase 2 — Standard lines</span>
+      <span class="activity-tag rxn">reaction</span>
+      <span class="phase-count">2 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </summary>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/25242/icon?size=32" alt="">
+        <span class="node-name">Pure Standard Crash Booster</span>
+        <span class="node-qty">×1,380</span>
+        <span class="node-runs">92 runs · makes exactly 1,380</span>
+        <span class="node-right">
+          <span class="badge missing">Formula ×4 · NPC market</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/25237/icon?size=32" alt="">
+        <span class="node-name">Pure Standard Blue Pill Booster</span>
+        <span class="node-qty">×1,380</span>
+        <span class="node-runs">92 runs</span>
+        <span class="node-right">
+          <span class="badge missing">Formula ×4 · NPC market</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <span class="node-gating">Both lines consume their cytoserocin (Golden / Amber) 20 per run + Water 20 + Nitrogen blocks 5 — gases at zero gate this phase. Reactions 2 required; four reactors per line (one job per formula original).</span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row" open>
+    <summary>
+      <span class="phase-title">Phase 3 — Improved + Frentix</span>
+      <span class="activity-tag rxn">reaction</span>
+      <span class="phase-count">2 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </summary>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/25335/icon?size=32" alt="">
+        <span class="node-name">Pure Improved Crash Booster</span>
+        <span class="node-qty">×1,104</span>
+        <span class="node-runs">92 runs — consumes 15 + 15 of both standard lines per run</span>
+        <span class="node-right">
+          <span class="badge missing">Formula ×4 · NPC market</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/25252/icon?size=32" alt="">
+        <span class="node-name">Pure Standard Frentix Booster</span>
+        <span class="node-qty">×1,380</span>
+        <span class="node-runs">92 runs — runs parallel with improved; feeds the strong tier</span>
+        <span class="node-right">
+          <span class="badge missing">Formula ×4 · NPC market</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <span class="node-gating">The cross-drug tier: improved consumes the Crash and Blue Pill lines (phase 2), while Frentix — a third standard line — starts here because only strong consumes it. Spirits 20 per improved run, Lime Cytoserocin 20 per Frentix run. Reactions 3 / 2.</span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row" open>
+    <summary>
+      <span class="phase-title">Phase 4 — Strong tier</span>
+      <span class="activity-tag rxn">reaction</span>
+      <span class="phase-count">1 node</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </summary>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/25342/icon?size=32" alt="">
+        <span class="node-name">Pure Strong Crash Booster</span>
+        <span class="node-qty">×1,100</span>
+        <span class="node-runs">92 runs · makes 1,104 — 4 spare (batch cascade)</span>
+        <span class="node-right">
+          <span class="badge missing">Formula ×4 · NPC market</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <span class="node-gating">Consumes Pure Improved Crash 12 + Pure Standard Frentix 15 + Hydrochloric Acid 20 + N blocks 5 per run. Reactions 4 — held live at 5 by all four reactors.</span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row" open>
+    <summary>
+      <span class="phase-title">Phase 5 — Target</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">1 node · one max job</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </summary>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/10152/icon?size=32" alt="">
+        <span class="node-name">Strong Crash Booster</span>
+        <span class="node-qty">×100</span>
+        <span class="node-runs">100 runs · 1 job (max 100 runs/job) · 33.3 h</span>
+        <span class="node-right">
+          <span class="badge bpc">BP · acquisition pin · maxPL 100</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <span class="node-gating">Pure Strong Crash 11 + Megacyte 8 per booster — the 4 spare pure units from the cascade stay as residue. Drug Manufacturing 5 required (simulated — nobody holds it; the sole live gap in this chain).</span>
+      </div>
+    </div>
+  </details>
+
+  <!-- Blueprint copy plan -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Blueprint copy plan</h2>
+
+  <p class="meta-line" style="margin: 0 0 0.75rem;"><span class="stage-state ready">Nothing to copy</span> — no copy plan exists for this chain, and none could: reaction formulas carry <b>no copy activity at all</b> (activity 11 only), and the booster blueprint needs a single max-run job, so copying it buys nothing.</p>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">Parallelism in this chain comes from buying more cheap originals — one formula per reactor per line (≈4 each), the same economics as the T2-component BPOs in the Panther chain. The absent-copy state differs from the Jackdaw's: there, relics weren't copyable and drops supplied BPCs; here, <b>originals throughout</b> — the entire chain runs without a single blueprint copy.</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The second absent-copy case, with a different cause — worth
+    rendering distinctly if the app ever collapses them: "no copy
+    activity exists" vs "no blueprint to copy from" vs "copies
+    exist but stock covers". The M9 surface edge cases accumulate
+    one per chain.
+  </div>
+
+  <!-- Required blueprints -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Required blueprints</h2>
+
+  <p class="meta-line" style="margin: 0 0 0.75rem;"><span style="color: var(--pink);">6 types missing</span> (~21 originals with parallelism) · 0 owned — the from-zero acquisition tier is shopping, like the Rage chain's, plus one acquisition pin.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Blueprint</th>
+        <th>Activity</th>
+        <th>Status</th>
+        <th>Acquisition</th>
+        <th>Est. cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="group-row"><td colspan="5">Reaction formulas — NPC-seeded originals (precedent), ×4 per line</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/46231/icon?size=32" alt="">Standard Crash Booster Reaction Formula ×4</td>
+        <td><span class="activity-tag rxn">reaction</span></td>
+        <td><span class="badge missing">Missing</span></td>
+        <td class="muted">NPC market · one per reactor (no copy activity — originals are the parallelism)</td>
+        <td class="num qty">~4M</td>
+      </tr>
+      <tr>
+        <td colspan="5" class="muted">+ Standard Blue Pill ×4 · Standard Frentix ×4 · Improved Crash ×4 · Strong Crash ×4 — same treatment, same price class</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Booster blueprint — acquisition pin</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/25311/bp?size=32" alt="">Strong Crash Booster Blueprint</td>
+        <td><span class="activity-tag mfg">manufacture</span></td>
+        <td><span class="badge missing">Missing</span></td>
+        <td class="muted">path unverified — NPC-seeded, LP store, or drop · verify against M15 · one max-run job per 100 boosters</td>
+        <td class="num qty">pin</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Raw materials -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Raw materials — acquisition</h2>
+  <p class="meta-line" style="margin: 0 0 0.5rem;">Chain terminators summed across all stages, measured against the selected pool. Bars fill from asset syncs; green = covered, yellow = partial, pink = under half. Defaults to gaps only so blockers stand out.</p>
+
+  <div style="display: flex; gap: 0.4rem; margin-bottom: 0.75rem;">
+    <button class="chip-button selected" type="button">Gaps only</button>
+    <button class="chip-button" type="button">Show all 20 types</button>
+  </div>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Material</th>
+        <th class="num">Required</th>
+        <th class="num">Available</th>
+        <th style="min-width: 10rem;">Coverage</th>
+        <th>Acquire via</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="group-row"><td colspan="5">Gas — k-space gas sites</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/25273/icon?size=32" alt="">Golden Cytoserocin</td>
+        <td class="num qty">1,840</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — Standard Crash line</span></div></td>
+        <td class="muted">Gas-site harvesting / market · avg 5k isk</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/25268/icon?size=32" alt="">Amber Cytoserocin</td>
+        <td class="num qty">1,840</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — Standard Blue Pill line</span></div></td>
+        <td class="muted">Gas-site harvesting / market · avg 6k isk</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/25277/icon?size=32" alt="">Lime Cytoserocin</td>
+        <td class="num qty">1,840</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — Standard Frentix line</span></div></td>
+        <td class="muted">Gas-site harvesting / market · avg 6k isk</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">NPC market goods — no producer in the SDE</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/9850/icon?size=32" alt="">Spirits</td>
+        <td class="num qty">1,840</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — improved-tier reagent</span></div></td>
+        <td class="muted">NPC market</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/3773/icon?size=32" alt="">Hydrochloric Acid</td>
+        <td class="num qty">1,840</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — strong-tier reagent</span></div></td>
+        <td class="muted">NPC market</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">15 types fully covered — hidden in this view; "Show all 20 types" lists them (Water 110,337 against 5,520 · Megacyte 5,117 against 800 · Liquid Ozone 75k and Heavy Water 33k under the stock-collapsed fuel blocks). Market-average figures illustrative (M15 synced prices).</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Five gap rows, all zero, all market-or-harvest — the
+    reaction-terminal raw story is a <b>procurement list with one
+    harvesting campaign</b> (5,520 units of cytoserocin across three
+    types), the M14 farming flow's second natural customer after the
+    Jackdaw's salvage stack. Contraband note: boosters are highsec
+    contraband (customs seizure risk — community-documented, not in
+    the SDE); the market layer (M10) carries that constraint when it
+    opens.
+  </div>
+
+  <!-- Job allocation -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — wave 1</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Recommended installs per character, from synced skills and live slot occupancy — eligibility first. The standard tier's two lines spread across the four reactors (blitzrage out-of-corp, included — the distribution step applies to its gas and formula deliveries); the Frentix line installs with wave 3.</p>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    Fresh plan: every slot shows its recommended job or what it's waiting on.
+    For the in-progress variant (running tiers, intermediates delivered vs
+    consumed) see <a href="build-plan-active.html">build-plan-active.html</a>.
+    Reaction gates are held live (Reactions 5 across all four reactors);
+    Drug Manufacturing 5 is simulated per the program convention.
+  </div>
+
+  <!-- Octavia Arbitrage -->
+  <section class="char-card-jobs" style="margin-top: 1rem;">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124297138/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">Octavia Arbitrage</div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 0 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Reaction slots (standard tier — wave 1)</div>
+    <div class="slot-grid">
+      <div class="slot ready">
+        <div class="slot-head">
+          <img class="type-icon" src="https://images.evetech.net/types/46231/icon?size=32" alt="">
+          <span class="slot-name">Reaction · Std Crash 1/23 here</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">1 run · 3 h · Golden Cytoserocin 20 + Water 20 + N block 5 · Amamake — refinery</span>
+        <span class="slot-meta">92 runs across 4 reactors — 23 each · Reactions 2</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install once gas lands (day 0.5)</span>
+      </div>
+      <div class="slot ready">
+        <div class="slot-head">
+          <img class="type-icon" src="https://images.evetech.net/types/46230/icon?size=32" alt="">
+          <span class="slot-name">Reaction · Std Blue Pill 1/23 here</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">1 run · 3 h · Amber Cytoserocin 20 + Water 20 + N block 5</span>
+        <span class="slot-meta">second formula original — both standard lines run in parallel</span>
+        <span class="slot-meta" style="color: var(--green);">Ready to install once gas lands</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- blitzrage -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/1634367930/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">blitzrage <span class="badge owned" style="margin-left: 0.4rem;">Fourth reactor — out-of-corp</span></div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 0 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Reaction slots (standard tier — wave 1)</div>
+    <div class="slot-grid">
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>Reaction · Std Crash 24/92 — 1 run · 3 h · p 1 of 4 parallel</div>
+        <div class="next-up"><span class="next-label">then</span>Improved tier wave 2 · Strong tier wave 3 · Reactions 5 throughout</div>
+        <span class="slot-meta">gas + formula original contracted to blitzrage day 0 — out-of-corp, no office access</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+</body>
+</html>

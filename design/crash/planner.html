@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Planner — Strong Crash Booster — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/crash/planner.html</div>
+</aside>
+
+<main class="content">
+  <h1>Build Planner</h1>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    Both search states are shown stacked — typing state above, selected state
+    below. In the real page the dropdown closes on selection and the rest of
+    the form appears.
+  </div>
+
+  <!-- 1 · Search -->
+  <section class="card overflow-visible" style="margin-top: 1.25rem;">
+    <div class="card-body">
+      <h2>1 · Find a target</h2>
+      <p class="card-sub">Search the buildable catalog (5,014 products) or match only what the corp can build from owned blueprints.</p>
+
+      <div style="display: flex; gap: 0.75rem; align-items: flex-start; flex-wrap: wrap;">
+        <div class="search-wrap">
+          <input class="search-input" type="text" value="strong crash" aria-label="Search targets">
+          <div class="autocomplete">
+            <div class="autocomplete-row active">
+              <img src="https://images.evetech.net/types/10152/icon?size=32" alt="Strong Crash Booster">
+              <div>
+                <div class="ac-name">Strong Crash Booster</div>
+                <div class="ac-sub">Booster · built from Strong Crash Booster Blueprint — 1/run · max 100 runs/job · rides a five-formula biochemical reaction stack across three drugs</div>
+              </div>
+              <div class="ac-right">
+                <span class="badge missing">Blueprint not owned</span>
+              </div>
+            </div>
+            <div class="autocomplete-footer">1 match · icons from the SDE mirror; blueprint ownership from the live blueprints table</div>
+          </div>
+        </div>
+        <div>
+          <button class="chip-button" type="button">Match From Inventory</button>
+        </div>
+      </div>
+
+      <div class="anno" style="margin-top: 5rem;">
+        <span class="anno-label">wireframe</span>
+        Commodity-first targeting (2026-11-20 decision of record): the
+        search and target are the <b>built commodity</b>; the producer
+        blueprint is a derived input. The sub-line carries the
+        reaction-terminal signature — the deliverable rides a
+        biochemical reaction stack, and its inputs are <b>other drugs'
+        intermediates</b> (the cross-drug DAG). With <b>Match From
+        Inventory</b> on, this target disappears (its blueprint isn't
+        owned — nothing in the booster world is).
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · Target -->
+  <section class="card">
+    <div class="card-body">
+      <h2>2 · Target build</h2>
+
+      <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <img class="type-icon-lg" src="https://images.evetech.net/types/10152/icon?size=64" alt="Strong Crash Booster">
+        <div>
+          <div><b>Strong Crash Booster</b> <span class="badge missing">Blueprint not owned</span></div>
+          <div class="meta-line">Built from <img class="type-icon" src="https://images.evetech.net/types/25311/bp?size=32" alt=""> Strong Crash Booster Blueprint — 100 runs at 1 per run · max 100 runs/job (one max job, 33.3 h) · needs Drug Manufacturing 5 (nobody holds it — simulated per the 2026-11-19 convention)</div>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 0.75rem; align-items: center;">
+          <span class="meta-line">Target count</span>
+          <div class="stepper">
+            <button type="button" aria-label="Decrease">−</button>
+            <span class="stepper-value">100</span>
+            <button type="button" aria-label="Increase">+</button>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Plan participants -->
+      <h2 style="font-size: 0.95rem;">Plan participants</h2>
+      <p class="card-sub">Who the plan may assign work to — set before Calculate, because eligibility depends on it: skill gates, wave allocation, and the stock meters all resolve against this pool. The corporation follows the main character (set on the Roster) and scopes the shared material pool plus the member set; corp members default to all included and take materials from the office hangars directly, while characters in other corporations need a distribution step (contract / station trade) before their jobs can install. The build plan's pool picker re-runs the calculation against a different pool (what-if); this section sets the pool it starts from.</p>
+
+      <p class="meta-line" style="margin: 0 0 0.75rem;">Corporation: <b>blitz and blitz holdings</b> — from the main character schlepzrage (Director); it scopes the shared material pool (hangars, blueprints, assets) and defines the member set. To target a different corporation, change the main character on the Roster.</p>
+
+      <table class="asset-table">
+        <tbody>
+          <tr class="group-row"><td colspan="3">Corp members — blitz and blitz holdings · all included by default</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2124139810/portrait?size=32" alt="">schlepzrage <span class="badge owned" style="margin-left: 0.4rem;">main · Director</span></td>
+            <td class="muted">authorizes the corporation's data and hangar access · Reactions 5</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2124297138/portrait?size=32" alt="">Octavia Arbitrage</td>
+            <td class="muted">Reactions 5 — reaction slots in every tier</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2123535366/portrait?size=32" alt="">theblitzrage I</td>
+            <td class="muted">Reactions 5 — reaction slots in every tier</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr class="group-row"><td colspan="3">Other corporations — included per plan</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/1634367930/portrait?size=32" alt="">blitzrage <span class="badge owned" style="margin-left: 0.4rem;">Fourth reactor</span></td>
+            <td class="muted">The Dark Tribe — Reactions 5; including blitzrage adds a fourth parallel reactor per formula (and the distribution step to every job it runs)</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td colspan="3" class="muted">+ theblitzrage · Storm Ragez · schlurpzrage · scoopsrage (chlorokitties) — include any the same way for more reaction parallelism. <b>Drug Manufacturing 5 — the manufacturing cap's gate — is held by nobody in any pool</b> (simulated per the 2026-11-19 convention); the reaction gates (Reactions 2/3/4) are held live</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        Every rostered character is offered for inclusion today — the
+        roster is the application owner's own accounts, so "other
+        corporations" characters are assumable. <b>Per-character
+        assignment eligibility</b> (which out-of-corp characters are
+        valid to include at all — candidate surface: a Roster flag) is
+        an open configuration question, recorded in TODO.md; the
+        corp-member / other-corporation segregation stays regardless,
+        since only corp members have hangar access and everything
+        else rides the distribution step.
+      </div>
+
+      <hr class="divider">
+
+      <h2 style="font-size: 0.95rem;">Requirements at target ×100</h2>
+      <p class="card-sub">The full chain for one hundred boosters, resolved at selection — quantities track the target stepper live. Calculate schedules the plan (phases, waves, allocation); nothing here waits for it.</p>
+
+      <!-- Tier 1: blueprints -->
+      <details class="phase-row" open>
+        <summary>
+          <span class="phase-title">Blueprints</span>
+          <span class="phase-count">6 types</span>
+          <span class="summary-right">
+            <span class="stage-state missing">none owned — from zero</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <tbody>
+              <tr class="group-row"><td colspan="3">Missing — 5 reaction formulas, NPC-seeded originals (precedent) × parallelism</td></tr>
+              <tr>
+                <td colspan="3" class="muted">Standard Crash · Standard Blue Pill · Standard Frentix · Improved Crash · Strong Crash reaction formulas — cheap originals per the reaction-formula precedent (verify seeding at M15). <b>Formulas have no copy activity</b>: reaction parallelism is one active job per formula original, so the plan buys ≈4 per line (one per reactor) — ≈20 originals, not 5</td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Missing — 1 booster blueprint, acquisition pin</td></tr>
+              <tr>
+                <td colspan="3" class="muted">Strong Crash Booster Blueprint ('Booster Blueprints' group, max 100 runs/job) — acquisition path unverified (NPC-seeded market original, LP store, or drop — pin, verify against M15)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 2: intermediates -->
+      <details class="phase-row" open>
+        <summary>
+          <span class="phase-title">Intermediates</span>
+          <span class="phase-count">8 types · 4 buildable phases</span>
+          <span class="summary-right">
+            <span class="stage-state missing">gas-gated standard tier</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <thead>
+              <tr>
+                <th>Phase</th>
+                <th>Intermediates</th>
+                <th class="num">Types</th>
+                <th>Notable</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="muted">5 — target</td>
+                <td class="muted">Strong Crash Booster</td>
+                <td class="num">1</td>
+                <td class="muted">one max job, 33.3 h · Drug Manufacturing 5 (simulated)</td>
+              </tr>
+              <tr>
+                <td class="muted">4 — strong tier</td>
+                <td class="muted">Pure Strong Crash Booster</td>
+                <td class="num">1</td>
+                <td class="muted">92 reaction runs × 3 h · makes 1,104 against 1,100 — 4 spare (batch cascade)</td>
+              </tr>
+              <tr>
+                <td class="muted">3 — improved + frentix tier</td>
+                <td class="muted">Pure Improved Crash · Pure Standard Frentix</td>
+                <td class="num">2</td>
+                <td class="muted">92 runs each — the cross-drug tier: improved consumes the Crash and Blue Pill lines, strong adds Frentix</td>
+              </tr>
+              <tr>
+                <td class="muted">2 — standard tier</td>
+                <td class="muted">Pure Standard Crash · Pure Standard Blue Pill · fuel blocks</td>
+                <td class="num">3</td>
+                <td class="muted">92 runs each · fuel blocks collapse to stock (2,398 Nitrogen / 1,027 Helium on hand vs 1,840 / 460 needed) — the ice/PI subtree never runs</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 3: raw materials -->
+      <details class="phase-row">
+        <summary>
+          <span class="phase-title">Raw materials</span>
+          <span class="phase-count">20 types</span>
+          <span class="summary-right">
+            <span class="stage-state missing">5 at zero — gases + reagents</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th class="num">Types</th>
+                <th>Largest requirement</th>
+                <th>Gaps</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Gas (harvestable clouds)</td>
+                <td class="num">3</td>
+                <td class="muted">Golden · Amber · Lime Cytoserocin, 1,840 each</td>
+                <td class="muted"><span style="color: var(--pink);">all 3 at zero</span> — k-space gas sites / market</td>
+              </tr>
+              <tr>
+                <td>NPC market goods</td>
+                <td class="num">2</td>
+                <td class="muted">Spirits 1,840 · Hydrochloric Acid 1,840</td>
+                <td class="muted"><span style="color: var(--pink);">both at zero</span> — producer-less trade goods</td>
+              </tr>
+              <tr>
+                <td>PI · ice · minerals</td>
+                <td class="num">15</td>
+                <td class="muted">Water 5,520 · Megacyte 800</td>
+                <td class="muted">covered — Water 110,337 and Megacyte 5,117 on hand; the ice stack sits under fuel blocks the hangar already covers</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        The requirement overview carries the reaction-terminal shape:
+        <b>no invention tier</b> (nothing to invent — originals
+        throughout), and the intermediates tier is where the chain
+        lives: three sibling drug lines converging through cross-drug
+        edges. The raw story is five gap rows — three gases and two
+        reagents — with everything else covered by stock, including
+        the entire fuel-block subtree (the Rage set's stock-collapse
+        precedent, now covering 47 runs' worth of blocks).
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Reaction stack summary (owned-copies overlay slot) -->
+  <section class="card">
+    <div class="card-body">
+      <h2>3 · Reaction stack summary — the batch cascade</h2>
+      <p class="card-sub">The owned-copies overlay slot becomes the reaction-stack table: each tier's formula, what it consumes, what it yields per run, and how the counts align at ×100 — the batch-cascade arithmetic that decides surplus before anything installs.</p>
+
+      <table class="asset-table">
+        <thead>
+          <tr>
+            <th>Tier / formula</th>
+            <th>Consumes per run</th>
+            <th class="num">Yields /run</th>
+            <th class="num">Runs</th>
+            <th>Output vs need</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/46231/icon?size=32" alt="">Standard Crash</td>
+            <td class="muted">Golden Cytoserocin 20 · Water 20 · N block 5</td>
+            <td class="num qty">15</td>
+            <td class="num qty">92</td>
+            <td class="muted">1,380 vs 1,380 — exact</td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/46230/icon?size=32" alt="">Standard Blue Pill</td>
+            <td class="muted">Amber Cytoserocin 20 · Water 20 · N block 5</td>
+            <td class="num qty">15</td>
+            <td class="num qty">92</td>
+            <td class="muted">1,380 vs 1,380 — exact</td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/46222/icon?size=32" alt="">Standard Frentix</td>
+            <td class="muted">Lime Cytoserocin 20 · Water 20 · He block 5</td>
+            <td class="num qty">15</td>
+            <td class="num qty">92</td>
+            <td class="muted">1,380 vs 1,380 — exact</td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/46236/icon?size=32" alt="">Improved Crash</td>
+            <td class="muted">Pure Std Crash 15 · Pure Std Blue Pill 15 · Spirits 20 · N block 5</td>
+            <td class="num qty">12</td>
+            <td class="num qty">92</td>
+            <td class="muted">1,104 vs 1,104 — exact</td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/46244/icon?size=32" alt="">Strong Crash</td>
+            <td class="muted">Pure Improved Crash 12 · Pure Std Frentix 15 · Hydrochloric Acid 20 · N block 5</td>
+            <td class="num qty">12</td>
+            <td class="num qty">92</td>
+            <td class="muted">1,104 vs 1,100 — <b>+4 spare</b></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/25311/bp?size=32" alt="">Booster manufacture</td>
+            <td class="muted">Pure Strong Crash 11 · Megacyte 8</td>
+            <td class="num qty">1</td>
+            <td class="num qty">100</td>
+            <td class="muted">100 boosters — one max job</td>
+          </tr>
+          <tr>
+            <td colspan="5"><span class="muted">Every tier runs 92 × 3 h regardless of depth — the cascade aligns almost perfectly at ×100 (only the strong tier over-delivers, by 4). At other target counts the 15/12/11 ratios misalign harder and surpluses cascade multiplicatively down the tiers — target-batch alignment is a plan-time check, not a coincidence. Reaction parallelism is one active job per formula original (no copy activity exists): the plan buys ≈4 originals per line, one per reactor.</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        All numbers real: formulas, consumptions, yields, and
+        durations from the SDE mirror; stock from the live tables
+        (2026-11-20 — gases, Spirits, and Hydrochloric Acid at zero;
+        fuel blocks 2,398 + 1,027 covering the whole need). The
+        batch-cascade table is the reaction-terminal analog of the
+        invention sets' decryptor and grade tables — the arithmetic
+        layer that sits between the target and the schedule, computed
+        from held data at selection time.
+      </div>
+    </div>
+  </section>
+
+  <!-- Calculate bar -->
+  <section class="card">
+    <div class="card-body" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+      <div class="meta-line">
+        Strong Crash Booster ×100 · 6 blueprint types (none owned) · 8 intermediates · 20 raw types (5 at zero) · 460 reaction runs — Calculate schedules the plan
+      </div>
+      <button class="primary" type="button">Calculate</button>
+    </div>
+  </section>
+
+  <p class="meta-line" style="margin-top: 1rem;">
+    Calculate resolves the full reverse chain and opens the build plan →
+    <a href="build-plan.html">build-plan.html</a> (fresh) ·
+    <a href="build-plan-active.html">build-plan-active.html</a> (mid-flight)
+  </p>
+</main>
+
+</body>
+</html>
