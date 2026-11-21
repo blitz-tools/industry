@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Planner — Typhoon Fleet Issue — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/tfi/planner.html</div>
+</aside>
+
+<main class="content">
+  <h1>Build Planner</h1>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    Both search states are shown stacked — typing state above, selected state
+    below. In the real page the dropdown closes on selection and the rest of
+    the form appears.
+  </div>
+
+  <!-- 1 · Search -->
+  <section class="card overflow-visible" style="margin-top: 1.25rem;">
+    <div class="card-body">
+      <h2>1 · Find a target</h2>
+      <p class="card-sub">Search the buildable catalog (5,014 products) or match only what the corp can build from owned blueprints.</p>
+
+      <div style="display: flex; gap: 0.75rem; align-items: flex-start; flex-wrap: wrap;">
+        <div class="search-wrap">
+          <input class="search-input" type="text" value="typhoon fleet" aria-label="Search targets">
+          <div class="autocomplete">
+            <div class="autocomplete-row active">
+              <img src="https://images.evetech.net/types/32311/icon?size=32" alt="Typhoon Fleet Issue">
+              <div>
+                <div class="ac-name">Typhoon Fleet Issue</div>
+                <div class="ac-sub">Battleship · built from Typhoon Fleet Issue Blueprint — 1/run · max 10 runs/job · BPC via LP store (Tribal Liberation Force militia, 100k–200k LP; navy 500–600k)</div>
+              </div>
+              <div class="ac-right">
+                <span class="badge missing">Blueprint not owned — LP</span>
+              </div>
+            </div>
+            <div class="autocomplete-row">
+              <img src="https://images.evetech.net/types/644/icon?size=32" alt="Typhoon">
+              <div>
+                <div class="ac-name">Typhoon</div>
+                <div class="ac-sub">Battleship · built from Typhoon Blueprint — 1/run · max 10 runs/job · blueprint owned (BPC ×10)</div>
+              </div>
+              <div class="ac-right">
+                <span class="badge owned">Blueprint owned</span>
+              </div>
+            </div>
+            <div class="autocomplete-footer">2 matches · icons from the SDE mirror; blueprint ownership from the live blueprints table</div>
+          </div>
+        </div>
+        <div>
+          <button class="chip-button" type="button">Match From Inventory</button>
+        </div>
+      </div>
+
+      <div class="anno" style="margin-top: 8rem;">
+        <span class="anno-label">wireframe</span>
+        Commodity-first targeting (2026-11-20 decision of record). The
+        faction signature in the sub-line: the BPC's acquisition path is
+        <b>LP store</b>, not invention or market — the fifth path, and the
+        first gated by a currency rather than ISK. The T1 Typhoon sits
+        right beside it in results — the faction hull and its T1 parent
+        share the autocomplete, differing only in the acquisition path.
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · Target -->
+  <section class="card">
+    <div class="card-body">
+      <h2>2 · Target build</h2>
+
+      <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <img class="type-icon-lg" src="https://images.evetech.net/types/32311/icon?size=64" alt="Typhoon Fleet Issue">
+        <div>
+          <div><b>Typhoon Fleet Issue</b> <span class="badge missing">Blueprint not owned — LP store (TLF)</span></div>
+          <div class="meta-line">Built from <img class="type-icon" src="https://images.evetech.net/types/32312/bpc?size=32" alt=""> Typhoon Fleet Issue Blueprint — 10 runs at 1 per run · max 10 runs/job · 5 h/run · Industry 1 · <span style="color: var(--pink);">BPC purchase gated on 200k LP at the Tribal Liberation Force (10-pack offer)</span></div>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 0.75rem; align-items: center;">
+          <span class="meta-line">Target count</span>
+          <div class="stepper">
+            <button type="button" aria-label="Decrease">−</button>
+            <span class="stepper-value">10</span>
+            <button type="button" aria-label="Increase">+</button>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Plan participants -->
+      <h2 style="font-size: 0.95rem;">Plan participants</h2>
+      <p class="card-sub">Who the plan may assign work to — set before Calculate, because eligibility depends on it: skill gates, wave allocation, and the stock meters all resolve against this pool. The corporation follows the main character (set on the Roster) and scopes the shared material pool plus the member set; corp members default to all included and take materials from the office hangars directly, while characters in other corporations need a distribution step (contract / station trade) before their jobs can install. The build plan's pool picker re-runs the calculation against a different pool (what-if); this section sets the pool it starts from.</p>
+
+      <p class="meta-line" style="margin: 0 0 0.75rem;">Corporation: <b>blitz and blitz holdings</b> — from the main character schlepzrage (Director); it scopes the shared material pool (hangars, blueprints, assets, <b>and the curated militia LP balance</b>) and defines the member set. To target a different corporation, change the main character on the Roster.</p>
+
+      <table class="asset-table">
+        <tbody>
+          <tr class="group-row"><td colspan="3">Corp members — blitz and blitz holdings · all included by default</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2124139810/portrait?size=32" alt="">schlepzrage <span class="badge owned" style="margin-left: 0.4rem;">main · Director</span></td>
+            <td class="muted">authorizes the corporation's data and hangar access · Industry 5</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2124297138/portrait?size=32" alt="">Octavia Arbitrage</td>
+            <td class="muted">Industry 5 — every gate green in this chain</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2123535366/portrait?size=32" alt="">theblitzrage I</td>
+            <td class="muted">Industry 5 · Republic Fleet LP 1k held</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr class="group-row"><td colspan="3">Other corporations — included per plan</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/1634367930/portrait?size=32" alt="">blitzrage <span class="badge owned" style="margin-left: 0.4rem;">Slots + LP</span></td>
+            <td class="muted">The Dark Tribe — Industry 5 manufacturing slots; holds the roster's largest LP balances (204.5k Paragon — wrong-currency for this target)</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td colspan="3" class="muted">+ theblitzrage (276.5k Paragon) · Storm Ragez (6.5k Republic Fleet — the largest RF balance) · schlurpzrage · scoopsrage (chlorokitties) — include any the same way. <b>No skill gate in this chain needs anyone specific</b>: Industry 1 minimum, held at 5 across the entire roster — the first set with a completely green skill surface</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        Every rostered character is offered for inclusion today — the
+        roster is the application owner's own accounts, so "other
+        corporations" characters are assumable. <b>Per-character
+        assignment eligibility</b> is an open configuration question
+        (TODO.md); the corp-member / other-corporation segregation stays
+        regardless. The participants' LP balances ride along as pool
+        data — the acquisition layer reads <b>who holds what currency
+        where</b>, and inclusion is what makes a character's LP visible
+        to the plan.
+      </div>
+
+      <hr class="divider">
+
+      <h2 style="font-size: 0.95rem;">Requirements at target ×10</h2>
+      <p class="card-sub">The full chain for ten faction battleships, resolved at selection — quantities track the target stepper live. Calculate schedules the plan; nothing here waits for it.</p>
+
+      <!-- Tier 1: blueprints -->
+      <details class="phase-row" open>
+        <summary>
+          <span class="phase-title">Blueprints</span>
+          <span class="phase-count">4 types</span>
+          <span class="summary-right">
+            <span class="stage-state ready">3 owned — 1 LP</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <tbody>
+              <tr class="group-row"><td colspan="3">LP-earned — the target's BPC</td></tr>
+              <tr>
+                <td><img class="type-icon" src="https://images.evetech.net/types/32312/bpc?size=32" alt="">Typhoon Fleet Issue Blueprint</td>
+                <td class="muted">Tribal Liberation Force militia store — 10-pack at 200k LP + 200M ISK + 8× Imperial War Reserves Supply Package, or singles at 100k LP (see the offer table below); navy stores 500–600k LP</td>
+                <td><span class="badge missing">LP — 0 of 200k held</span></td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Owned — the Typhoon component world</td></tr>
+              <tr>
+                <td colspan="3" class="muted">Auto-Integrity Preservation Seal (BPOs ×2 + 20 BPCs) · Life Support Backup Unit (BPOs + 27 BPCs) · Core Temperature Regulator (BPOs + 33 BPCs) — every reaction and fuel-block formula in the chain owned. The smallest, most-owned blueprint inventory in the program</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 2: intermediates -->
+      <details class="phase-row" open>
+        <summary>
+          <span class="phase-title">Intermediates</span>
+          <span class="phase-count">8 types · 5 buildable phases</span>
+          <span class="summary-right">
+            <span class="stage-state ready">All inputs on hand</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <thead>
+              <tr>
+                <th>Phase</th>
+                <th>Intermediates</th>
+                <th class="num">Types</th>
+                <th>Notable</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="muted">5 — target</td>
+                <td class="muted">Typhoon Fleet Issue</td>
+                <td class="num">1</td>
+                <td class="muted">ten 1-run 5 h jobs (BPC job-lock — the Trimark shape at faction scale)</td>
+              </tr>
+              <tr>
+                <td class="muted">4 — components</td>
+                <td class="muted">AIPS ×2,000 · LSBU ×1,000 · CTR ×10</td>
+                <td class="num">3</td>
+                <td class="muted">AIPS 667 runs = 3 max-run jobs on the corp BPOs — the Typhoon world at ×10, all owned</td>
+              </tr>
+              <tr>
+                <td class="muted">3 — reactions</td>
+                <td class="muted">RCF ×15,010 · Pressurized Oxidizers ×5,000</td>
+                <td class="num">2</td>
+                <td class="muted">76 + 25 runs — every formula owned, every R4 input stocked</td>
+              </tr>
+              <tr>
+                <td class="muted">2 — carbon family</td>
+                <td class="muted">Carbon Fiber · Thermosetting Polymer ×15,200 each</td>
+                <td class="num">5</td>
+                <td class="muted">76 runs per type — stock already covers most (RCF 7,984 on hand)</td>
+              </tr>
+              <tr>
+                <td class="muted">1 — fuel blocks</td>
+                <td class="muted">Four fuel types · 29 runs</td>
+                <td class="num">4</td>
+                <td class="muted">stock covers (2,398 / 1,027 blocks on hand vs 380 / 125 needed)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 3: raw materials -->
+      <details class="phase-row">
+        <summary>
+          <span class="phase-title">Raw materials</span>
+          <span class="phase-count">25 types</span>
+          <span class="summary-right">
+            <span class="stage-state missing">the mineral mountain again</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th class="num">Types</th>
+                <th>Largest requirement</th>
+                <th>Gaps</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Minerals</td>
+                <td class="num">7</td>
+                <td class="muted">Tritanium 80M · Pyerite 40M · Mexallon 6M</td>
+                <td class="muted"><span style="color: var(--pink);">Pyerite 2% · Isogen 0% · Zydrine 1%</span> — Tritanium covered 1.2×</td>
+              </tr>
+              <tr>
+                <td>Moon materials</td>
+                <td class="num">4</td>
+                <td class="muted">Hydrocarbons 32,100 · Atmospheric Gases 32,100</td>
+                <td class="muted">covered — Hydrocarbons 22k, Atmospheric 94k stock plus purchases</td>
+              </tr>
+              <tr>
+                <td>PI commodities</td>
+                <td class="num">6</td>
+                <td class="muted">Test Cultures 2,672 · Nanites 2,668</td>
+                <td class="muted">covered — stock exceeds every line</td>
+              </tr>
+              <tr>
+                <td>Ice products</td>
+                <td class="num">8</td>
+                <td class="muted">Liquid Ozone 10,150 · Oxygen Isotopes 4,950</td>
+                <td class="muted">covered — LO 75k, HW 33k on hand</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        The requirement overview carries the faction signature:
+        <b>everything is green except the currency and the minerals</b>.
+        The component world is fully owned with inputs on hand (a
+        program first — no simulated skills, no missing blueprints, no
+        zero-stock reaction stack), the fuel blocks collapse to stock,
+        and the acquisition story is one number: <b>200k TLF LP against
+        zero held</b>, plus the familiar Typhoon mineral mountain at
+        ×10.
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · LP offer table (owned-copies overlay slot) -->
+  <section class="card">
+    <div class="card-body">
+      <h2>3 · LP acquisition — offer variants &amp; shortfall</h2>
+      <p class="card-sub">The owned-copies overlay slot becomes the offer table: every way to buy the ten BPCs, priced in LP + ISK + items, against the pool's live balances per corporation. This is the faction analog of the decryptor and grade tables — the computed choice layer between the target and the schedule.</p>
+
+      <table class="asset-table">
+        <thead>
+          <tr>
+            <th>Offer</th>
+            <th class="num">LP each</th>
+            <th class="num">ISK each</th>
+            <th>Items</th>
+            <th>Total for ×10</th>
+            <th>Balance check</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/32312/bpc?size=32" alt="">TLF 10-pack <span class="badge owned" style="margin-left: 0.4rem;">Best LP rate</span></td>
+            <td class="num qty">20,000</td>
+            <td class="num qty">20M</td>
+            <td class="muted">8× Imperial War Reserves Supply Package</td>
+            <td class="muted">200k LP + 200M ISK</td>
+            <td class="muted"><span style="color: var(--pink);">TLF held: 0 — 200k short</span></td>
+          </tr>
+          <tr>
+            <td>TLF single, clean</td>
+            <td class="num qty">100,000</td>
+            <td class="num qty">20M</td>
+            <td class="muted">—</td>
+            <td class="muted">1M LP + 200M ISK</td>
+            <td class="muted"><span style="color: var(--pink);">5× the pack's LP</span></td>
+          </tr>
+          <tr>
+            <td>TLF single, chip</td>
+            <td class="num qty">100,000</td>
+            <td class="num qty">0</td>
+            <td class="muted">2× Minmatar UUC Nexus Chip</td>
+            <td class="muted">1M LP + 20× chips</td>
+            <td class="muted">item-sourcing sub-step</td>
+          </tr>
+          <tr>
+            <td>TLF single, tag</td>
+            <td class="num qty">100,000</td>
+            <td class="num qty">0</td>
+            <td class="muted">1× Hakim Stormare's Tag</td>
+            <td class="muted">1M LP + 10 tags</td>
+            <td class="muted">item-sourcing sub-step</td>
+          </tr>
+          <tr>
+            <td>Navy stores (Republic Fleet et al.)</td>
+            <td class="num qty">50–60k</td>
+            <td class="num qty">0–20M</td>
+            <td class="muted">varies</td>
+            <td class="muted">500–600k LP</td>
+            <td class="muted"><span style="color: var(--pink);">RF held: 8.5k — still short</span>; militia ~5× cheaper</td>
+          </tr>
+          <tr>
+            <td colspan="6"><span class="muted">Balances (live, 2026-11-21): </span><b>TLF 0 · Republic Fleet 8,500</b><span class="muted"> (Storm Ragez 6.5k · theblitzrage 1k · scoopsrage 1k) — against the 10-pack's 200k TLF. The corporation's militia LP sits on the corporation (in-game visible, ESI-invisible — the curated balance) and distributes to characters at the same store. The ~632k Paragon LP across the roster is </span><b>wrong-currency</b><span class="muted">: LP does not convert between corporations, so it cannot buy this BPC at any price. The earn-side paths: FW plexing at TLF (gameplay lead time), or the corp distribution if the curated balance covers it.</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        All numbers real: offers from the fuzzwork lpstore dataset
+        (live-pulled 2026-11-21), balances from the character loyalty
+        read post-re-auth. The offer table is the faction set's
+        computed-choice layer — variant selection (LP-scarce vs
+        ISK-scarce vs item-sourced) presented the way invention sets
+        present decryptors. The shortfall is the plan's front story:
+        a currency the plan must <b>earn</b> (gameplay) or <b>move</b>
+        (corp distribution), not buy on any market.
+      </div>
+    </div>
+  </section>
+
+  <!-- Calculate bar -->
+  <section class="card">
+    <div class="card-body" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+      <div class="meta-line">
+        Typhoon Fleet Issue ×10 · 4 blueprints (3 owned, 1 LP — 200k short) · 8 intermediates · 25 raw types (mineral mountain) · chain resolved — Calculate schedules the plan
+      </div>
+      <button class="primary" type="button">Calculate</button>
+    </div>
+  </section>
+
+  <p class="meta-line" style="margin-top: 1rem;">
+    Calculate resolves the full reverse chain and opens the build plan →
+    <a href="build-plan.html">build-plan.html</a> (fresh) ·
+    <a href="build-plan-active.html">build-plan-active.html</a> (mid-flight)
+  </p>
+</main>
+
+</body>
+</html>
