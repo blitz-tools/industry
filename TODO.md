@@ -180,6 +180,44 @@ and corporation, completed history included) are already synced into
   Unlocked — Station Containers are in the 'Audit Log Secure
   Container' group).
 
+### M5 expander: test harness + whole-catalog census (future, may-build)
+
+(recorded 2026-11-21, per product direction — build at M5, not before)
+
+The production expander M5 builds is a separate implementation from
+`reference/chain_expand.py` (the executable spec), with the recorded
+upgrades: terminator classification via the SDE's own group data —
+a static group→category mapping (most groups map cleanly:
+'Salvaged Materials', 'Harvestable Cloud', 'Mineral', …) with a
+small name-list fallback for the known exceptions ('Commodities'
+catch-all tools, Morphite misfiled under Mineral, producer-less NPC
+goods — no group signature) — plus cycle detection and
+multi-producer disambiguation (84 types, mostly faction variants).
+New items in known groups classify without code changes.
+
+Two validation tools we may want at that point:
+
+1. **Reference-chain test harness** — run the M5 resolver against
+   each recorded chain's (target, quantity) and diff its outputs
+   against the known-good reference. Comparison target should be
+   `chain_expand.py`'s structured output rather than the chain
+   documents' markdown tables (parsing those is fragile): likely a
+   `--json` mode on the reference script, or a harness that invokes
+   both implementations and diffs the trees, phase tables, raw
+   totals, and invention layers. The eight chains (Typhoon, Charon,
+   Panther, Jackdaw, Trimark, Rage, Crash, + supercarrier/titan when
+   they land) are the acceptance suite; a faithful M5 port
+   reproduces every one.
+2. **`--all` whole-catalog census** — expand all ~5,014 buildable
+   products once and report the failure classes: cycles found,
+   unclassified terminators reachable, multi-producer types,
+   walk failures. Run as an SDE-release regression (the game adds
+   items at every release point): a clean census proves the
+   resolver is total; findings are the implementation gaps to
+   close. The 2026-11-20 census numbers are the baseline — 84
+   multi-producers, 0 multi-product reactions, 5,014 buildable
+   products.
+
 ### Contract matches in acquisition fallbacks
 
 (surfaced by `design/panther/planner-scoped.html`'s Fallback section,
