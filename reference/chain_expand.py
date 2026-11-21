@@ -105,6 +105,10 @@ RAW_CATEGORIES = {
         # Tier 4 (Charon chain's capital components)
         "Wetware Mainframe", "Broadcast Node", "Self-Harmonizing Power Core",
         "Organic Mortar Applicators", "Integrity Response Drones",
+        # Supercapital neurolink PI (Hel chain): tiers 2-4
+        "Synthetic Synapses", "Miniature Electronics", "Biocells",
+        "Hermetic Membranes", "Gel-Matrix Biopaste",
+        "Recursive Computing Module",
     ],
     "ice products": [
         "Strontium Clathrates", "Oxygen", "Heavy Water", "Liquid Ozone",
@@ -118,6 +122,11 @@ RAW_CATEGORIES = {
         "Fullerite-C70", "Fullerite-C72", "Fullerite-C84", "Fullerite-C320",
         "Fullerite-C540", "Amber Mykoserocin", "Golden Mykoserocin",
         "Amber Cytoserocin", "Golden Cytoserocin", "Lime Cytoserocin",
+        # Hel chain: the full k-space gas family behind the neurolink
+        # molecular-forged reactions
+        "Azure Mykoserocin", "Vermillion Mykoserocin", "Lime Mykoserocin",
+        "Malachite Mykoserocin", "Celadon Mykoserocin", "Viridian Mykoserocin",
+        "Azure Cytoserocin", "Vermillion Cytoserocin",
     ],
     # Market-acquired NPC goods: molecular-forging tools used in gas
     # reactions, construction blocks consumed by T2 components. Group
@@ -135,6 +144,17 @@ RAW_CATEGORIES = {
         # producers, NPC trade goods.
         "Spirits",
         "Hydrochloric Acid",
+        # Supercapital neurolink tools (Hel chain): more 'Commodities'
+        # catch-all members, no producers.
+        "Counter-Subversion Sensor Array",
+        "Nanoscale Filter Plate",
+        "Enhanced Electro-Neural Signaller",
+        "Nano Regulation Gate",
+        # Hel chain: the molecular-forging tool family ('Commodities'
+        # catch-all, no producers)
+        "AV-Composite Molecular Condenser", "LM-Composite Molecular Condenser",
+        "CV-Composite Molecular Condenser", "Meta-Molecular Combiner",
+        "Isotropic Deposition Guide",
     ],
     # Sleeper salvage (w-space site drops) consumed by hybrid tech
     # components. The SDE group 'Ancient Salvage' maps cleanly (19

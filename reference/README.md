@@ -77,7 +77,22 @@ over-delivery three tiers deep, Nitrogen Fuel Block recurring at
 three phase levels with a measurable level-split rounding cost, new
 terminators (three cytoserocins, Spirits, Hydrochloric Acid), and a
 contraband logistics note (boosters are highsec contraband —
-community-documented, not in SDE).
+community-documented, not in SDE). `HEL-CHAIN.md` (Hel supercarrier
+×1, 2026-11-21) is the supercapital tier, gentler half: **three
+prior chains converge** (the Charon's capital components at ~10×,
+the Jackdaw's fullerene polymers at ~100×, the Panther's advanced
+reactions, plus a new neurolink family reaching the full k-space
+gas world) — 7 phases, **79 buildable commodities**, 4,201
+manufacturing runs, **10,478 reaction runs** (31,434 slot-hours),
+79 raw types led by a **146.8M-Pyerite mineral mountain**; every
+fuel-block type recurs at three phase levels (the
+merged-campaign question at its extreme); the Hel BPC has **no
+SDE source** (rare-drop origin, contract acquisition — pin); the
+69.4 d unskilled hull build gated by Capital Ship Construction 4
+(held at 1); 79 blueprints — 44 owned (the prior worlds carry
+over, including three neurolink formulas as live prior-line
+evidence) / 35 missing; structure-only build (M3 facility-class
+pin).
 
 New chains are added to stress the models with more complex structures
 (deeper phase stacks, capital components, invention/T2 layers) and
