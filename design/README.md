@@ -103,17 +103,27 @@ single-row case of that shape).
 5. **Reaction-terminal target** (advanced moon composite or booster)
    — the deliverable itself is a reaction product: validates the
    workflow isn't manufacturing-centric at the target level.
-6. **Supercarrier** — the supercapital tier, gentler half.
-7. **Titan** — the absolute chain stress test (titan-class
+6. **Faction components** — the LP-store acquisition mechanic:
+   faction commodities' BPCs are purchasable only from LP stores
+   (faction ammo, faction-equivalent hulls like the Typhoon Fleet
+   Issue — not invented), paid in loyalty points, a separate
+   faction-typed currency earned through missions, faction warfare,
+   and similar, transferable between characters, with no ISK market
+   for the currency itself. Validates the fifth acquisition path
+   (LP-earned BPCs) and the LP-balance/run-store surfaces — see the
+   TODO investigation item for the data-layer gaps (no loyalty scope
+   registered; LP store offers not in the SDE mirror).
+7. **Supercarrier** — the supercapital tier, gentler half.
+8. **Titan** — the absolute chain stress test (titan-class
    components on top of the capital set).
-8. **M3 structure manager** — the facility-registry CRUD surface
+9. **M3 structure manager** — the facility-registry CRUD surface
    (activity, type, rigs, security, tax, defaults) that feeds M4's
    facility defaults.
-9. **M15 sync panel** — sync_hubs management (The Forge seed, custom
+10. **M15 sync panel** — sync_hubs management (The Forge seed, custom
    region hubs, structure hubs with the scope-prerequisite state),
    per-family sync status, rate-limit headroom with the
    staged-rollout gate visible.
-10. **M12 capability surface** — "what should we build": ranked
+11. **M12 capability surface** — "what should we build": ranked
     end-product recommendations + per-target gap report (the
     fork-point substrate M13/M14 consume).
 
