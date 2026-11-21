@@ -109,6 +109,8 @@ RAW_CATEGORIES = {
         "Synthetic Synapses", "Miniature Electronics", "Biocells",
         "Hermetic Membranes", "Gel-Matrix Biopaste",
         "Recursive Computing Module",
+        # Ragnarok chain: titan-specific component inputs, tier 4
+        "Sterile Conduits", "Nano-Factory",
     ],
     "ice products": [
         "Strontium Clathrates", "Oxygen", "Heavy Water", "Liquid Ozone",

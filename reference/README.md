@@ -104,7 +104,21 @@ the build side is deliberately the Typhoon's own world at ×10
 (AIPS 667 runs, all component BPs owned, Industry 1 throughout —
 no simulated gates and a fully owned build world). Pins: runs per
 LP BPC (assumed 1), offer-catalog coverage (ammo BPCs absent from
-the fuzzwork dataset).
+the fuzzwork dataset). `RAGNAROK-CHAIN.md` (Ragnarok titan ×1,
+2026-11-21) is the **absolute chain stress test** — the Hel's
+convergence world at ~4× the bill plus four titan-specific
+mineral-sink components (Jump Bridge Array · Clone Vat Bay ·
+Doomsday Weapon Mount · Turret Hardpoint): **82 buildables,
+11,728 mfg runs, 27,979 reaction runs** (83,937 slot-hours — 350
+days at ~10 reactors), 82 raw types, and a **1.117-billion-Pyerite
+mountain** (7.6× the Hel's); recurring commodities at terminal
+scale (RCF and Carbon Fiber at two levels each, ~4,800 runs
+combined); Capital Ship Construction 5 vs the sole holder's level
+1 (the underleveled-holder state at maximum — a ~4-month train);
+the same contract-BPC acquisition as the Hel; blueprint inventory
+82 types — 44 owned (identical to the Hel's) / 38 missing (the
+Hel's 35 + the four titan component BPs). The terminal stress
+test by design: no new chain shape, every quantity a record.
 
 New chains are added to stress the models with more complex structures
 (deeper phase stacks, capital components, invention/T2 layers) and
