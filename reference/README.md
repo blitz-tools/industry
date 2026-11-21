@@ -92,7 +92,19 @@ SDE source** (rare-drop origin, contract acquisition — pin); the
 (held at 1); 79 blueprints — 44 owned (the prior worlds carry
 over, including three neurolink formulas as live prior-line
 evidence) / 35 missing; structure-only build (M3 facility-class
-pin).
+pin). `TFI-CHAIN.md` (Typhoon Fleet Issue ×10, 2026-11-21) is the
+faction tier: the first **LP-earned** target (fifth acquisition
+path) — the BPC sells at the Tribal Liberation Force militia store
+in four offer variants (10-pack at 20k LP + 20M ISK per BPC vs
+100k singles; navy stores 500–600k), the live currency state makes
+the earn-side lead time the plan's front story (TLF balances zero,
+~632k Paragon LP wrong-currency), corp LP is modeled as curated
+balance + the in-game distribution workflow (no ESI route), and
+the build side is deliberately the Typhoon's own world at ×10
+(AIPS 667 runs, all component BPs owned, Industry 1 throughout —
+no simulated gates and a fully owned build world). Pins: runs per
+LP BPC (assumed 1), offer-catalog coverage (ammo BPCs absent from
+the fuzzwork dataset).
 
 New chains are added to stress the models with more complex structures
 (deeper phase stacks, capital components, invention/T2 layers) and

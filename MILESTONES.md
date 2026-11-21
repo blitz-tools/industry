@@ -209,9 +209,15 @@ Two consequences worth stating outright:
   they are cheap NPC-sold originals, so the contract-backfill default
   does not apply to them; the planner buys them on the market like
   any commodity). (M5/M6/M12; the sync itself is M15.)
-- **World-state syncs land as one band** (2026-11-19): the remaining
-  public-data sync families — cost indices, public contracts, global
-  market prices, regional orders/history — implement together in M15
+- **World-state syncs land as one band** (2026-11-19; LP store
+  offers added 2026-11-21): the remaining public-data sync
+  families — cost indices, public contracts, global market prices,
+  regional orders/history, **LP store offers** (the fuzzwork
+  lpstore dataset: lpOffers + lpOfferRequirements CSVs / JSON API,
+  31,952 offers across 181 store corporations, keyed by
+  `corporation_id` — the join key the loyalty balances already
+  carry; surfaced by the faction-commodity investigation) —
+  implement together in M15
   as one cohesive set of functions and schema, rather than piecemeal
   across the milestones that consume them: one converged sync
   workflow, not the same pattern re-implemented per milestone. The
