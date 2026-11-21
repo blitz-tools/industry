@@ -713,6 +713,12 @@ button.primary {
 /* Gating detail beside a stage-state chip: why a node isn't ready yet
  * (BPC copy progress, waiting on an upstream phase). The chip carries
  * the spec state; this carries the reason. */
+/* Wrapping gating notes (2026-11-21): the original nowrap fit the
+ * chip-style detail (meter + short text); later sets put
+ * paragraph-length notes in here (the Hel's double-gate explanation)
+ * and the nowrap forced one overflowing line. Short inline content
+ * still sits on one line when it fits — wrapping only engages for
+ * the long form. */
 .node-gating {
   display: inline-flex;
   gap: 0.45rem;
@@ -720,7 +726,7 @@ button.primary {
   color: var(--muted);
   font-size: 0.72rem;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .node-gating .meter {
