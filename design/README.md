@@ -15,6 +15,7 @@ document it visualizes. Shared styles and components live in
 | `rage/` | planner → build plan → active plan (T2 ammo set — run pool + residue) |
 | `crash/` | planner → build plan → active plan (reaction-terminal set — cross-drug DAG) |
 | `hel/` | planner → build plan → active plan (supercarrier set — convergence chain) |
+| `tfi/` | planner → build plan → active plan (faction set — LP acquisition) |
 
 These are design artifacts for iteration, **not** app code: no build
 step, no JS, nothing wired to the FastAPI app. They are deliberately

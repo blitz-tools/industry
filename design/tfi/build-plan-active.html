@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Plan — Typhoon Fleet Issue ×10 — active — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/tfi/build-plan-active.html</div>
+</aside>
+
+<main class="content">
+  <div class="page-header">
+    <h1><img class="type-icon" style="width:32px;height:32px;" src="https://images.evetech.net/types/32311/icon?size=32" alt=""> Build Plan — Typhoon Fleet Issue ×10</h1>
+    <div class="actions">
+      <span class="badge plan-state active">Active — day 12</span>
+      <span class="pool-picker">Pool
+        <select aria-label="Participant pool">
+          <option>Corp + included characters (8)</option>
+          <option>Corp members only (4)</option>
+        </select>
+      </span>
+      <button class="icon-button" type="button" title="Re-run planner" aria-label="Re-run planner">⟳</button>
+      <button class="icon-button" type="button" title="Export plan" aria-label="Export plan">⭳</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">21 d</p>
+      <p class="stat-label">Chain end — on schedule; ~9 days of LP front remain before the 2.5-day build world</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--cyan);">104k / 200k</p>
+      <p class="stat-label">TLF LP earned (52% of the front) — FW plexing at ~12k/day across two characters (illustrative rate)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">100%</p>
+      <p class="stat-label">Build world ready — components built (AIPS 2,000 · LSBU 1,000 · CTR 10 delivered since day 3), minerals staged, waiting on currency</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">0 / 10</p>
+      <p class="stat-label">Hulls delivered — the ten 1-run BPCs arrive with the LP purchase (day 17.5); hull jobs run day 19–21</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">2 jobs</p>
+      <p class="stat-label">Running — the FW complex farmers (gameplay, not industry jobs; rendered as the earn front's progress)</p>
+    </div>
+  </div>
+
+  <!-- Wave progress -->
+  <div class="wave-bar">
+    <div class="wave-header">
+      <span class="wave-title">Wave progress — day 12 of 21 · 57%</span>
+      <button class="legend-tab" type="button">legend ‹</button>
+    </div>
+    <div class="wave-track">
+      <div class="wave-seg current" style="width: 83%;" title="LP earn front ≈17.5 d — 104k of 200k earned; minerals and supply packages bought on schedule · day 0–17.5 · running">
+        <div class="seg-fill" style="width: 69%;"></div>
+      </div>
+      <div class="wave-seg ahead" style="width: 7%;" title="W1 — components: built early (day 3–4) while the front runs · shown ahead"></div>
+      <div class="wave-seg ahead" style="width: 10%;" title="W2 — ten 1-run hull jobs · day 19–21"></div>
+      <div class="now-line" style="left: 57%;"></div>
+      <div class="now-caption" style="left: 57%;">now · day 12</div>
+    </div>
+    <div class="wave-ticks">
+      <span class="tick" style="width: 83%;">acquire — LP front</span>
+      <span class="tick" style="width: 7%;">W1 · components</span>
+      <span class="tick tick-end" style="width: 10%;"><span>W2 · hulls</span><span>100%</span></span>
+    </div>
+
+    <div class="anno" style="margin-top: 1.75rem;">
+      <span class="anno-label">wireframe</span>
+      The faction-tier active state: the dead zone is <b>filling</b>
+      — the LP front carries its own progress meter (earned against
+      target), a new dead-zone treatment distinct from the passive
+      purchase waits of prior sets. The build world ran <b>early</b>
+      (W1's components built day 3–4, inside the front) — the plan's
+      only dependency edge is BPCs → hulls, so everything else
+      front-runs freely; the serial model renders W1 after the
+      front, the anno notes the pipelining reality. Fill edge =
+      0.69 × 83% = 57.3% ≈ the now-line at 57% — the front's fill
+      is elapsed front time (12 of 17.5 days), and earned LP
+      (104k of 200k = 52%) tracks slightly behind it: purchases
+      land on schedule, earning runs ahead or behind pace.
+    </div>
+  </div>
+
+  <!-- Reverse product chain -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse product chain</h2>
+
+  <div class="chain-flow">
+    <div class="chain-phase">
+      <span class="phase-label">Phase 1</span>
+      <span class="phase-name">Fuel blocks</span>
+      <span class="phase-meta">from stock</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state complete">Stock covered</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 2</span>
+      <span class="phase-name">Carbon family</span>
+      <span class="phase-meta">76 runs each</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state complete">✓ Delivered</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 3</span>
+      <span class="phase-name">Reactions</span>
+      <span class="phase-meta">RCF · Oxidizers</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state complete">✓ Delivered</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 4</span>
+      <span class="phase-name">Components</span>
+      <span class="phase-meta">AIPS · LSBU · CTR</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state complete">✓ Delivered — waiting</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 5</span>
+      <span class="phase-name">TFI ×10</span>
+      <span class="phase-meta">10 jobs · 1-run BPCs</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">BPCs — LP front 52%</span>
+      </div>
+    </div>
+  </div>
+
+  <details class="phase-row" open style="margin-top: 1rem;">
+    <summary>
+      <span class="phase-title">Phase 5 — Target</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">1 node · 10 jobs</span>
+      <span class="summary-right">
+        <span class="stage-state missing">BPCs — LP front 52%</span>
+      </span>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/32311/icon?size=32" alt="">
+        <span class="node-name">Typhoon Fleet Issue</span>
+        <span class="node-qty">×10</span>
+        <span class="node-runs">0 of 10 runs · BPCs arrive day 17.5</span>
+        <span class="node-right">
+          <span class="badge bpc">LP front 104k / 200k</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <span class="node-gating">Every input delivered and staged — AIPS 2,000 and LSBU 1,000 in the plan-scoped container since day 4, minerals staged, supply packages bought day 10. The single remaining dependency is currency: 96k TLF LP at the illustrative earn rate ≈ 5.5 days to the 10-pack purchase, then the ten 1-run hull jobs run day 19–21 in one parallel wave.</span>
+      </div>
+    </div>
+  </details>
+
+  <!-- LP acquisition ledger -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">LP acquisition — ledger</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">The front's running account: earned against target, per source, with the wrong-currency balances carried below as visible-but-unusable.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Account</th>
+        <th class="num">Day 0</th>
+        <th class="num">Now</th>
+        <th class="num">Target</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/characters/2124297138/portrait?size=32" alt="">Octavia — TLF (FW plexing)</td>
+        <td class="num qty">0</td>
+        <td class="num qty">61,000</td>
+        <td class="num qty">200,000</td>
+        <td class="muted">earning ~7k/day (illustrative) — complex farmer</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/characters/2124139810/portrait?size=32" alt="">schlepzrage — TLF (FW plexing)</td>
+        <td class="num qty">0</td>
+        <td class="num qty">43,000</td>
+        <td class="num qty">(combined)</td>
+        <td class="muted">earning ~5k/day — the second farmer</td>
+      </tr>
+      <tr>
+        <td>Corporate militia balance — TLF (curated)</td>
+        <td class="num qty">curated</td>
+        <td class="num qty">curated</td>
+        <td class="num qty">—</td>
+        <td class="muted">owner-entered; not drawn on this run (the earn path is running instead)</td>
+      </tr>
+      <tr>
+        <td>Republic Fleet — pooled</td>
+        <td class="num qty">8,500</td>
+        <td class="num qty">9,200</td>
+        <td class="num qty">—</td>
+        <td class="muted">wrong store — accruing from incidental gameplay, unusable here</td>
+      </tr>
+      <tr>
+        <td>Paragon — pooled</td>
+        <td class="num qty">632,000</td>
+        <td class="num qty">634,000</td>
+        <td class="num qty">—</td>
+        <td class="muted">wrong currency — carried for visibility, the M12 portfolio question</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">104k of 200k earned across two farmers at ~12k/day combined — on pace for the day-17.5 purchase. The ledger's wrong-currency rows persist by design: the planner shows the LP portfolio the plan can't spend, because the owner's next plan might target a Paragon or Republic Fleet store, and the balances carry forward.</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The LP ledger is this set's active-page contribution: the
+    acquisition front rendered as a <b>live account with earners,
+    rates, and a target line</b> — the currency analog of the
+    invention sets' actuals-against-expectation and the Crash
+    chain's intermediates ledger. The wrong-currency rows
+    demonstrate the portfolio rule: balances are per-corporation
+    facts that outlive any one plan (M12's capability surface
+    consumes the same view). Earn rates are plan parameters
+    (gameplay, not industry) — illustrative here, set by the
+    owner at plan time.
+  </div>
+
+  <!-- Blueprint copy plan -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Blueprint copy plan</h2>
+
+  <p class="meta-line" style="margin: 0 0 0.75rem;"><span class="stage-state ready">Nothing to copy</span> — persists mid-flight: the BPCs are the LP purchase; components run from owned originals.</p>
+
+  <!-- Raw materials -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Raw materials — acquisition</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Abbreviated to the rows that moved since the fresh view. The mountain was bought across the front's first week; offer items landed day 10.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Material</th>
+        <th class="num">Required</th>
+        <th class="num">Available</th>
+        <th style="min-width: 10rem;">Coverage</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/35/icon?size=32" alt="">Pyerite</td>
+        <td class="num qty">40,000,000</td>
+        <td class="num">40,000,000</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill" style="width: 100%"></div></div><span class="meter-pct">100% — staged</span></div></td>
+        <td class="muted">bought in tranches across week 1 · staged in the plan container</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/37/icon?size=32" alt="">Isogen</td>
+        <td class="num qty">4,000,000</td>
+        <td class="num">4,000,000</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill" style="width: 100%"></div></div><span class="meter-pct">100% — staged</span></div></td>
+        <td class="muted">the zero-stock mineral, filled day 6</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/32312/bpc?size=32" alt="">Imperial War Reserves Supply Package</td>
+        <td class="num qty">8</td>
+        <td class="num">8</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill" style="width: 100%"></div></div><span class="meter-pct">100% — day 10</span></div></td>
+        <td class="muted">contract-filled · held for the 10-pack purchase</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Job allocation -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — in flight</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">The build world is idle-by-design (everything delivered early); the active work is the two FW farmers plus the staged hull wave queued behind the LP purchase.</p>
+
+  <!-- Octavia Arbitrage -->
+  <section class="char-card-jobs" style="margin-top: 1rem;">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124297138/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">Octavia Arbitrage <span class="badge owned" style="margin-left: 0.4rem;">LP farmer — FW complexes</span></div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 0 industry in use · gameplay: complex farming in the warzone</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots — queued</div>
+    <div class="slot-grid">
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>TFI hull job 1/5 here — 1 run · 5 h · installs day 19</div>
+        <div class="next-up"><span class="next-label">then</span>+ 4 more hull jobs · BPCs arrive with the LP purchase (day 17.5)</div>
+        <span class="slot-meta">earning ~7k TLF LP/day in the warzone meanwhile (illustrative rate, plan parameter)</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- schlepzrage -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124139810/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">schlepzrage <span class="badge owned" style="margin-left: 0.4rem;">LP farmer — FW complexes</span></div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 0 industry in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots — queued</div>
+    <div class="slot-grid">
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>TFI hull job 6/10 here — 1 run · 5 h · day 19</div>
+        <span class="slot-meta">+ the second farmer at ~5k TLF LP/day — combined pace 104k of 200k at day 12</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+</body>
+</html>

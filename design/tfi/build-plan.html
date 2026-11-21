@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Plan — Typhoon Fleet Issue ×10 — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/tfi/build-plan.html</div>
+</aside>
+
+<main class="content">
+  <div class="page-header">
+    <h1><img class="type-icon" style="width:32px;height:32px;" src="https://images.evetech.net/types/32311/icon?size=32" alt=""> Build Plan — Typhoon Fleet Issue ×10</h1>
+    <div class="actions">
+      <span class="badge plan-state">Draft</span>
+      <span class="pool-picker">Pool
+        <select aria-label="Participant pool">
+          <option>Corp + included characters (8)</option>
+          <option>Corp members only (4)</option>
+        </select>
+      </span>
+      <button class="icon-button" type="button" title="Re-run planner" aria-label="Re-run planner">⟳</button>
+      <button class="icon-button" type="button" title="Export plan" aria-label="Export plan">⭳</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">≈3 wk</p>
+      <p class="stat-label">Chain end — the LP earn front owns the bar: ~2.5 weeks of FW plexing (or the corp distribution) before anything builds; the build itself is ~2.5 d</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--pink);">0 / 200k</p>
+      <p class="stat-label">TLF LP held against the 10-pack offer — the plan's blocking resource; ~632k Paragon LP is wrong-currency</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">0 blueprints</p>
+      <p class="stat-label">To acquire by market — every build-world blueprint owned; the BPC comes by LP purchase (10-pack: 200k LP + 200M ISK + 8× supply packages)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">7 jobs</p>
+      <p class="stat-label">Build world — AIPS 3 max-run jobs · LSBU 2 · CTR 1 · fuel blocks from stock; every gate green</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">10 jobs</p>
+      <p class="stat-label">Target — ten 1-run 5 h hull jobs, one per BPC (job-lock; install together once the BPCs and components land)</p>
+    </div>
+  </div>
+
+  <!-- Wave progress -->
+  <div class="wave-bar">
+    <div class="wave-header">
+      <span class="wave-title">Wave progress — day 0 of 21 · 0%</span>
+      <button class="legend-tab" type="button">legend ›</button>
+    </div>
+    <div class="wave-track">
+      <div class="wave-seg dead" style="width: 83%;" title="LP earn front ≈17.5 d — FW plexing at TLF for 200k LP (or the corp distribution), plus the mineral mountain purchase and the 10-pack's supply packages"></div>
+      <div class="wave-seg ahead" style="width: 7%;" title="W1 — components: AIPS 3 max jobs · LSBU 2 · CTR 1 · the carbon-family top-up · day 17.5–19"></div>
+      <div class="wave-seg ahead" style="width: 10%;" title="W2 — ten 1-run hull jobs, 5 h each, all parallel · day 19–21"></div>
+      <div class="now-line" style="left: 0;"></div>
+      <div class="now-caption" style="left: 0;">now · day 0</div>
+    </div>
+    <div class="wave-ticks">
+      <span class="tick" style="width: 83%;">acquire — LP front</span>
+      <span class="tick" style="width: 7%;">W1 · components</span>
+      <span class="tick tick-end" style="width: 10%;"><span>W2 · hulls</span><span>100%</span></span>
+    </div>
+
+    <div class="anno" style="margin-top: 1.75rem;">
+      <span class="anno-label">wireframe</span>
+      The faction-tier bar: <b>the acquisition front owns 83% of the
+      plan</b> — not minerals, not reactions, but a currency earned
+      through gameplay. The build world (W1–W2) is 2.5 days of fully
+      owned, fully green operations. This is the inverse of every
+      prior set: the Hel's front was shopping (dead 9%), the Crash
+      chain's body was reactions (52%) — here the plan is <b>mostly
+      waiting on LP</b>, and the planner's honest rendering is a long
+      dead zone with a slim, certain build behind it. If the curated
+      corp balance covers the purchase, the front collapses to the
+      distribution step (~a day) and the plan is ~3.5 d end-to-end —
+      the what-if the pool picker answers.
+    </div>
+  </div>
+
+  <!-- Reverse product chain -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse product chain</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Raw materials on the left, target on the right. Abbreviated to the headline nodes — the full tree carries 8 buildable types (the Typhoon's chain at ×10; see the chain reference).</p>
+
+  <div class="chain-flow">
+    <div class="chain-phase">
+      <span class="phase-label">Phase 1</span>
+      <span class="phase-name">Fuel blocks</span>
+      <span class="phase-meta">4 types · from stock</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state ready">Stock covers</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 2</span>
+      <span class="phase-name">Carbon family</span>
+      <span class="phase-meta">5 types · 76 runs each</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state ready">Inputs on hand</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 3</span>
+      <span class="phase-name">Reactions</span>
+      <span class="phase-meta">RCF 76 · Oxidizers 25 runs</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state ready">Inputs on hand</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 4</span>
+      <span class="phase-name">Components</span>
+      <span class="phase-meta">AIPS · LSBU · CTR · all owned</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state ready">Ready to build</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 5</span>
+      <span class="phase-name">TFI ×10</span>
+      <span class="phase-meta">10 jobs · 1-run BPCs</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">BPCs — LP front</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The chain flow is the Typhoon's own, at ×10 — every phase green
+    except the target, whose gating chip is <b>"BPCs — LP front"</b>:
+    a new gating reason, distinct from missing-inputs and
+    skill-gated (the unresolvable-path decision's family grows by
+    one — currency-gated, with its own remediations: earn, transfer,
+    or switch store).
+  </div>
+
+  <!-- Phase tree: the target node -->
+  <details class="phase-row" open style="margin-top: 1rem;">
+    <summary>
+      <span class="phase-title">Phase 5 — Target</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">1 node · 10 jobs</span>
+      <span class="summary-right">
+        <span class="stage-state missing">BPCs — LP front</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </summary>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/32311/icon?size=32" alt="">
+        <span class="node-name">Typhoon Fleet Issue</span>
+        <span class="node-qty">×10</span>
+        <span class="node-runs">10 runs · 10 jobs (1-run BPCs) · 5 h each, parallel</span>
+        <span class="node-right">
+          <span class="badge bpc">BPCs ×10 · LP 10-pack · 1 run each (pin)</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <span class="node-gating">Gated on the LP front: 200k TLF LP (held 0) + 200M ISK + 8× Imperial War Reserves Supply Package for the 10-pack — or the corp distribution if the curated militia balance covers it. Components and minerals are ready or purchasable on any day; the ten 1-run BPCs each host one 5 h job (job-lock per BPC — the Trimark shape, with the BPC count set by the offer variant rather than invention dice). Runs per LP BPC pinned at 1 (community convention; verify at purchase).</span>
+      </div>
+    </div>
+  </details>
+
+  <!-- LP acquisition plan -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">LP acquisition plan</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">The plan's front story — the currency, its sources, and the shortfall math. Balances live-read per character; the corporate militia balance is the curated entry (in-game visible, ESI-invisible).</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Source</th>
+        <th class="num">Balance</th>
+        <th>Path</th>
+        <th>Lead time</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Tribal Liberation Force — character balances</td>
+        <td class="num qty">0</td>
+        <td class="muted">FW plexing (gameplay — defensive/offensive complexes in the warzone)</td>
+        <td class="muted">≈2.5 wk at ~12k LP/day (illustrative)</td>
+        <td><span class="stage-state missing">200k short</span></td>
+      </tr>
+      <tr>
+        <td>Tribal Liberation Force — corporate militia balance</td>
+        <td class="num qty">curated</td>
+        <td class="muted">the distribution workflow: directors withdraw corp LP to characters (becomes character TLF LP, same store)</td>
+        <td class="muted">≈1 d (the in-game step)</td>
+        <td><span class="stage-state ready">If covered — front collapses</span></td>
+      </tr>
+      <tr>
+        <td>Republic Fleet — character balances</td>
+        <td class="num qty">8,500</td>
+        <td class="muted">wrong store: navy prices are 500–600k LP — 5× the militia rate; RF LP cannot become TLF LP</td>
+        <td class="muted">n/a</td>
+        <td><span class="stage-state missing">Wrong currency</span></td>
+      </tr>
+      <tr>
+        <td>Paragon — roster total</td>
+        <td class="num qty">632,000</td>
+        <td class="muted">wrong currency entirely: no conversion between corporations; visible wealth, unusable here</td>
+        <td class="muted">n/a</td>
+        <td><span class="stage-state missing">Wrong currency</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The acquisition plan renders the <b>LP portfolio per
+    corporation</b> — who holds what, where it spends, and what it
+    can't buy — with the shortfall routed to its remediations
+    (earn · distribute · switch store), exactly the
+    unresolvable-path decision's pattern extended to currency
+    gates. The curated corp balance row is the structure-manager
+    pattern applied to LP: an owner-maintained entry verified
+    against the in-game wallet, with the in-game distribution as
+    its action. Earn-rate figures illustrative (gameplay, not
+    industry — the planner can't compute them, only carry them as
+    plan parameters).
+  </div>
+
+  <!-- Blueprint copy plan -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Blueprint copy plan</h2>
+
+  <p class="meta-line" style="margin: 0 0 0.75rem;"><span class="stage-state ready">Nothing to copy</span> — the fourth distinct absent-copy cause: the target's BPCs arrive as <b>purchased copies</b> (the LP store's product), and the component world runs from owned originals with ample maxPL.</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The absent-copy states now number four: "no copy activity
+    exists" (Crash), "nothing to copy from" (Jackdaw), "the BPC is
+    the acquired item" (Hel — contract), and now "the BPCs are the
+    purchase" (TFI — LP store). Same rendered state, four
+    remediation stories — the modeling set grows one per tier, and
+    the pattern suggests the app should carry an explicit
+    acquisition-path label on every blueprint rather than inferring
+    it.
+  </div>
+
+  <!-- Required blueprints -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Required blueprints</h2>
+
+  <p class="meta-line" style="margin: 0 0 0.75rem;"><span class="badge missing">1 LP purchase</span> · 3 owned — the smallest inventory in the program, and the first where nothing is bought on any market.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Blueprint</th>
+        <th>Activity</th>
+        <th>Status</th>
+        <th>Acquisition</th>
+        <th>Cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="group-row"><td colspan="5">LP-earned</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/32312/bpc?size=32" alt="">Typhoon Fleet Issue Blueprint ×10</td>
+        <td><span class="activity-tag mfg">manufacture</span></td>
+        <td><span class="badge missing">Missing</span></td>
+        <td class="muted">TLF militia store, 10-pack offer · see the LP acquisition plan above</td>
+        <td class="num qty">200k LP + 200M isk</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Owned</td></tr>
+      <tr>
+        <td colspan="5" class="muted">Auto-Integrity Preservation Seal (BPOs ×2, ME 10 / TE 16 — 667 runs = 3 max jobs) · Life Support Backup Unit (BPOs + 27 BPCs) · Core Temperature Regulator (BPOs + 33 BPCs) · all reaction and fuel-block formulas — the Typhoon world intact</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Raw materials -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Raw materials — acquisition</h2>
+  <p class="meta-line" style="margin: 0 0 0.5rem;">Chain terminators summed across all stages, measured against the selected pool. Defaults to gaps only.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Material</th>
+        <th class="num">Required</th>
+        <th class="num">Available</th>
+        <th style="min-width: 10rem;">Coverage</th>
+        <th>Acquire via</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="group-row"><td colspan="5">Minerals — the mountain at ×10</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/35/icon?size=32" alt="">Pyerite</td>
+        <td class="num qty">40,000,000</td>
+        <td class="num">652,411</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 2%"></div></div><span class="meter-pct">2%</span></div></td>
+        <td class="muted">Market / mining · ~7B isk</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/34/icon?size=32" alt="">Tritanium</td>
+        <td class="num qty">80,000,000</td>
+        <td class="num">97,414,483</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill" style="width: 100%"></div></div><span class="meter-pct">122% — covered</span></div></td>
+        <td class="muted">—</td>
+      </tr>
+      <tr>
+        <td colspan="5" class="muted">+ Mexallon 6M (10%) · Isogen 4M (0%) · Nocxium 300k (3%) · Zydrine 80k (1%) · Megacyte 40k (13%) — the familiar Typhoon mountain; every other category (moon, PI, ice) covered by stock</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Offer items</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/32312/bpc?size=32" alt="">Imperial War Reserves Supply Package ×8</td>
+        <td class="num qty">8</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — the 10-pack's item requirement</span></div></td>
+        <td class="muted">Market / contracts (event-tag item) · only needed for the best-LP variant</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Job allocation -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — build world (W1)</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">The build world's seven jobs install the day the LP front resolves — every gate green, every input on hand. Shown at their ready state; the plan's real front is the LP table above.</p>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    Fresh plan: the build world is fully ready and the allocation
+    shows it — a first for the program. The interesting allocation
+    question is the <b>target wave</b>: ten 1-run hull jobs install
+    together once the BPCs arrive (day 19), on any ten
+    Industry-5 slots across the pool. For the in-progress variant
+    see <a href="build-plan-active.html">build-plan-active.html</a>.
+  </div>
+
+  <!-- Octavia Arbitrage -->
+  <section class="char-card-jobs" style="margin-top: 1rem;">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124297138/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">Octavia Arbitrage</div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 0 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Manufacturing slots (components — W1)</div>
+    <div class="slot-grid">
+      <div class="slot ready">
+        <div class="slot-head">
+          <img class="type-icon" src="https://images.evetech.net/types/57478/icon?size=32" alt="">
+          <span class="slot-name">AIPS max-run job 1/3</span>
+          <span class="activity-tag mfg">manufacture</span>
+        </div>
+        <span class="slot-meta">300 runs × 3/run · corp BPO (ME 10 / TE 16) · Amamake</span>
+        <span class="slot-meta">inputs: PI stock + RCF top-up (76 runs, formula owned)</span>
+        <span class="slot-meta" style="color: var(--green);">Ready — installs when the LP front resolves</span>
+      </div>
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>TFI hull job 1/10 here — 1 run · 5 h · day 19</div>
+        <div class="next-up"><span class="next-label">then</span>+ 2 more hull jobs · BPCs arrive with the LP purchase</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+</body>
+</html>
