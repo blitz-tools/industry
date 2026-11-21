@@ -13,6 +13,7 @@ document it visualizes. Shared styles and components live in
 | `jackdaw/` | planner → build plan → active plan (T3 relic-invention set) |
 | `trimark/` | planner → build plan → active plan (T2 rig set — retry loop) |
 | `rage/` | planner → build plan → active plan (T2 ammo set — run pool + residue) |
+| `crash/` | planner → build plan → active plan (reaction-terminal set — cross-drug DAG) |
 
 These are design artifacts for iteration, **not** app code: no build
 step, no JS, nothing wired to the FastAPI app. They are deliberately
