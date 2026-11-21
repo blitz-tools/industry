@@ -21,7 +21,7 @@ podman exec industry_dev_1 python reference/chain_expand.py 22852 1
 ```
 
 Provenance: read from the live SDE (Static Data Export) mirror
-(release 2026-11-13) and the synced live tables (ownership, skills,
+(release 2026-11-20) and the synced live tables (ownership, skills,
 stock — 2026-11-21). Phases count up in build order (terminators =
 phase 0, target = highest); math symbols stay unexpanded — see
 `reference/GLOSSARY.md`.

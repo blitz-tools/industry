@@ -29,6 +29,18 @@ dashboard with your character's portrait and wallet balance.
   so files it writes into the mount (caches, the DB) keep host ownership.
 - The SELinux label issue on Fedora needs `security_opt: label=disable`
   on the bind mount (already in `compose.dev.yml`).
+- **Changing `.env` requires recreating the container**: the compose
+  `env_file` values are baked into the container environment at creation
+  time, so `podman compose restart dev` (and plain
+  `podman compose up -d dev`, which sees no compose-file change) keeps
+  the old environment — the app's `Settings` reads the stale
+  environment variable even though the `.env` file on disk is updated.
+  Propagate a `.env` change with
+  `podman compose -f compose.dev.yml up -d --force-recreate dev`
+  (bind mounts keep the database and code, so recreation is safe).
+  Verify with
+  `podman exec industry_dev_1 /opt/venv/bin/python -c "from app.config import get_settings; print(get_settings().esi_scopes)"`
+  or whatever setting you changed.
 
 ## Browser auto-reload
 

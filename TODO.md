@@ -186,9 +186,16 @@ and corporation, completed history included) are already synced into
 faction-components mockup set — design/README.md list item 6)
 
 **The mechanic**: faction commodities' BPCs are purchasable only
-from **LP stores** — faction ammo, faction-equivalent hulls (e.g.
-the Typhoon Fleet Issue's BPC comes from an LP store, not
-invention). LP (Loyalty Points) is a separate, faction-typed
+from **LP stores** — faction modules, launchers, and
+faction-equivalent hulls (e.g. the Typhoon Fleet Issue's BPC comes
+from an LP store, not invention). **Note (corrected 2026-11-21 after product-owner review): the
+faction-ammo world splits** — Republic Fleet **Carbonized Lead**
+and **Depleted Uranium** (S/M/L/XL) ARE buildable: LP-store BPCs,
+producer-less in the SDE, maxPL 200, **100 rounds per run**,
+trivial mineral bills, Industry 1 (the volume faction commodity).
+The damage-typed variants (Republic Fleet EMP / Fusion / Phased
+Plasma, Caldari Navy missiles) have no blueprint types — LP-store
+**finished goods**, buy-vs-build targets at the commodity level. LP (Loyalty Points) is a separate, faction-typed
 currency earned through missions, faction warfare, and similar;
 there is no in-game market for LP itself, but characters can
 transfer LP among each other. LP is spendable only at the matching
@@ -197,32 +204,99 @@ offering list determines what is purchasable. This is the **fifth
 blueprint acquisition path** (invented · contracted · NPC-seeded ·
 drop-sourced · LP-earned).
 
-**Findings against current data (2026-11-21)**:
+**Findings against current data (2026-11-21, updated same day)**:
 
 - The SDE mirror has **no LP tables** — LP store offers (LP cost +
-  ISK + required items per offer) are not in the fuzzwork dump.
-  The acquisition catalog needs a new source: a community dataset,
-  a different dump, or curated pin tables with verification paths.
-- The registered ESI scopes include **no loyalty scope** — LP
-  balances are not synced today. Character LP is exposed via
-  `/characters/{id}/loyalty/points/` (per-faction balances) under a
-  loyalty scope that needs portal registration + re-auth.
+  ISK + required items per offer) are not in the fuzzwork dump
+  (the mirror is verbatim, so the dump lacks them). The acquisition
+  catalog needs a new source: candidates to evaluate at pickup are
+  the official SDE YAML exports (check for lpstore tables on the
+  next release review), community datasets (e.g. EVE Ref), or
+  curated pin tables verified in-game by the owner.
+- **Loyalty scope registered 2026-11-21**
+  (`esi-characters.read_loyalty.v1`) — character LP via
+  `/characters/{id}/loyalty/points/` (per-faction balances) is
+  live-probed as an existing route; balances sync once characters
+  re-auth. Also registered for future efforts:
+  `esi-contracts.read_character_contracts.v1` and
+  `esi-contracts.read_corporation_contracts.v1` (the
+  contract-match fallbacks and contract-acquired BPCs — Hel-BPC
+  style).
+- **Corporation LP has no ESI route** (live-probed 2026-11-21):
+  `/corporations/{id}/loyalty/points/` 404s at every plausible
+  path — there is no corp read_loyalty scope, matching the portal.
+  Corp LP is real in-game (the FW militia mechanic — blitz and
+  blitz holdings holds it, consistent with Amamake being the
+  Minmatar militia home) but **not syncable**: the app models it
+  as either a curated manual balance (structure-manager-style
+  user-maintained entry) or the in-game distribution path —
+  directors withdraw corp LP to characters, at which point it
+  becomes character LP and syncs. Adjacent ESI surface that DOES
+  exist: `/corporations/{id}/fw/stats/` and
+  `/characters/{id}/fw/stats/` (kills / victory points, not
+  balances — scope registration needed if used).
 - Faction BPs are **BPC-only**: the Typhoon Fleet Issue Blueprint
   (32312, maxPL 10) has no producer anywhere in the SDE — build
   side fully covered by the chain walk, acquisition side entirely
   LP-shaped.
-- The corporation is recorded (product owner, 2026-11-21) as
-  holding LP balances across various faction types — verify at
-  pickup whether that means character-held balances across the
-  roster (the ESI-exposed shape) or a corporation LP concept, and
-  model the LP-transfer-between-characters mechanic (it behaves
-  like a wallet with balances, not a market commodity).
+- The LP-transfer-between-characters mechanic (wallet-like
+  balances, not a market commodity) still needs modeling.
+
+**Offer catalog source FOUND (2026-11-21)**: fuzzwork's lpstore
+tool publishes the full LP store database —
+`fuzzwork.co.uk/lpstore/data/lpOffers.csv` (offerID,
+corporationID, typeID, quantity, lpCost, akCost, iskCost) +
+`lpOfferRequirements.csv` (offerID, typeID, quantity) — **31,952
+offers across 181 store corporations, 452 distinct BPC types**,
+plus a JSON API (hourly cache). This slots into M15's world-state
+family set (public, cacheable, CCP-data-derived). Live-verified
+against the Typhoon Fleet Issue Blueprint: four offer variants at
+the **Tribal Liberation Force** (1000182, the Minmatar FW militia
+corp — not the navy): 100k LP + 0 ISK + 2× Minmatar UUC Nexus
+Chip · 100k LP + 20M ISK clean · 100k LP + Hakim Stormare's Tag ·
+**200k LP + 200M ISK for a 10-pack** (20k LP + 20M ISK per BPC —
+the variant choice is a real planning decision). Navy stores
+(Republic Fleet et al.) sell the same BPCs at 500–600k LP — the
+militia store is ~5× cheaper, which makes FW LP the efficient
+path and ties the set to the militia world. Pin: the RF
+Carbonized Lead / Depleted Uranium ammo BPCs (SDE-buildable) have
+**no offers in the fuzzwork dataset** — verify in-game which
+store sells them before relying on the catalog for ammo.
+
+**Corporation LP acquisition (investigated 2026-11-21)**: no ESI
+route exists (probed; the FW stats route
+`/corporations/{id}/fw/stats/` exists but carries stats, not
+balances — scope `esi-corporations.read_fw_stats.v1` pinned from
+its 401). The corp's LP is **militia corporation LP** (TLF —
+consistent with Amamake and the cheap militia BPC pricing), held
+on the corporation and visible only in-game. Two modeling paths,
+both to support: (a) **curated manual balance** — a
+structure-manager-style user-maintained entry per corporation,
+owner-verified against the in-game wallet; (b) **the in-game
+distribution workflow** — directors withdraw corp LP to
+characters, converting it to character LP at the same corporation
+(where it syncs and the store is unchanged — corp TLF LP
+distributed to a character spends at the TLF store identically).
+The plan surface should show both: the curated corp balance as a
+pool, and the distribution step as a plan item when the pool is
+the source.
+
+**Shortfall detection (computable end-to-end once synced)**: the
+loyalty read returns balances keyed by `corporation_id` — the
+same key as the offer catalog's store corporations — so
+offer-cost vs held-LP per corporation is a direct join, including
+the live gap story: the roster's TLF character balances are all
+zero and Republic Fleet only 8.5k, against the TFI BPC's
+100k–200k LP militia price — the earn-side lead time is the
+plan's front story. The Paragon wealth (~632k LP) is
+wrong-currency: LP does not convert between corporations.
 
 **Design surfaces the set will need**: LP balances per character
-per faction (wallet-style), the faction-matching constraint
-(store ↔ LP type), offer browsing (what BPCs cost in LP + ISK +
-items), and the acquisition plan node ("earn or transfer N LP,
-then purchase the BPC") — including the earn-side lead time,
+per corporation (wallet-style) + the curated corp pool, the
+corporation-matching constraint (store ↔ LP corporation), offer
+browsing (what BPCs cost in LP + ISK + items, with variant
+comparison), and the acquisition plan node ("earn or transfer N
+LP, then purchase the BPC") — including the earn-side lead time,
 which is gameplay (missions/FW), not industry.
 
 ### M5 expander: test harness + whole-catalog census (future, may-build)
