@@ -125,6 +125,16 @@ provide the availability side. Industry jobs for both sides (characters
 and corporation, completed history included) are already synced into
 `industry_jobs`, so correlating installed jobs to plan nodes is a join.
 
+**Plan home and lifecycle** (product direction, 2026-11-22): the
+calculated active build plans live under **Corporation → Jobs** —
+review, tracking, and management from one place, with management
+meaning **delete**, and **copy for re-use after completion** (a
+finished plan becomes a template: same target and pool, re-measured
+against current stock). Refinement needed at implementation: the
+current Corporation → Jobs page shows *synced industry jobs* (the
+ESI mirror), so decide how plans surface there — alongside the raw
+jobs, or as a plans view with correlated jobs nested under it.
+
 **Plan-scoped material buckets via station containers**
 (investigated 2026-11-20 — feasible):
 
@@ -389,6 +399,17 @@ section, 2026-11-20)
   optimizer**; the plan-time gate that surfaces the state is
   recorded in MILESTONES ("unresolvable paths force an acquisition
   fallback").
+- **Generalization — a Skill Planner surface** (product direction,
+  2026-11-22): the calculator's logic stands alone as a planner in
+  its own right, mirroring the build planner's shape — pick a
+  target commodity and the characters available, and it produces a
+  **skill queue across characters** with the same balancing the
+  industry side does (parallelism across characters, requirements
+  split for earliest satisfaction) rather than a single-character
+  training list. Decide at design time how much surface it shares
+  with the build planner (target picker, participants section) —
+  the mechanics overlap enough that it may be a mode of the planner
+  rather than a separate page.
 
 ### Plan-assignment eligibility for out-of-corp characters
 
@@ -420,6 +441,26 @@ section, 2026-11-20)
 ---
 
 ## Platform / administration
+
+### Navbar refinement — item inventory
+
+(surfaced by the M3 structures mockup, 2026-11-22)
+
+- **Structures sits top-level, under Build Planner** — the registry is
+  planner-adjacent user state (every calculation multiplies against
+  it), not administration; the mockup nav places it there and the app
+  nav should follow at M3.
+- A deliberate pass is needed to **identify the remaining navbar
+  items** as surfaces land. Known so far:
+  - **Character → Roster** — the main-character set and participant
+    pool source (the planner's participants section and the
+    corporation scoping both read from it).
+  - **Corporation → Jobs** — grows into the planner's plan home
+    (review, tracking, management; see the Build plans section's
+    lifecycle note above).
+- The mockup sidebar across `design/` should follow whatever this
+  pass lands — the chain sets predate it and still show the older
+  nav.
 
 ### Local user accounts + admin menu
 

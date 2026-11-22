@@ -58,17 +58,17 @@ paid contracts), or **pick a better target**.
 
 ---
 
-## Status (updated 2026-11-21)
+## Status (updated 2026-11-22)
 
 | Milestone | State |
 |---|---|
 | M1 — main character & corporation pool | ✅ **Complete** (PRs #12–#14) |
 | M2 — SDE foundation & blueprint catalog | 🟡 **In progress** — foundation, admin self-update, and all character/corp syncs complete (PRs #15–#17); remaining: catalog surface |
-| Mockup program | 🟡 **10 of 13 sets complete** — ten chain sets (Typhoon → Ragnarok) + the refinement pass landed; three surface mockups remain (M3, M15, M12); **gates milestone implementation** per the 2026-11-19 convention |
+| Mockup program | 🟡 **11 of 13 sets complete** — ten chain sets (Typhoon → Ragnarok) + the refinement pass + the M3 structures surface landed; two surface mockups remain (M15, M12); **gates milestone implementation** per the 2026-11-19 convention |
 | M3+ | Not started (implementation) |
 
-**Pick up at**: the three remaining surface mockups (M3 structure
-manager → M15 sync panel → M12 capability surface), then M2's catalog
+**Pick up at**: the two remaining surface mockups (M15 sync panel →
+M12 capability surface), then M2's catalog
 remainder — the query layer the M4 planner consumes (blueprint search,
 recipe joins, owned-blueprint overlay; the SDE-name vs
 `universe_types` merge rule gets decided there).
@@ -738,6 +738,22 @@ never belonged to that layer).*
 - Rig/security multipliers: confirm exact values from CCP structure
   docs at implementation time; keep them in one lookup table so balance
   changes are data edits, not code.
+
+**Surface mockup landed** (`design/structures/`, 2026-11-22): the
+registry table, add/edit form, and multiplier reference card, with
+these positions proposed against the TODO spec — registrations are
+**per structure × activity** (one EC can register for manufacturing
+and invention; rigs and the default flag live on the registration),
+**security derives from the selected system** (ESI `security_status`;
+manual only when no system is set), setting a new default **demotes**
+the previous one, and the asset sync's structure sightings become an
+**import card** pre-filling the form. Both facility-class pins are
+carried (supercapital assembly as a capability badge gating the final
+hull job only; biochemical reactions left as the open question), plus
+one new boundary question: **copying is absent from the activity
+enum** (manufacturing / invention / reactions) while the M9 copy layer
+needs a copy-facility default — decide whether Copying joins the enum
+or rides the invention registration.
 
 **Schema sketch**
 

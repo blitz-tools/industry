@@ -17,6 +17,7 @@ document it visualizes. Shared styles and components live in
 | `hel/` | planner → build plan → active plan (supercarrier set — convergence chain) |
 | `tfi/` | planner → build plan → active plan (faction set — LP acquisition) |
 | `ragnarok/` | planner → build plan → active plan (titan set — the absolute stress test) |
+| `structures/` | single surface page — the M3 facility-registry CRUD (registry table, form, sync import, multiplier reference) |
 
 These are design artifacts for iteration, **not** app code: no build
 step, no JS, nothing wired to the FastAPI app. They are deliberately
@@ -65,7 +66,9 @@ mockups surface milestone clarifications cheaply, so the design work
 completes first. Two kinds of sets: **chain sets** (the binding
 three-page convention above, only data changes) and **surface
 mockups** (single new page types, proposed once against the reference
-component set — the convention's new-component rule applies).
+component set — the convention's new-component rule applies). The M3
+structure manager surface is landed (`structures/`); the M15 sync
+panel and M12 capability surface remain.
 
 Order (chain sets by escalating complexity, then the surfaces — the
 three surface mockups are independent and can slot anywhere):
