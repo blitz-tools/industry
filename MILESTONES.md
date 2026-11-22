@@ -151,6 +151,9 @@ flowchart TD
     M10 --> M14
     M5 --> M11
     M6 --> M11
+    M16["M16 Wallet accounting<br/>corp journal sync, job-tagged costs,<br/>realized P&L"]
+    M6 -->|"plan + job records"| M16
+    M15 -->|"contract records"| M16
 ```
 
 Notes on the graph:
@@ -169,6 +172,11 @@ Notes on the graph:
   other — the product owner decides at pickup. M10 is a dependency
   of M14 only (bidding needs prices); M13 has no M10 dependency
   (skill analysis is price-free).
+- **M16** (added 2026-11-22): a late milestone near the end of the
+  program, after the fork — wallet journal sync plus the
+  job-association layer turning entries into realized costs and
+  returns per plan. Depends on M6 (the plans and job records
+  entries associate against) and M15 (contract records).
 - **M7** is absent — folded into M5 (2026-11-16).
 
 ---
@@ -620,7 +628,8 @@ structures scope arrived early (see below).*
   never renders; locations resolve via the **asset-snapshot hop** —
   blueprints report their location as the office ITEM id); `/corp/jobs`
   (active by default, `?all=1` history; installer names via tracked
-  characters). Wallets remains a stub (deliberate).
+  characters). Wallets remains a stub (deliberate — M16 picks it up,
+  2026-11-22).
 - **Office shape learned from live data** (diverged from the original
   `location_flag = "Office"` sketch): offices are type-27 "Office"
   markers (flag `OfficeFolder`/`Office`) whose contents share an
@@ -1530,6 +1539,69 @@ connects this fork branch to the posture control in the end goal.*
 a blueprint in a corp hangar, have a second account claim and produce
 it, and see delivery reflected on the plan node and the payout
 recorded.
+
+---
+
+## M16 — Wallet journal & realized cost accounting
+
+*(Future feature, product direction 2026-11-22: a late milestone near
+the end of the program, after the M12–M14 fork. The goal is an
+accurate picture of actual costs and returns per job and per plan —
+wallet entries associated with the jobs and plans that caused them.)*
+
+**Investigated live 2026-11-22** (blitz and blitz holdings, corp
+98830898, Director token): `/corporations/{id}/wallets/` returns
+per-division balances keyed by **division number only** — names need
+`esi-corporations.read_divisions.v1` (not yet registered; live 401
+confirmed; division 1 = Master by game rule, the rest are
+corp-renamed — the corp's Industry division was identified by
+journal content as division 5). `/wallets/{division}/journal/`
+returns full entries (amount, running balance, ref_type,
+description, first/second party, context_id) **including the
+player-provided comment in `reason`** — verified with live examples
+('Reimburse rental fee', 'Jump Freighter Skill Training', 'Module
+purchase Jita to Indy acct'). The journal scope
+(`esi-wallets.read_corporation_wallets.v1`) is already registered
+and held.
+
+**Scope**
+
+- **Corp wallet sync** (the M1 stub grows up): per-division
+  balances + journal on the landed per-kind sync pattern
+  (paginated backwards, ETag-cached, incremental by entry id);
+  division names via **esi-corporations.read_divisions.v1** — add
+  to the portal, then `.env`/`.env.example` (requested scopes stay
+  a subset of registered — portal first), then re-auth.
+- **Automatic job association**: industry fee entries carry the
+  **Job ID** in `context_id` (verified live: manufacturing and
+  industry_job_tax pairs citing the same job — e.g. Job 679488396,
+  a −57.6M build fee plus a −4.1M facility tax paid to Oblivion
+  Watch, a third-party structure owner, exactly the tax the
+  structure registry models). A direct join with the synced
+  `industry_jobs` table gives **actual install cost per job** —
+  the cost oracle validating M4's calculated estimates.
+- **Curated association — the tagging flow**: expenses that carry
+  no reference (multibuy purchases, material contracts, blueprint
+  purchases, other outstanding items) associate to a job/plan
+  through explicit user tagging on wallet entries and contracts —
+  the multibuy-export → contract → tag-the-expense loop (the TODO
+  multibuy item is this flow's upstream half). Player `reason`
+  comments pre-fill the tag suggestion where present.
+- **Revenue side**: contract and market sales of plan outputs
+  associate to the plan the same way — realized returns, not just
+  costs.
+- **Realized P&L**: per-job and per-plan actual costs and returns,
+  feeding the Market panel's realized ledger on active plans —
+  actuals replace estimates as they land, closing the loop the
+  running-profit readout opens (2026-11-22 market-panel design).
+- Character wallet journals (`esi-wallet.read_character_wallet.v1`,
+  already registered) are a possible extension for out-of-corp
+  participant expenses (the distribution step) — decide at pickup.
+
+**Validation**: tag a material-contract expense against a Typhoon
+plan's job; the industry fees join automatically; the plan's
+realized ledger shows actual vs estimated install cost plus the
+tagged expense; a recorded sale shows the realized return.
 
 ---
 
