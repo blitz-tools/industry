@@ -530,6 +530,68 @@ Two consequences worth stating outright:
   Roster-side flag will gate which other-corporation characters are
   valid for inclusion at all, with the corp/other-corp segregation
   staying regardless (distribution procedures differ).
+- **The planner selects its facilities at plan time**
+  (2026-11-22, from the Typhoon reference set): a **Plan facilities**
+  section sits beside Plan participants, before Calculate — one
+  selector per activity (manufacturing / copying / invention /
+  reactions), each listing the structures registered for that
+  activity and arriving pre-selected on the registry default.
+  Overrides are plan-scoped (never written back); the build plan can
+  still override per job. Everything multiplies against these:
+  material requirements (ME rig), job durations (TE rig + hull),
+  install cost (system cost index × facility tax — index syncs at
+  M15). **Copying is its own selector** defaulting to the invention
+  facility's default — copy jobs may run in a separate location with
+  BPCs transported to the build site, so copying and invention can
+  diverge per plan. Landed on the Typhoon reference set; fans out to
+  the other sets with each chain's real facility usage.
+- **The planner selects a sell-side market** (2026-11-22): a
+  market-location selector (trade hubs + player markets) on the
+  planner sets the estimated sell price and the profit readout on
+  the build plan; buy-side build-vs-buy verdicts read the same
+  market's prices. The build plan gains a **Market panel** rolling
+  up the Purchase ⇄ Build chips into per-commodity verdicts with
+  plan totals and estimated profit — this **revises the 2026-11-21
+  at-milestone evaluation**: the panel's *shape* is now mocked on
+  the chain sets (illustrative figures), while the verdict
+  arithmetic still lands at M10 against M15's real synced prices.
+  On active plans the readout runs: input cost tracks only cleared
+  purchases, sell price re-checks at wave boundaries, and negative
+  profits render symmetrically (pink). **Verdicts are recommendations;
+  the Purchase ⇄ Build chips are authoritative** — a verdict never
+  flips a chip (the owner can build through a Buy recommendation when
+  the margin is inside logistics-preference range). **The verdict
+  table lists open decisions only** (2026-11-22): a build-verdict row
+  retires when its jobs install, a buy-verdict row when its purchase
+  clears; settled rows roll into a realized ledger (actuals vs
+  estimate, feeding the running profit). Plan activation (first job
+  install, Draft → Active) changes where numbers come from —
+  estimates gain actuals — never what's listed; the per-commodity
+  commitment clock governs listing. **Value format**: totals read
+  `<total> Ƶ (<per-item> Ƶ)` — total first, per-item in parens —
+  and **Ƶ (U+01B5) replaces "isk"** as the currency symbol
+  throughout the mockups and the app.
+- **The market manager is a registry, sibling to the structures
+  registry** (2026-11-22): the M15 sync-panel surface manages the
+  market list — the five trade hubs included by default and each
+  **disableable**, custom and player-structure markets addable with
+  full edit/delete. The planner's sell-side selector reads the
+  manager's enabled set, the same way the facilities section reads
+  the Structures registry. Division of record: **industry
+  facilities in the structure manager, markets in the market
+  manager** — a Keepstar market hub (the corp's "5 times nearly AT
+  winners") never registers as an industry facility.
+- **Supercapital assembly is security-gated, and the registry
+  validates it** (2026-11-22): confirmed that no Amamake (lowsec)
+  facility can hold the capability; the working assumption —
+  **supercapital production requires a player-owned structure in
+  nullsec** — is a pin needing confirmation from CCP structure docs
+  at implementation. The structure manager **validates the flag
+  against system security** rather than trusting it (a supercap
+  flag on a highsec/lowsec system fails validation); no registered
+  structure holds it today, so Hel/Ragnarok plans surface it as an
+  acquisition gap on the final hull job. (M3; surfaced by
+  HEL-CHAIN / RAGNAROK-CHAIN.)
 
 ---
 
@@ -748,8 +810,10 @@ and invention; rigs and the default flag live on the registration),
 manual only when no system is set), setting a new default **demotes**
 the previous one, and the asset sync's structure sightings become an
 **import card** pre-filling the form. Both facility-class pins are
-carried (supercapital assembly as a capability badge gating the final
-hull job only; biochemical reactions left as the open question), plus
+carried (supercapital assembly as a security-validated capability flag —
+no registered structure holds it today, and market hubs such as the
+corporation's Keepstar route to the market manager, not this registry;
+biochemical reactions left as the open question), plus
 one new boundary question: **copying is absent from the activity
 enum** (manufacturing / invention / reactions) while the M9 copy layer
 needs a copy-facility default — decide whether Copying joins the enum
@@ -914,6 +978,12 @@ framework.*
 - `sync_hubs` (user state — the band's one piece of it): the synced
   market sources — seeded with The Forge alone (staged rollout),
   extensible with custom region hubs and accessed player structures.
+  **The market manager** (2026-11-22 direction; the sync-panel surface
+  is its UI): the five trade hubs are included by default and each
+  **disableable** without deletion, and custom / player markets carry
+  full CRUD (add, edit, delete). The planner's sell-side market
+  selector reads the enabled set — the same registry→selector pattern
+  as the structure manager's facilities.
 
 **Validation**: a sweep against live ESI lands the real The Forge
 Charon contract (2026-11-19: ten 1-run ME 10 / TE 20 BPCs at 300M)

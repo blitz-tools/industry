@@ -135,6 +135,21 @@ current Corporation → Jobs page shows *synced industry jobs* (the
 ESI mirror), so decide how plans surface there — alongside the raw
 jobs, or as a plans view with correlated jobs nested under it.
 
+**Multibuy export** (product direction, 2026-11-22): the build-plan
+page exports its shopping list — raw-material gaps plus the
+components/commodities flipped to Purchase ("components-to-buy") —
+in the **standard EVE multibuy format**, one line per item:
+
+```text
+Item Name<TAB>Quantity
+```
+
+e.g. `Tritanium    50000` — item name, a literal tab, the quantity.
+Pastes straight into the in-game multibuy window and market quick
+buy. The header's export button (⭳) is the natural trigger; scope
+per plan with the same pool/market selections as the page. Buy
+verdicts from the Market panel feed the components-to-buy set.
+
 **Plan-scoped material buckets via station containers**
 (investigated 2026-11-20 — feasible):
 

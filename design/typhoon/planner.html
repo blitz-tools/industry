@@ -164,6 +164,100 @@
 
       <hr class="divider">
 
+      <!-- Plan facilities -->
+      <h2 style="font-size: 0.95rem;">Plan facilities</h2>
+      <p class="card-sub">Where each activity runs. Defaults come from the Structures registry (one per activity); overrides are plan-scoped — the registry stays untouched. Every calculation multiplies against these: material requirements (ME rig), job durations (TE rig + structure hull), and install cost (system cost index × facility tax).</p>
+
+      <div class="form-grid">
+        <div class="field">
+          <label class="field-label" for="fac-mfg">Manufacturing</label>
+          <select class="form-select" id="fac-mfg">
+            <option selected>Amamake - Police Weapons Facility</option>
+            <option>Hek - IChooseYou Market and Industry</option>
+            <option>Osoggur VI - Urban Management Information Center</option>
+          </select>
+          <span class="field-hint">Azbel (medium) · ME T1 · TE T1 · tax 0.5% — registry default</span>
+        </div>
+        <div class="field">
+          <label class="field-label" for="fac-copy">Copying</label>
+          <select class="form-select" id="fac-copy">
+            <option selected>Amamake - Police Weapons Facility</option>
+            <option>Hek - IChooseYou Market and Industry</option>
+          </select>
+          <span class="field-hint">defaults to the invention facility's default — copy jobs can run elsewhere and the BPCs travel</span>
+        </div>
+        <div class="field">
+          <label class="field-label" for="fac-inv">Invention</label>
+          <select class="form-select" id="fac-inv">
+            <option selected>Amamake - Police Weapons Facility</option>
+            <option>Hek - IChooseYou Market and Industry</option>
+          </select>
+          <span class="field-hint">not used in this chain — T1 target, no invention jobs</span>
+        </div>
+        <div class="field">
+          <label class="field-label" for="fac-rxn">Reactions</label>
+          <select class="form-select" id="fac-rxn">
+            <option selected>Amamake - Reactions &amp; Reprocessing</option>
+            <option>Amamake - Police Refinery</option>
+          </select>
+          <span class="field-hint">Tatara (large refinery) · reaction T2 · tax 0.5% — registry default · also reprocesses</span>
+        </div>
+      </div>
+
+      <p class="meta-line" style="margin-top: 0.75rem;">
+        This plan multiplies: materials × ME T1 rig (−2.0% at the Azbel, lowsec) · job time × hull −30% and TE T1 rig · install cost = base × system index <span class="badge missing">3.1% — syncs at M15</span> × tax 0.5%
+      </p>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        Each dropdown lists every structure registered for that activity
+        (the <a href="../structures/structures.html">Structures registry</a>);
+        the registry default arrives pre-selected and an override never
+        writes back. <b>Copying is its own selector</b> (2026-11-22
+        direction) defaulting to the invention facility's default — copy
+        jobs may run in a separate location with the BPCs transported to
+        the build site, so copying and invention can diverge per plan.
+        The build plan can still override per job (the header pickers
+        re-run; a job's facility line is the per-job record). Rig and
+        hull values are illustrative until confirmed from CCP structure
+        docs (the M3 scope note); the system cost index is M15's sync.
+        Supercapital chains (Hel, Ragnarok) flag the final hull job when
+        the selected manufacturing facility lacks the supercapital
+        assembly capability.
+      </div>
+
+      <hr class="divider">
+
+      <!-- Sell-side market -->
+      <h2 style="font-size: 0.95rem;">Sell-side market</h2>
+      <p class="card-sub">Where the product would sell — sets the estimated sell price and the profit readout on the build plan. Buy-side verdicts (build vs buy per commodity) read the same market's prices.</p>
+
+      <span class="pool-picker">Market
+        <select aria-label="Sell-side market">
+          <option selected>The Forge — Jita IV Moon 4 (trade hub)</option>
+          <option>Domain — Amarr VIII (trade hub)</option>
+          <option>Heimatar — Rens (trade hub)</option>
+          <option>Metropolis — Hek (trade hub)</option>
+          <option>Sinq Laison — Dodixie (trade hub)</option>
+          <option>Amamake — 5 Times Nearly Winners (player market)</option>
+        </select>
+      </span>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        The market list comes from the <b>market manager</b> — the M15
+        sync-panel surface, sibling to the Structures registry: the five
+        trade hubs are included by default (each disableable), custom
+        and player-structure markets addable with full edit/delete.
+        This selector reads the manager's enabled set, the same way the
+        facilities section reads the Structures registry. Prices
+        themselves sync at M15 — every Ƶ figure downstream is
+        illustrative until then. Ƶ (U+01B5) replaces "isk" as the
+        currency symbol globally (2026-11-22 direction).
+      </div>
+
+      <hr class="divider">
+
       <h2 style="font-size: 0.95rem;">Requirements at target ×10</h2>
       <p class="card-sub">The full chain for one build, resolved at selection — quantities track the target stepper live. Calculate schedules the plan (phases, waves, allocation, copy plan); nothing here waits for it.</p>
 
