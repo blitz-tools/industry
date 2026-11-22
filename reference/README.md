@@ -3,6 +3,9 @@
 Symbols and model terms (T_in, t_c, t_b, …) stay unexpanded in these
 documents by design — look them up in [`GLOSSARY.md`](GLOSSARY.md), the
 maintained math reference. Keep it updated when new terms enter.
+[`CENSUS.md`](CENSUS.md) records whole-catalog census findings —
+structural properties (phase-depth bounds, producer-graph cycles)
+that the walked chains can only sample.
 
 Executable spec for the industry planner's calculation core. These scripts
 regenerate the golden values in `reference/chains/TYPHOON-CHAIN.md` and
@@ -211,8 +214,22 @@ runtime; nothing here is learned or guessed at run time.
   job targets one output), and there is no job-lock (each attempt
   consumes its relic). T3 BPC ME/TE is fixed per grade and decryptors
   do not apply — both community-documented, pin at M8
-- cycle detection: NOT implemented (T1 manufacturing has none); M5 must
-  add it defensively
+- cycle detection: NOT implemented — and the SDE **does contain
+  cycles** (whole-catalog census, 2026-11-21: 51 cycles in the
+  mfg+reaction producer graph, mostly self-referential structure
+  arrays — e.g. the Component Assembly Array lists 1× itself as a
+  build input); M5's defensive mandate is provably necessary
+- phase depth is bounded at 7 by the SDE (whole-catalog census,
+  2026-11-21): the deepest possible target sits at phase 7 —
+  29 products, all **ship-on-ship nesters at capital scale**
+  (jump freighters nesting freighters · command carriers and
+  lancer dreadnoughts nesting carriers/dreadnoughts · 12
+  faction-edition marauders nesting marauders · the Rorqual ORE
+  Development Edition) via the T1-hull-as-input mechanic one level
+  beyond the capital components that cap the walked chains at
+  phase 6 (the Charon/Hel/Ragnarok depth). Every chain set the
+  program walked sits one phase under the catalog's ceiling; a
+  jump-freighter or command-carrier set would touch it
 
 **Time and job math (M4, M9)**
 

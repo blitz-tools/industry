@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Plan — Ragnarok ×1 — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/ragnarok/build-plan.html</div>
+</aside>
+
+<main class="content">
+  <div class="page-header">
+    <h1><img class="type-icon" style="width:32px;height:32px;" src="https://images.evetech.net/types/23773/icon?size=32" alt=""> Build Plan — Ragnarok ×1</h1>
+    <div class="actions">
+      <span class="badge plan-state">Draft</span>
+      <span class="pool-picker">Pool
+        <select aria-label="Participant pool">
+          <option>Corp + included characters (8)</option>
+          <option>Corp members only (4)</option>
+        </select>
+      </span>
+      <button class="icon-button" type="button" title="Re-run planner" aria-label="Re-run planner">⟳</button>
+      <button class="icon-button" type="button" title="Export plan" aria-label="Export plan">⭳</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">≈14 mo</p>
+      <p class="stat-label">Chain end — the reaction year (350 d at ~10 reactors) plus procurement, component manufacturing, and the 70.8 d hull: a plan measured in seasons</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">27,979</p>
+      <p class="stat-label">Reaction runs — 83,937 slot-hours; the pool's reaction slots are the throughput bound three times over the Hel's</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">38 blueprints</p>
+      <p class="stat-label">To acquire — 4 titan BPs + the Hel's 34 (NPC-seeded + contract); 44 owned (the Hel's world byte-for-byte)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">CSC 1 → 5</p>
+      <p class="stat-label">Octavia's hull-gate train — a 4-level, ~4-month gap with parallel component work filling it; the underleveled-holder state at maximum</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">1.117B</p>
+      <p class="stat-label">Pyerite required — 7.6× the Hel's mountain, ~1,700× current stock; the program's largest single procurement by an order of magnitude</p>
+    </div>
+  </div>
+
+  <!-- Wave progress -->
+  <div class="wave-bar">
+    <div class="wave-header">
+      <span class="wave-title">Wave progress — day 0 of 420 · 0%</span>
+      <button class="legend-tab" type="button">legend ›</button>
+    </div>
+    <div class="wave-track">
+      <div class="wave-seg dead" style="width: 6%;" title="Procurement front ≈25 d — the mineral mountain begins (tranches through month 3), fullerites, PI tier-4, 38 blueprints, the Ragnarok BPC contract"></div>
+      <div class="wave-seg ahead" style="width: 4%;" title="W1 — fuel blocks + the carbon family opens · day 25–40"></div>
+      <div class="wave-seg ahead" style="width: 7%;" title="W2 — carbon family + neofullerenes (2,188–2,213 runs per type) · day 40–70"></div>
+      <div class="wave-seg ahead" style="width: 45%;" title="W3 — the reaction year: polymers, composites, neurolink (350 d at ~10 reactors, mineral tranches feeding in through month 3) · day 70–260"></div>
+      <div class="wave-seg ahead" style="width: 12%;" title="W4 — component manufacturing: CTR, AIPS (1,067 runs), LSBU, titan mineral sinks · day 260–310"></div>
+      <div class="wave-seg ahead" style="width: 10%;" title="W5 — capital + supercapital + titan components (21 types) · day 310–350"></div>
+      <div class="wave-seg ahead" style="width: 16%;" title="W6 — the Ragnarok build · 70.8 d · Capital Ship Construction 5 (trained by then) · day 350–420"></div>
+      <div class="now-line" style="left: 0;"></div>
+      <div class="now-caption" style="left: 0;">now · day 0</div>
+    </div>
+    <div class="wave-ticks">
+      <span class="tick" style="width: 6%;">acquire</span>
+      <span class="tick" style="width: 4%;">W1</span>
+      <span class="tick" style="width: 7%;">W2 · carbon</span>
+      <span class="tick" style="width: 45%;">W3 · the reaction year</span>
+      <span class="tick" style="width: 12%;">W4 · components</span>
+      <span class="tick" style="width: 10%;">W5 · capital</span>
+      <span class="tick tick-end" style="width: 16%;"><span>W6 · Ragnarok</span><span>100%</span></span>
+    </div>
+
+    <div class="anno" style="margin-top: 1.75rem;">
+      <span class="anno-label">wireframe</span>
+      The terminal wave bar: seven segments over 420 days, the
+      reaction year owning 45%, the hull 16%. The Hel's bar was
+      the previous compression record at 222 days; the Ragnarok
+      doubles it. Octavia's 4-month train finishes inside W4 — the
+      gate is green a full wave before the hull installs. <b>Wave
+      figures illustrative at maximum looseness</b>: the
+      merged-campaign and pipelining decisions move quarters here,
+      and the real scheduler's output will differ materially — the
+      honest rendering is a plan whose precision is seasonal, not
+      daily.
+    </div>
+  </div>
+
+  <!-- Reverse product chain -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse product chain</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Raw materials on the left, target on the right. Abbreviated to representative nodes — the full tree carries 82 buildable types (see the chain reference for the complete expansion).</p>
+
+  <div class="chain-flow">
+    <div class="chain-phase">
+      <span class="phase-label">Phase 1</span>
+      <span class="phase-name">Fuel blocks</span>
+      <span class="phase-meta">4 types · 1,192 runs</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">Ice mountain</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 2</span>
+      <span class="phase-name">Carbon family</span>
+      <span class="phase-meta">12 types · ~6,600 runs</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state missing">R4 moon bills</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 3</span>
+      <span class="phase-name">Reaction stack</span>
+      <span class="phase-meta">44 types · the year's body</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 4</span>
+      <span class="phase-name">Component inputs</span>
+      <span class="phase-meta">44 types · reactions + mfg</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 5</span>
+      <span class="phase-name">Hull components</span>
+      <span class="phase-meta">21 types · capital + titan + neurolink</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 6</span>
+      <span class="phase-name">Ragnarok ×1</span>
+      <span class="phase-meta">1 node · 70.8 d</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">Skill gate — 4-month train</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The Hel's flow at 4×: the same six-phase convergence shape with
+    the titan components adding a mineral-sink flavor to phase 5
+    (four parts building from minerals alone, billions of Pyerite,
+    no reaction depth). Every prior set's world is a phase here —
+    the terminal convergence.
+  </div>
+
+  <!-- Phase tree: representative nodes -->
+  <details class="phase-row" open style="margin-top: 1rem;">
+    <summary>
+      <span class="phase-title">Phase 5 — Hull components</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">21 nodes</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Missing inputs</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </summary>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57478/icon?size=32" alt="">
+        <span class="node-name">Auto-Integrity Preservation Seal</span>
+        <span class="node-qty">×3,200</span>
+        <span class="node-runs">1,067 runs · 4 jobs at maxPL 300</span>
+        <span class="node-right">
+          <span class="badge owned">BPO ×2 · ME 10 / TE 16</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/24545/icon?size=32" alt="">
+        <span class="node-name">Capital Jump Bridge Array</span>
+        <span class="node-qty">×500</span>
+        <span class="node-runs">500 runs · 13 jobs at maxPL 40</span>
+        <span class="node-right">
+          <span class="badge missing">BP · NPC market · mineral sink</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/24556/icon?size=32" alt="">
+        <span class="node-name">Capital Doomsday Weapon Mount</span>
+        <span class="node-qty">×500</span>
+        <span class="node-runs">500 runs · 13 jobs</span>
+        <span class="node-right">
+          <span class="badge missing">BP · NPC market · mineral sink</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/57477/icon?size=32" alt="">
+        <span class="node-name">Ladar-FTL Interlink Communicator</span>
+        <span class="node-qty">×250</span>
+        <span class="node-runs">250 runs · 1 job</span>
+        <span class="node-right">
+          <span class="badge missing">BP · NPC market</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <span class="node-gating">+ 17 more nodes — Life Support Backup Unit ×1,600 (534 runs) · Capital Clone Vat Bay ×500 · Capital Turret Hardpoint ×400 · eleven capital components at 2.5–5× their Hel quantities · G-O Trigger Neurolink Conduit ×192 · Enhanced Neurolink Protection Cell ×1 — the four titan parts are mineral-only builds (no reaction depth), the neurolink trio rides the Hel's reaction stack at 1.5–3×</span>
+      </div>
+    </div>
+  </details>
+
+  <details class="phase-row" open>
+    <summary>
+      <span class="phase-title">Phase 6 — Target</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">1 node</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Skill gate — 4-month train</span>
+        <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </summary>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/23773/icon?size=32" alt="">
+        <span class="node-name">Ragnarok</span>
+        <span class="node-qty">×1</span>
+        <span class="node-runs">1 run · 70.8 d at max skills · structure-only (supercapital assembly)</span>
+        <span class="node-right">
+          <span class="badge bpc">BPC · contract · maxPL 1 · ME / TE as-bought</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <span class="node-gating">Gated on all 21 phase-5 components AND Octavia's Capital Ship Construction train (1→5, ~4 months from day 0 — green inside W4, a full wave of slack). The BPC purchase is a single contract item pinned to the acquisition front. Supercapital assembly capability at the build structure (M3 pin, carried from the Hel).</span>
+      </div>
+    </div>
+  </details>
+
+  <!-- Blueprint copy plan -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Blueprint copy plan</h2>
+
+  <p class="meta-line" style="margin: 0 0 0.75rem;"><span class="stage-state ready">Nothing to copy</span> — the Hel's absent-copy state carried over: the BPC is itself a copy, component originals run direct.</p>
+
+  <!-- Required blueprints -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Required blueprints</h2>
+
+  <p class="meta-line" style="margin: 0 0 0.75rem;"><span style="color: var(--pink);">38 missing</span> · 44 owned — the Hel's inventory plus the four titan parts.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Blueprint</th>
+        <th>Activity</th>
+        <th>Status</th>
+        <th>Acquisition</th>
+        <th>Est. cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="group-row"><td colspan="5">Missing — titan-specific (4 BPs, NPC-seeded, maxPL 40)</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/24546/bp?size=32" alt="">Capital Jump Bridge Array Blueprint</td>
+        <td><span class="activity-tag mfg">manufacture</span></td>
+        <td><span class="badge missing">Missing</span></td>
+        <td class="muted">NPC market · 500 runs = 13 jobs</td>
+        <td class="num qty">~400M</td>
+      </tr>
+      <tr>
+        <td colspan="5" class="muted">+ Capital Clone Vat Bay · Capital Doomsday Weapon Mount · Capital Turret Hardpoint — same treatment; the last NPC-seeded originals in the capital world</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Missing — the Hel's 34</td></tr>
+      <tr>
+        <td colspan="5" class="muted">14 capital component BPs · 3 supercapital components · 6 neurolink support BPs · 12 reaction formulas (≈4 originals each for parallelism) · the Ragnarok Blueprint (contract, rare-drop origin — pin, verify M15)</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Owned — 44 types</td></tr>
+      <tr>
+        <td colspan="5" class="muted">The Hel's owned set byte-for-byte: AIPS ×2 · LSBU ×28 · CTR ×34 · fuel blocks ×4 · the seven simple and nine polymer formulas · neurolink and Isotropic Neofullerene formulas — every prior chain's world intact</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Raw materials -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Raw materials — acquisition</h2>
+  <p class="meta-line" style="margin: 0 0 0.5rem;">The billion-scale mountain. Defaults to gaps only — which is nearly everything.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Material</th>
+        <th class="num">Required</th>
+        <th class="num">Available</th>
+        <th style="min-width: 10rem;">Coverage</th>
+        <th>Acquire via</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="group-row"><td colspan="5">The mineral mountain, final form</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/35/icon?size=32" alt="">Pyerite</td>
+        <td class="num qty">1,117,277,000</td>
+        <td class="num">652,411</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0.06%"></div></div><span class="meter-pct">0.06% — 7.6× the Hel's mountain</span></div></td>
+        <td class="muted">Market / mining · ~190B isk at market average</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/34/icon?size=32" alt="">Tritanium</td>
+        <td class="num qty">318,825,000</td>
+        <td class="num">97,414,483</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 31%"></div></div><span class="meter-pct">31% — the largest single coverage in the program</span></div></td>
+        <td class="muted">Market / mining · 220M-unit shortfall</td>
+      </tr>
+      <tr>
+        <td colspan="5" class="muted">+ Mexallon 300.7M · Isogen 84.7M · Nocxium 9.6M · Zydrine 4.6M · Megacyte 2.3M — all ≈0% covered</td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Gas — ~1.4M fullerite units + the k-space family</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/30370/icon?size=32" alt="">Fullerite-C50</td>
+        <td class="num qty">137,000</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — the Jackdaw world at ~200× its bill</span></div></td>
+        <td class="muted">w-space gas sites / market</td>
+      </tr>
+      <tr>
+        <td colspan="5" class="muted">+ 8 more fullerites (C70 198k · C28 184k · C32 176k …) + the k-space family (Azure / Vermillion Mykoserocin 16.6k each, six more at 1.3k, two cytoserocins) — all zero</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">Partially covered: the R4 moon materials (3–12% of 2M-unit bills), ice products (8–24%), fuel-block stock (~2 of 30 runs). Everything else ≈0%. Market-average figures illustrative (M15 synced prices).</p>
+
+  <!-- Job allocation -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — wave 1</h2>
+  <p class="meta-line" style="margin: 0 0.75rem;">Recommended installs per character, from synced skills and live slot occupancy. Fuel-block runs go to manufacturing slots anywhere; the carbon family's opening reactions spread across the four reactors. Octavia's train starts day 0 in parallel.</p>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    Fresh plan: every slot shows its recommended job or what it's waiting on.
+    For the in-progress variant see <a href="build-plan-active.html">build-plan-active.html</a>.
+    The reaction gates are held live (Reactions 5 across four reactors); the hull
+    gate is the 4-level train — the skill-plan calculator's stress case.
+  </div>
+
+  <!-- Octavia Arbitrage -->
+  <section class="char-card-jobs" style="margin-top: 1rem;">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124297138/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">Octavia Arbitrage <span class="badge missing" style="margin-left: 0.4rem;">Hull gate — training</span></div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 0 in use · skill queue: Capital Ship Construction 1→5 (~4 months)</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Reaction slots (carbon family — wave 1)</div>
+    <div class="slot-grid">
+      <div class="slot ready">
+        <div class="slot-head">
+          <img class="type-icon" src="https://images.evetech.net/types/57453/icon?size=32" alt="">
+          <span class="slot-name">Reaction · Carbon Fiber 1/550 here</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">1 run · 3 h · Hydrocarbons + Evaporite + blocks · Amamake — refinery</span>
+        <span class="slot-meta">2,213 runs across 4 reactors — 553 each · Reactions 5</span>
+        <span class="slot-meta" style="color: var(--green);">Ready once the R4 tranches land (day 25)</span>
+      </div>
+      <div class="slot idle">+ Thermosetting Polymer · RCF lines open behind</div>
+    </div>
+  </section>
+
+  <!-- blitzrage -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/1634367930/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">blitzrage <span class="badge owned" style="margin-left: 0.4rem;">Fourth reactor — out-of-corp</span></div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 0 in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Reaction slots (carbon family — wave 1)</div>
+    <div class="slot-grid">
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">next up</span>Reaction · Carbon Fiber 554/2,213 — 1 run · 3 h</div>
+        <div class="next-up"><span class="next-label">then</span>the reaction year — every reactor-month matters against 83,937 slot-hours</div>
+        <span class="slot-meta">R4s + formula originals contracted to blitzrage at the front — out-of-corp distribution</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+</body>
+</html>
