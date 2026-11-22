@@ -58,34 +58,118 @@ paid contracts), or **pick a better target**.
 
 ---
 
-## Status (updated 2026-11-16)
+## Status (updated 2026-11-21)
 
 | Milestone | State |
 |---|---|
 | M1 — main character & corporation pool | ✅ **Complete** (PRs #12–#14) |
-| M2 — SDE (Static Data Export) foundation & blueprint catalog | 🟡 **In progress** — SDE foundation + admin self-update (PRs #15–#16) and the character-side data syncs (PR #17) complete; remaining: catalog surface |
-| M3+ | Not started |
+| M2 — SDE foundation & blueprint catalog | 🟡 **In progress** — foundation, admin self-update, and all character/corp syncs complete (PRs #15–#17); remaining: catalog surface |
+| Mockup program | 🟡 **10 of 13 sets complete** — ten chain sets (Typhoon → Ragnarok) + the refinement pass landed; three surface mockups remain (M3, M15, M12); **gates milestone implementation** per the 2026-11-19 convention |
+| M3+ | Not started (implementation) |
 
-**Pick up at**: M2 remainder — the catalog query layer the M4 planner
-consumes (blueprint search, recipe joins, owned-blueprint overlay; the
-SDE-name vs `universe_types` merge rule gets decided there). Everything
-below M3's heading is still plan; the landed sections record where
-reality diverged.
+**Pick up at**: the three remaining surface mockups (M3 structure
+manager → M15 sync panel → M12 capability surface), then M2's catalog
+remainder — the query layer the M4 planner consumes (blueprint search,
+recipe joins, owned-blueprint overlay; the SDE-name vs
+`universe_types` merge rule gets decided there).
+
+**The mockup program's output** (2026-11-19 → 2026-11-21): ten chain
+reference documents (`reference/chains/`, Typhoon through Ragnarok)
+serving as M5's acceptance suite; ten mockup sets (`design/`)
+carrying the binding UI conventions; the whole-catalog census
+(`reference/CENSUS.md` — phase depth bounded at 7, 51 producer-graph
+cycles making M5's defensive cycle detection provably necessary); and
+the faction-commodity investigation (TODO.md — LP store offer catalog,
+loyalty scope registered and live-verified, corp-LP modeling). The
+chain program deposited design decisions across M5/M6/M8/M9 (retry
+semantics, copy sizing and destinations, merged-campaign arithmetic,
+commodity-first targeting, the participants section, residue
+accounting) — each recorded in MILESTONES' decisions and open
+questions below, with the chain docs as their proof.
 
 Live anchors for a fresh session: schlepzrage is the main (Director,
-corp 98830898, all corp data synced); SDE release 2026-11-13 mirrored
-(53,925 types) and self-maintaining; the Typhoon recipe reads end to
-end through the mirror (blueprint **998** → ship **644**, three
-buildable components, Industry 1, 5.0h base). All eight characters
-sync blueprints, skills, and jobs (char + corp sides both live: 754
-character blueprints, 1,099 skills, 44 character jobs), so the
-owned-blueprint overlay and skill math have real data to join against.
+corp 98830898, all corp data synced); SDE release 2026-11-20 mirrored
+(53,925+ types) and self-maintaining. All eight characters sync
+blueprints, skills, jobs, and **loyalty points** (the
+`esi-characters.read_loyalty.v1` scope registered 2026-11-21 and
+re-authed roster-wide; the contracts read scopes are also registered).
+The chain reference library reads end to end through the mirror
+(Typhoon 998→644 through Ragnarok 23774→23773), so the catalog's
+recipe joins have ten validated shapes to test against, not one.
 Two things worth knowing before the catalog work: the skills table
 carries **trained vs active** level separately (active includes
 implants/boosters — M4's time math should pick deliberately), and
 `UniverseResolver.resolve_location_ids` is the ready-made primitive
 for naming any location id that arrives without a type (the M6 jobs
 correlation and any future Location column want it).
+
+### Dependency graph (milestone level)
+
+Arrows read "is a dependency of" — the arrow's target needs the
+source. The mockup gate (the three remaining surface mockups) sits
+above the implementation track per the recorded convention.
+
+```mermaid
+flowchart TD
+    subgraph gate["🎨 Mockup gate — completes before implementation"]
+        MS3["M3 surface"]
+        MS15["M15 surface"]
+        MS12["M12 surface"]
+    end
+
+    M1["M1 ✅ Corp pool"]
+    M2["M2 🟡 SDE + catalog<br/>(catalog surface remains)"]
+    M3["M3 Structure manager"]
+    M15["M15 World-state syncs<br/>(incl. LP store offers)"]
+    M4["M4 Planner:<br/>single-BP calculation"]
+    M5["M5 Chain resolution<br/>+ phase view"]
+    M6["M6 Build plans"]
+    M8["M8 Invention T2/T3"]
+    M9["M9 Job orchestration"]
+    M10["M10 Market analysis<br/>(over M15's data)"]
+    M11["M11 DAG viz<br/>(presentation only)"]
+    M12["M12 Capability analysis<br/>— the fork point"]
+    M13["M13 Skill gap +<br/>training recs"]
+    M14["M14 Capsuleer bidding<br/>+ contract farming"]
+
+    M1 --> M2
+    M2 -->|"catalog query layer"| M4
+    M3 -->|"facility defaults"| M4
+    M3 -->|"recorded placement"| M15
+    M15 -->|"cost indices"| M4
+    M15 -->|"prices, contracts"| M10
+    M4 --> M5
+    M5 --> M6
+    M5 --> M8
+    M6 --> M9
+    M5 -->|"chain costs"| M10
+    M10 -->|"profitability ranking"| M12
+    M8 -->|"full-chain matching"| M12
+    M6 -->|"plan data"| M12
+    M12 -->|"fork — equal weight"| M13
+    M12 -->|"fork — equal weight"| M14
+    M10 --> M14
+    M5 --> M11
+    M6 --> M11
+```
+
+Notes on the graph:
+
+- **The spine** (recorded critical path, 2026-11-19 review): M2
+  catalog → M4 → M5 → M6 → M9. M8 branches off M5 (the invention
+  resolver extends the chain resolver; it can land in parallel with
+  M6/M9). M11 is presentation-only and sequenced freely after M5/M6.
+- **M15's position** (recorded 2026-11-19): after M3, as one cohesive
+  sync band; consumption is deferred to each consuming milestone and
+  the pre-consumer gap is a deliberate soak test. Cost indices feed
+  M4's install-cost math; market data feeds M10; contracts feed M6's
+  fallbacks and M12's capability matching; LP store offers feed the
+  faction acquisition layer (M6).
+- **The fork** (M13/M14): deliberately unsequenced against each
+  other — the product owner decides at pickup. M10 is a dependency
+  of M14 only (bidding needs prices); M13 has no M10 dependency
+  (skill analysis is price-free).
+- **M7** is absent — folded into M5 (2026-11-16).
 
 ---
 
@@ -870,8 +954,22 @@ the layered chain the distribution engine schedules on the other.*
   **phases count up in build order** (decided 2026-11-18): raw-material
   terminators sit at phase 0, a node's phase is 1 + max(its inputs'
   phases), and the target lands at the highest phase number. Detect and
-  refuse blueprint cycles defensively (SDE shouldn't contain any for
-  manufacturing, but the resolver shouldn't trust it).
+  break blueprint cycles — **provably necessary** (whole-catalog census,
+  2026-11-21: 51 cycles exist in the mfg+reaction producer graph, almost
+  all self-referential structure arrays — see
+  `reference/CENSUS.md`; a naive resolver infinite-loops on any
+  structure-targeted plan).
+- **Validation toolset** (assembled by the chain program,
+  2026-11-19 → 2026-11-21): **ten chain reference documents**
+  (`reference/chains/` — Typhoon, Charon, Panther, Jackdaw, Trimark,
+  Rage, Crash, Hel, TFI, Ragnarok) are the golden-value acceptance
+  suite; `reference/CENSUS.md` holds the structural findings (depth
+  bounded at 7; the cycle census); and the **test harness +
+  whole-catalog `--all` census** are recorded may-build validation
+  tools (TODO.md) — M5 gets built test-first against these anchors,
+  not developed blind and validated after. The reference
+  implementation (`reference/chain_expand.py`) is the executable
+  spec; its outputs regenerate every chain document verbatim.
 - **Chains generate dynamically at plan time** (clarified 2026-11-19):
   the resolver builds every chain from the selected target and count on
   each calculation — nothing enumerates or ships chains ahead of
@@ -972,6 +1070,16 @@ reality over time.*
   has no plan reference; over-precision isn't worth it.)
 - Plan states: draft → active → complete (all leaf nodes delivered) /
   abandoned.
+- **Pickup note (2026-11-21, deferred by product direction)**: five
+  scope items accumulated in TODO.md during the mockup program —
+  station-container plan bucketing (investigated, feasible),
+  per-character assignment eligibility (Roster-side flag),
+  contract-match fallbacks in acquisition, the skill-plan calculator
+  for participant gaps, and the LP acquisition node type (currency
+  balances, offer variants, corp-LP curated balance + distribution
+  workflow). **Triage at M6 pickup**: decide what's in-scope for M6
+  v1 vs deferred, using the TODO entries' full context. These don't
+  change the dependency structure — they widen M6's surface.
 
 **Schema sketch**
 
@@ -1017,17 +1125,33 @@ designed.
   decryptor selection (yield modifiers: ME/TE/runs/probability), and
   expected-value math (probabilistic runs: "runs needed" computed with
   success probability, presented as expected + confidence range).
+  **Extensively de-risked by the chain program** (2026-11-19 →
+  2026-11-21): four chain references (Panther, Jackdaw, Trimark,
+  Rage) established the SDE shapes, the three dispatch flavors
+  (single-source T2 with decryptors · multi-source T3 grades ·
+  T2 alternative products/siblings), the live-BPC reconciliation
+  (base ME/TE evidence toward 2/4, not the assumed −4/−4), and the
+  retry-loop semantics with residue accounting (the 2026-11-20
+  decisions of record). The M8 pins are consolidated in the open
+  questions below.
 - T3 reverse engineering from ancient relics (same activity family in
-  the SDE; loaded since M2). **T3's interface with invention/reverse
-  engineering is to-be-determined** — the author doesn't have
-  significant T3 production experience, so the T3 portions of this
-  milestone get designed at pickup (against SDE data and community
-  docs) rather than pre-planned in detail here. The Jackdaw chain
-  reference (2026-11-19) established the SDE shape for the app side:
+  the SDE; loaded since M2). **Substantially designed by the chain
+  program** (updated 2026-11-21 from the original "to-be-determined"):
+  the Jackdaw chain reference established the complete SDE shape —
   the relic item itself carries activity 8 (no source blueprint),
-  relic grades set both probability and BPC runs per success, recipes
-  are multi-product (one per racial output), and there is no
-  job-lock (each attempt consumes its relic).
+  relic grades set both probability and BPC runs per success (the
+  activity-8 product quantity, 20/10/3 for small hull sections),
+  recipes are multi-product (one per racial output), and there is no
+  job-lock (each attempt consumes its relic). The Rage chain added
+  **alternative-product invention** (sibling BPCs on the same recipe
+  at their own probabilities — by-product-or-miss semantics, pinned
+  at M8). The Trimark chain added **multi-success binomial planning**
+  (ten successes at 34% — the confidence-vs-attempts surface) and the
+  retry-loop's owner-decision points. What remains genuinely
+  undetermined at pickup: the M8 pins list (base ME/TE, T3
+  grade-set ME/TE, sibling roll semantics, whether skill levels
+  modify probability) and the decryptor-choice UX (fixed per plan vs
+  comparing EVs in the planner).
 - Chain view gains probabilistic nodes: an invention node shows the
   underlying copies required and the decryptor choice (T2) or the
   relic grade and attempts-to-buy confidence (T3).
