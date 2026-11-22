@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Structures — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a href="#">Build Planner</a>
+    <a class="active" href="#">Structures</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/structures/structures.html</div>
+</aside>
+
+<main class="content">
+  <div class="page-header">
+    <h1>Structures</h1>
+    <div class="actions">
+      <button class="primary" type="button">Add structure</button>
+    </div>
+  </div>
+  <p class="meta-line" style="margin: -0.5rem 0 1.25rem;">
+    The facility registry the planner multiplies against — where industry
+    happens changes materials, time, and cost, so every calculation is
+    per-facility. One <b>default per activity</b>: the planner pre-selects
+    it and the build plan can override per job.
+  </p>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    This is the first of the three surface mockups (M3, M15, M12) — a
+    single new page type proposed against the reference component set.
+    The registry table, the add/edit form (shown in edit state with the
+    system type-ahead open), the sync import card, and the multiplier
+    reference card are all new; everything else is the standard chrome.
+  </div>
+
+  <!-- Registry -->
+  <section class="card" style="margin-top: 1.25rem;">
+    <div class="card-body">
+      <h2>Registered structures</h2>
+      <p class="card-sub">Grouped by activity — the planner's facility question is always "which facility for <i>this</i> activity", so registrations are per structure × activity and defaults are enforced one per group.</p>
+
+      <table class="asset-table">
+        <thead>
+          <tr>
+            <th>Structure</th>
+            <th>System</th>
+            <th>Rigs</th>
+            <th class="num">Tax</th>
+            <th>Default</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="group-row"><td colspan="6"><span class="activity-tag mfg">manufacturing</span> &nbsp;4 registrations</td></tr>
+          <tr>
+            <td><b>Amamake - Police Weapons Facility</b> <span class="muted">· Azbel (medium)</span></td>
+            <td>Amamake <span class="badge lowsec">low 0.3</span></td>
+            <td class="muted">ME T1 · TE T1</td>
+            <td class="num qty">0.5%</td>
+            <td><span class="badge owned">default</span></td>
+            <td style="text-align: right; white-space: nowrap;"><button class="icon-button" type="button" aria-label="Edit" title="Edit">✎</button> <button class="icon-button danger" type="button" aria-label="Delete" title="Delete">✕</button></td>
+          </tr>
+          <tr>
+            <td><b>Amamake - 5 times nearly AT winners</b> <span class="muted">· Sotiyo (x-large)</span> <span class="badge capability">supercapital assembly</span></td>
+            <td>Amamake <span class="badge lowsec">low 0.3</span></td>
+            <td class="muted">ME T2 · TE T2</td>
+            <td class="num qty">0.5%</td>
+            <td class="muted">—</td>
+            <td style="text-align: right; white-space: nowrap;"><button class="icon-button" type="button" aria-label="Edit" title="Edit">✎</button> <button class="icon-button danger" type="button" aria-label="Delete" title="Delete">✕</button></td>
+          </tr>
+          <tr>
+            <td><b>Hek - IChooseYou Market and Industry</b> <span class="muted">· Raitaru (small)</span></td>
+            <td>Hek <span class="badge hisec">high 0.7</span></td>
+            <td class="muted">none</td>
+            <td class="num qty">3.7%</td>
+            <td class="muted">—</td>
+            <td style="text-align: right; white-space: nowrap;"><button class="icon-button" type="button" aria-label="Edit" title="Edit">✎</button> <button class="icon-button danger" type="button" aria-label="Delete" title="Delete">✕</button></td>
+          </tr>
+          <tr>
+            <td><b>Osoggur VI - Urban Management Information Center</b> <span class="muted">· NPC station</span></td>
+            <td>Osoggur <span class="badge lowsec">low 0.4</span></td>
+            <td class="muted">none</td>
+            <td class="num muted">NPC-set</td>
+            <td class="muted">—</td>
+            <td style="text-align: right; white-space: nowrap;"><button class="icon-button" type="button" aria-label="Edit" title="Edit">✎</button> <button class="icon-button danger" type="button" aria-label="Delete" title="Delete">✕</button></td>
+          </tr>
+          <tr class="group-row"><td colspan="6"><span class="activity-tag inv">invention</span> &nbsp;1 registration</td></tr>
+          <tr>
+            <td><b>Amamake - Police Weapons Facility</b> <span class="muted">· Azbel (medium) — second registration of the structure above</span></td>
+            <td>Amamake <span class="badge lowsec">low 0.3</span></td>
+            <td class="muted">not rig-relevant</td>
+            <td class="num qty">0.5%</td>
+            <td><span class="badge owned">default</span></td>
+            <td style="text-align: right; white-space: nowrap;"><button class="icon-button" type="button" aria-label="Edit" title="Edit">✎</button> <button class="icon-button danger" type="button" aria-label="Delete" title="Delete">✕</button></td>
+          </tr>
+          <tr class="group-row"><td colspan="6"><span class="activity-tag rxn">reactions</span> &nbsp;2 registrations</td></tr>
+          <tr>
+            <td><b>Amamake - Police Refinery</b> <span class="muted">· Tatara (large refinery)</span></td>
+            <td>Amamake <span class="badge lowsec">low 0.3</span></td>
+            <td class="muted">reaction T2</td>
+            <td class="num qty">0.5%</td>
+            <td><span class="badge owned">default</span></td>
+            <td style="text-align: right; white-space: nowrap;"><button class="icon-button" type="button" aria-label="Edit" title="Edit">✎</button> <button class="icon-button danger" type="button" aria-label="Delete" title="Delete">✕</button></td>
+          </tr>
+          <tr>
+            <td><b>Amamake - Reactions &amp; Reprocessing</b> <span class="muted">· Athanor (medium refinery)</span></td>
+            <td>Amamake <span class="badge lowsec">low 0.3</span></td>
+            <td class="muted">reaction T1</td>
+            <td class="num qty">0.5%</td>
+            <td class="muted">—</td>
+            <td style="text-align: right; white-space: nowrap;"><button class="icon-button" type="button" aria-label="Edit" title="Edit">✎</button> <button class="icon-button danger" type="button" aria-label="Delete" title="Delete">✕</button></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="sync-source" style="margin-top: 0.75rem;">
+        universe_locations · asset sync 2026-11-16 · 11 player structures seen · 5 registered here · 4 importable · 2 restricted
+      </div>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        <b>Registrations are per structure × activity</b> (the TODO spec's
+        form leads with Activity, and defaults are per activity — an
+        engineering complex covers manufacturing, invention, and copying
+        simultaneously, so it can appear in more than one group; the
+        Police Weapons Facility does, above). Rigs and the default flag
+        live on the registration. <b>Supercapital assembly</b> is a
+        structure-level capability badge (the Hel/Ragnarok facility-class
+        pin): supercapitals and titans build only in structures with it —
+        the capability gates the <i>final hull job</i>, not the component
+        builds, which any engineering complex hosts. <b>Biochemical
+        reactions</b> (the Crash chain's pin) are still open: whether the
+        reaction facilities above cover biochemical formulas or need a
+        distinct facility class is unresolved — the reactions group may
+        grow a biochemical capability distinction at implementation.
+        Setting a new default in a group demotes the previous one
+        (proposed behavior — the alternative, leaving an activity
+        default-less until explicitly cleared, is more explicit but
+        easier to leave in a half-configured state).
+      </div>
+    </div>
+  </section>
+
+  <!-- Add / edit form -->
+  <section class="card overflow-visible">
+    <div class="card-body">
+      <h2>Edit structure — Amamake - 5 times nearly AT winners</h2>
+      <p class="card-sub">The add and edit forms are the same fields; this frame shows the edit state of the supercapital Sotiyo, with the solar-system type-ahead open mid-edit (typing "amam"). In the real page the dropdown closes on selection.</p>
+
+      <div class="form-grid">
+        <div class="field">
+          <span class="field-label">Activity</span>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="chip-button selected" type="button">Manufacturing</button>
+            <button class="chip-button" type="button">Invention</button>
+            <button class="chip-button" type="button">Reactions</button>
+          </div>
+          <span class="field-hint">drives the structure-type list: engineering complexes for manufacturing / invention, refineries for reactions</span>
+        </div>
+        <div class="field">
+          <label class="field-label" for="struct-name">Structure name</label>
+          <input class="form-input" id="struct-name" type="text" value="Amamake - 5 times nearly AT winners">
+          <span class="field-hint">free text, display only</span>
+        </div>
+        <div class="field">
+          <label class="field-label" for="struct-type">Structure type</label>
+          <select class="form-select" id="struct-type">
+            <option>NPC station</option>
+            <option>Raitaru (small)</option>
+            <option>Azbel (medium)</option>
+            <option selected>Sotiyo (x-large)</option>
+          </select>
+          <span class="field-hint">engineering-complex list shown (activity = manufacturing)</span>
+        </div>
+        <div class="field">
+          <label class="field-label" for="rig-me">Material-efficiency rig</label>
+          <select class="form-select" id="rig-me">
+            <option>No rig</option>
+            <option>T1</option>
+            <option selected>T2</option>
+          </select>
+        </div>
+        <div class="field">
+          <span class="field-label">Solar system</span>
+          <div class="search-wrap" style="max-width: none;">
+            <input class="form-input search-input" type="text" value="amam" aria-label="Search systems" style="font-size: 0.95rem;">
+            <div class="autocomplete">
+              <div class="autocomplete-row active">
+                <span class="type-icon-none" style="width: 32px; height: 32px; flex: none;"></span>
+                <div>
+                  <div class="ac-name">Amamake</div>
+                  <div class="ac-sub">security 0.3 · lowsec · Minmatar militia home — feeds the system cost-index lookup (cost indices sync at M15)</div>
+                </div>
+                <div class="ac-right">
+                  <span class="badge lowsec">low 0.3</span>
+                </div>
+              </div>
+              <div class="autocomplete-footer">1 match · systems via ESI /universe with security_status, cached like other universe data</div>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field-label">System security</span>
+          <div><span class="badge lowsec">lowsec · 0.3</span></div>
+          <span class="field-hint">derived from the selected system — hand-set only when no system is chosen</span>
+        </div>
+        <div class="field">
+          <label class="field-label" for="tax">Tax rate</label>
+          <input class="form-input" id="tax" type="text" value="0.5%" inputmode="decimal">
+          <span class="field-hint">multiplier on the install-cost base, alongside the system cost index</span>
+        </div>
+        <div class="field">
+          <label class="field-label" for="rig-te">Time-efficiency rig</label>
+          <select class="form-select" id="rig-te">
+            <option>No rig</option>
+            <option>T1</option>
+            <option selected>T2</option>
+          </select>
+          <span class="field-hint">reactions use reaction rigs instead</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Flags</span>
+          <div class="form-check"><input type="checkbox" id="flag-scap" checked><label for="flag-scap" style="cursor: pointer;">Supercapital assembly capability</label></div>
+          <div class="form-check"><input type="checkbox" id="flag-default"><label for="flag-default" style="cursor: pointer;">Default for manufacturing</label></div>
+          <span class="field-hint">checking default demotes Amamake - Police Weapons Facility</span>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
+        <button type="button">Save structure</button>
+        <button type="button">Cancel</button>
+      </div>
+
+      <div class="anno" style="margin-top: 1rem;">
+        <span class="anno-label">wireframe</span>
+        <b>Security derives from the system</b> — a proposal refining the
+        TODO spec's hand-entered field: ESI carries security_status on
+        every system, so the chosen system fills it; the manual control
+        only exists for registrations without a system (where rig
+        effectiveness still needs a security class). <b>The supercapital
+        checkbox appears only for engineering complexes</b> — Sotiyo and
+        Azbel (the capability is a structure service/rig choice, not a
+        Sotiyo guarantee). <b>Copying is absent from the activity
+        enum</b> (manufacturing / invention / reactions per the spec):
+        the M9 copy layer needs a facility default for copy jobs too —
+        decide at M3 whether Copying joins the enum or rides the
+        invention registration, since ECs host both.
+      </div>
+    </div>
+  </section>
+
+  <!-- Import from sync -->
+  <section class="card">
+    <div class="card-body">
+      <h2>Seen in asset sync</h2>
+      <p class="card-sub">Player structures the asset sync has already observed (locations of blueprints, materials, and jobs) but that aren't registered yet. Importing pre-fills the name and system; activity, type, rigs, and tax still need a decision, so an import lands in the form rather than straight into the registry.</p>
+
+      <table class="asset-table">
+        <tbody>
+          <tr>
+            <td><b>Lirerim - Chlorohus</b></td>
+            <td class="muted">Lirerim · structure</td>
+            <td style="text-align: right;"><button class="chip-button" type="button">Import</button></td>
+          </tr>
+          <tr>
+            <td><b>Osoggur - Cloneport</b></td>
+            <td class="muted">Osoggur · structure</td>
+            <td style="text-align: right;"><button class="chip-button" type="button">Import</button></td>
+          </tr>
+          <tr>
+            <td><b>Kari - Palace of Justice, Nuremberg</b></td>
+            <td class="muted">Kari · structure</td>
+            <td style="text-align: right;"><button class="chip-button" type="button">Import</button></td>
+          </tr>
+          <tr>
+            <td><b>Resbroko - Hydra Reprocessing</b></td>
+            <td class="muted">Resbroko · structure</td>
+            <td style="text-align: right;"><button class="chip-button" type="button">Import</button></td>
+          </tr>
+          <tr>
+            <td class="muted">Structure #1019319089497</td>
+            <td class="muted">system unknown · <span class="badge missing">restricted</span> — name and system resolve when a rostered character docks or holds office access</td>
+            <td style="text-align: right;"><button class="chip-button" type="button" disabled style="opacity: 0.5; cursor: not-allowed;">Import</button></td>
+          </tr>
+          <tr>
+            <td class="muted">Structure #1019219974333</td>
+            <td class="muted">system unknown · <span class="badge missing">restricted</span> — name and system resolve when a rostered character docks or holds office access</td>
+            <td style="text-align: right;"><button class="chip-button" type="button" disabled style="opacity: 0.5; cursor: not-allowed;">Import</button></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="sync-source" style="margin-top: 0.75rem;">
+        universe_locations · asset sync 2026-11-16 · restricted rows park unresolvable ids rather than dropping them
+      </div>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        This card is a proposal beyond the TODO spec (which notes only
+        that <code>universe_locations</code> already stores seen
+        structures): the sync's structure sightings become import
+        suggestions instead of a second manual entry path. NPC stations
+        don't appear here — the 40 synced station rows are complete
+        SDE/ESI data, so registering one is a search-and-select in the
+        form, not an import.
+      </div>
+    </div>
+  </section>
+
+  <!-- Multiplier reference -->
+  <section class="card">
+    <div class="card-body">
+      <h2>What the planner multiplies</h2>
+      <p class="card-sub">How a registration turns into the material, time, and cost numbers on a build plan — the lookup layer M4 reads. One table, so balance changes are data edits, not code.</p>
+
+      <table class="asset-table">
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th>Effect</th>
+            <th>Values</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Engineering-complex hull</td>
+            <td class="muted">time on jobs run in the structure</td>
+            <td class="muted">Raitaru −15% · Azbel −30% · Sotiyo −50%</td>
+          </tr>
+          <tr>
+            <td>ME rig × security</td>
+            <td class="muted">material consumption on manufacturing</td>
+            <td class="muted">T1 / T2 base, scaled ×0.9 highsec · ×1.0 lowsec · ×1.1 nullsec</td>
+          </tr>
+          <tr>
+            <td>TE rig × security</td>
+            <td class="muted">manufacturing time</td>
+            <td class="muted">T1 / T2 base, same security scaling</td>
+          </tr>
+          <tr>
+            <td>Reaction rig</td>
+            <td class="muted">reaction time and yield in refineries</td>
+            <td class="muted">T1 / T2 — shape only until confirmed</td>
+          </tr>
+          <tr>
+            <td>Tax + cost index</td>
+            <td class="muted">install cost</td>
+            <td class="muted">base × (1 + tax) × system cost index — indices sync at M15 (<span class="badge missing">not yet present</span>)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        Values here are <b>illustrative</b> except the hull bonuses —
+        exact rig and reaction multipliers get confirmed from CCP
+        structure docs at implementation (the M3 scope note); the table
+        shape is the design decision: multipliers live in one lookup
+        keyed by (source, class, security), never in code.
+      </div>
+    </div>
+  </section>
+
+  <!-- Validation note -->
+  <section class="card">
+    <div class="card-body" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+      <div class="meta-line">
+        7 registrations · 6 structures · manufacturing 4 / invention 1 / reactions 2 · exactly one default per activity enforced
+      </div>
+      <button type="button">Add structure</button>
+    </div>
+  </section>
+
+  <p class="meta-line" style="margin-top: 1rem;">
+    M4's planner reads the defaults at Calculate; the build-plan pages
+    show the chosen facility per job → see the chain sets, e.g.
+    <a href="../hel/build-plan.html">../hel/build-plan.html</a> (supercapital
+    assembly pin) ·
+    <a href="../crash/build-plan.html">../crash/build-plan.html</a> (biochemical
+    pin)
+  </p>
+</main>
+
+</body>
+</html>

@@ -39,6 +39,13 @@
  *                   batch over-delivery tracked as plan-visible
  *                   inventory, never inflating the target (proposed by
  *                   the Rage set)
+ *   .form-grid      two-column responsive field grid for registry CRUD
+ *                   forms, with .field / .field-label / .field-hint /
+ *                   .form-input / .form-select / .form-check (proposed
+ *                   by the M3 structures surface)
+ *   .badge.hisec / .lowsec / .nullsec — system-security markers
+ *   .badge.capability structure capability marker (supercapital
+ *                   assembly — the Hel/Ragnarok facility-class pin)
  * ------------------------------------------------------------------------ */
 
 /* Molokai-derived tokens (tomasr/molokai) — verbatim from the app. */
@@ -278,6 +285,14 @@ button.primary {
   text-decoration: none;
 }
 
+/* Destructive row action (delete): red hover instead of the default
+ * green, so the affordance warns (proposed by the M3 structures
+ * surface). */
+.icon-button.danger:hover {
+  border-color: var(--pink);
+  color: var(--pink);
+}
+
 .chip-button {
   padding: 0.05rem 0.5rem;
   border: 1px solid var(--line);
@@ -339,6 +354,84 @@ button.primary {
 .badge.plan-state.active {
   border-color: var(--green);
   color: var(--green);
+}
+
+/* System-security markers: highsec green, lowsec yellow, nullsec pink. */
+.badge.hisec {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.badge.lowsec {
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+
+.badge.nullsec {
+  border-color: var(--pink);
+  color: var(--pink);
+}
+
+/* Structure capability marker (supercapital assembly — Hel/Ragnarok). */
+.badge.capability {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+/* --- CRUD form fields (new, proposed by the M3 structures surface) ----- */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 0.9rem 1.5rem;
+  margin-top: 0.75rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.field-label {
+  color: var(--muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.field-hint {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.form-input,
+.form-select {
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.form-input:focus,
+.form-select:focus {
+  border-color: var(--cyan);
+  outline: none;
+}
+
+.form-check {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.form-check input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--green);
 }
 
 /* --- Stat tiles (Dashboard shape) --------------------------------------- */
