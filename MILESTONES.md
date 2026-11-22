@@ -755,13 +755,43 @@ enum** (manufacturing / invention / reactions) while the M9 copy layer
 needs a copy-facility default — decide whether Copying joins the enum
 or rides the invention registration.
 
-**Schema sketch**
+**Schema sketch** (revised 2026-11-22 against the surface mockup's
+positions — the earlier flat one-row-per-registration sketch survives
+only in git history):
 
-- `structures` (user CRUD): name, activity, structure_type, me_rig,
-  te_rig, security, system_id, tax_rate, is_default.
+- `structures` (user CRUD, one row per structure): `name` (free text,
+  display), `structure_type` (NPC station / Raitaru / Azbel / Sotiyo /
+  Athanor / Tatara), `system_id` (nullable — registrations without a
+  system still need a security class for rig effectiveness),
+  `security_class` (high/low/null — **derived from `system_id`** via the
+  ESI universe lookup, stored denormalized so planner queries stay
+  join-free; hand-set only when `system_id` is null),
+  `supercapital_assembly` (capability flag — **structure-level**, the
+  Hel/Ragnarok pin: it must not duplicate across one structure's
+  registrations), `location_id` (nullable pointer to
+  `universe_locations` — the import card's sync tie).
+- `structure_registrations` (one row per structure × activity):
+  `structure_id` FK, `activity` (manufacturing / invention / reactions —
+  the Copying question below may extend the enum), `me_rig` / `te_rig`
+  (rig tiers; **rigs are physical structure fittings recorded on the
+  registration because each activity's relevant rig differs** — ME/TE
+  for manufacturing, reaction rigs for reactions, none for
+  invention/copying — so per-registration placement loses nothing),
+  `tax_rate` (industry tax is a per-activity dial in structure
+  settings, hence registration-level), `is_default`.
+- Constraints: `UNIQUE(structure_id, activity)` — no duplicate
+  registrations; `UNIQUE(activity) WHERE is_default` (partial index) —
+  exactly one default per activity, the enforced invariant.
+- Why split over flat: name/type/system/capability are structure-level
+  facts that would duplicate across a multi-registration structure's
+  rows in a flat table, inviting inconsistent edits; the split costs
+  one join and nothing else. Rigs and tax stay per-registration for
+  the reasons above.
 
 **Validation**: create an Azbel with T1 ME/T1 TE rigs in a known null
-system; exactly one default per activity is enforced.
+system; register the same Azbel for invention (second registration,
+rigs not relevant); exactly one default per activity is enforced, and
+setting a new default demotes the previous one.
 
 ---
 
