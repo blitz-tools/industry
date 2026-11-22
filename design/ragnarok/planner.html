@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Planner — Ragnarok — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/ragnarok/planner.html</div>
+</aside>
+
+<main class="content">
+  <h1>Build Planner</h1>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    Both search states are shown stacked — typing state above, selected state
+    below. In the real page the dropdown closes on selection and the rest of
+    the form appears.
+  </div>
+
+  <!-- 1 · Search -->
+  <section class="card overflow-visible" style="margin-top: 1.25rem;">
+    <div class="card-body">
+      <h2>1 · Find a target</h2>
+      <p class="card-sub">Search the buildable catalog (5,014 products) or match only what the corp can build from owned blueprints.</p>
+
+      <div style="display: flex; gap: 0.75rem; align-items: flex-start; flex-wrap: wrap;">
+        <div class="search-wrap">
+          <input class="search-input" type="text" value="ragnarok" aria-label="Search targets">
+          <div class="autocomplete">
+            <div class="autocomplete-row active">
+              <img src="https://images.evetech.net/types/23773/icon?size=32" alt="Ragnarok">
+              <div>
+                <div class="ac-name">Ragnarok</div>
+                <div class="ac-sub">Titan · built from Ragnarok Blueprint — 1/run · max 1 run/job · BPC via contract (rare-drop origin) · 70.8 d build at max skills · rides an 82-commodity chain</div>
+              </div>
+              <div class="ac-right">
+                <span class="badge missing">Blueprint not owned</span>
+              </div>
+            </div>
+            <div class="autocomplete-footer">1 match · icons from the SDE mirror; blueprint ownership from the live blueprints table</div>
+          </div>
+        </div>
+        <div>
+          <button class="chip-button" type="button">Match From Inventory</button>
+        </div>
+      </div>
+
+      <div class="anno" style="margin-top: 5rem;">
+        <span class="anno-label">wireframe</span>
+        Commodity-first targeting (2026-11-20 decision of record). The
+        titan sub-line carries the terminal signature: the same
+        contract-BPC acquisition as the Hel, on a chain with every
+        program record. With <b>Match From Inventory</b> on, the target
+        disappears — but 44 of the 82 chain blueprints are owned (the
+        Hel's world carried over byte-for-byte), so the requirement
+        tiers below stay substantially populated.
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · Target -->
+  <section class="card">
+    <div class="card-body">
+      <h2>2 · Target build</h2>
+
+      <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <img class="type-icon-lg" src="https://images.evetech.net/types/23773/icon?size=64" alt="Ragnarok">
+        <div>
+          <div><b>Ragnarok</b> <span class="badge missing">Blueprint not owned — BPC via contract</span></div>
+          <div class="meta-line">Built from <img class="type-icon" src="https://images.evetech.net/types/23774/bpc?size=32" alt=""> Ragnarok Blueprint — 1 run at 1 per run · max 1 run/job (one BPC, one ship) · 104.2 d unskilled / 70.8 d at max skills · needs Capital Ship Construction 5 — <span style="color: var(--pink);">held at 1 by the sole holder (4-level, ~4-month gap)</span></div>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 0.75rem; align-items: center;">
+          <span class="meta-line">Target count</span>
+          <div class="stepper">
+            <button type="button" aria-label="Decrease">−</button>
+            <span class="stepper-value">1</span>
+            <button type="button" aria-label="Increase">+</button>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Plan participants -->
+      <h2 style="font-size: 0.95rem;">Plan participants</h2>
+      <p class="card-sub">Who the plan may assign work to — set before Calculate, because eligibility depends on it: skill gates, wave allocation, and the stock meters all resolve against this pool. The corporation follows the main character (set on the Roster) and scopes the shared material pool plus the member set; corp members default to all included and take materials from the office hangars directly, while characters in other corporations need a distribution step before their jobs can install.</p>
+
+      <p class="meta-line" style="margin: 0 0 0.75rem;">Corporation: <b>blitz and blitz holdings</b> — from the main character schlepzrage (Director). To target a different corporation, change the main character on the Roster.</p>
+
+      <table class="asset-table">
+        <tbody>
+          <tr class="group-row"><td colspan="3">Corp members — blitz and blitz holdings · all included by default</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2124139810/portrait?size=32" alt="">schlepzrage <span class="badge owned" style="margin-left: 0.4rem;">main · Director</span></td>
+            <td class="muted">authorizes the corporation's data and hangar access · Reactions 5</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2124297138/portrait?size=32" alt="">Octavia Arbitrage <span class="badge missing" style="margin-left: 0.4rem;">Hull gate — 4 levels short</span></td>
+            <td class="muted">sole Capital Ship Construction holder, at level <b>1 of 5</b> — the hull cannot install for ~4 months (the underleveled-holder state at maximum; the skill-plan calculator's stress case, with parallel component work filling the train)</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/2123535366/portrait?size=32" alt="">theblitzrage I</td>
+            <td class="muted">Reactions 5 — reaction slots (the plan's binding constraint at 350 days)</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr class="group-row"><td colspan="3">Other corporations — included per plan</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/characters/1634367930/portrait?size=32" alt="">blitzrage <span class="badge owned" style="margin-left: 0.4rem;">Fourth reactor</span></td>
+            <td class="muted">The Dark Tribe — Reactions 5; against 83,937 reaction slot-hours, every reactor-month matters (the distribution step applies)</td>
+            <td><button class="chip-button selected" type="button">Included</button></td>
+          </tr>
+          <tr>
+            <td colspan="3" class="muted">+ theblitzrage · Storm Ragez · schlurpzrage · scoopsrage (chlorokitties) — include any the same way. <b>Reaction-slot count is the plan's throughput bound</b> three times over the Hel's</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        The Hel's participants story at maximum: the 4-level
+        underleveled gate (a ~4-month train against the Hel's 3-level
+        ~2-month gap) and the reaction-slot bottleneck at 2.7× the
+        Hel's bill. Per-character assignment eligibility remains the
+        open TODO question; the segregation stays.
+      </div>
+
+      <hr class="divider">
+
+      <h2 style="font-size: 0.95rem;">Requirements at target ×1</h2>
+      <p class="card-sub">The full chain for one titan, resolved at selection. Calculate schedules the plan; nothing here waits for it.</p>
+
+      <!-- Tier 1: blueprints -->
+      <details class="phase-row" open>
+        <summary>
+          <span class="phase-title">Blueprints</span>
+          <span class="phase-count">82 types</span>
+          <span class="summary-right">
+            <span class="stage-state ready">44 owned — 38 missing</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <tbody>
+              <tr class="group-row"><td colspan="3">Owned — 44 types: the Hel's world byte-for-byte</td></tr>
+              <tr>
+                <td colspan="3" class="muted">AIPS · LSBU · CTR · all four fuel-block BPs · the seven simple and nine polymer formulas · the neurolink and Isotropic Neofullerene formulas — the Typhoon / Charon / Jackdaw / Hel worlds intact</td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Missing — 4 titan-specific BPs (NPC-seeded originals, maxPL 40)</td></tr>
+              <tr>
+                <td colspan="3" class="muted">Capital Jump Bridge Array · Capital Clone Vat Bay · Capital Doomsday Weapon Mount · Capital Turret Hardpoint — <b>mineral-sink builds</b> (millions of Pyerite each), the last NPC-seeded originals in the capital/supercapital/titan world</td>
+              </tr>
+              <tr class="group-row"><td colspan="3">Missing — the Hel's 34</td></tr>
+              <tr>
+                <td colspan="3" class="muted">14 capital component BPs · 3 supercapital components · 6 neurolink support BPs · the Ragnarok Blueprint (contract, rare-drop origin — the Hel's pin) · 12 reaction formulas</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 2: intermediates -->
+      <details class="phase-row" open>
+        <summary>
+          <span class="phase-title">Intermediates</span>
+          <span class="phase-count">82 types · 6 buildable phases</span>
+          <span class="summary-right">
+            <span class="stage-state missing">the reaction year</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <thead>
+              <tr>
+                <th>Phase</th>
+                <th>Intermediates</th>
+                <th class="num">Types</th>
+                <th>Notable</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="muted">6 — target</td>
+                <td class="muted">Ragnarok</td>
+                <td class="num">1</td>
+                <td class="muted">one 70.8 d build · Capital Ship Construction 5 (held at 1)</td>
+              </tr>
+              <tr>
+                <td class="muted">5 — hull components</td>
+                <td class="muted">21 types: 14 capital + 4 titan + neurolink trio</td>
+                <td class="num">21</td>
+                <td class="muted">AIPS ×3,200 (1,067 runs) · LSBU ×1,600 (534) · the four titan parts (mineral sinks) · Ladar-FTL ×250</td>
+              </tr>
+              <tr>
+                <td class="muted">4 — reaction stack + component inputs</td>
+                <td class="muted">the Hel's tier at ~3–5×</td>
+                <td class="num">44</td>
+                <td class="muted">RCF ×510,930 (2,555 runs) · Graphene Nanoribbons ×140,000 — the convergence tier at record scale</td>
+              </tr>
+              <tr>
+                <td class="muted">3 — fullerite + simple reactions</td>
+                <td class="muted">the Hel's tier at ~2–3×</td>
+                <td class="num">44</td>
+                <td class="muted">Carbon Fiber ×511,000 · Pressurized Oxidizers ×437,500 (2,188 runs)</td>
+              </tr>
+              <tr>
+                <td class="muted">2 — carbon family + neofullerenes</td>
+                <td class="muted">Carbon Polymers · Fiber · Thermosetting ×437–443k each</td>
+                <td class="num">12</td>
+                <td class="muted">2,188–2,213 runs per type — the simple-reaction era at terminal scale</td>
+              </tr>
+              <tr>
+                <td class="muted">1 — fuel blocks</td>
+                <td class="muted">Four fuel types · 1,192 runs</td>
+                <td class="num">4</td>
+                <td class="muted">stock covers ~2 runs' worth — the rest builds from the ice mountain</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- Tier 3: raw materials -->
+      <details class="phase-row">
+        <summary>
+          <span class="phase-title">Raw materials</span>
+          <span class="phase-count">82 types</span>
+          <span class="summary-right">
+            <span class="stage-state missing">the billion-scale mountain</span>
+          </span>
+        </summary>
+        <div class="phase-body">
+          <table class="asset-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th class="num">Types</th>
+                <th>Largest requirement</th>
+                <th>Gaps</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Minerals</td>
+                <td class="num">7</td>
+                <td class="muted">Pyerite 1.117B · Tritanium 318.8M · Mexallon 300.7M</td>
+                <td class="muted"><span style="color: var(--pink);">Pyerite 0.06% covered (652k of 1.117B)</span> · Tritanium 30% · the rest ≈0%</td>
+              </tr>
+              <tr>
+                <td>Gas (harvestable clouds)</td>
+                <td class="num">19</td>
+                <td class="muted">Fullerite-C70 197,600 · Azure Mykoserocin 16,640</td>
+                <td class="muted"><span style="color: var(--pink);">all 19 at zero</span> — ~1.4M fullerite units total</td>
+              </tr>
+              <tr>
+                <td>Moon materials</td>
+                <td class="num">14</td>
+                <td class="muted">Hydrocarbons 2.09M · Atmospheric Gases 2.09M</td>
+                <td class="muted">R4s partially stocked (3–12% of need) · R8/R64 ≈0</td>
+              </tr>
+              <tr>
+                <td>Ice products</td>
+                <td class="num">8</td>
+                <td class="muted">Liquid Ozone 921,550 · Heavy Water 447,610</td>
+                <td class="muted">partial (LO 75k of 922k)</td>
+              </tr>
+              <tr>
+                <td>PI commodities</td>
+                <td class="num">23</td>
+                <td class="muted">Chiral Structures 87,500 · Water 87,500</td>
+                <td class="muted">tier-4s at zero; low tiers partially stocked</td>
+              </tr>
+              <tr>
+                <td>NPC market goods</td>
+                <td class="num">10</td>
+                <td class="muted">AV-Composite Condenser 436 · Isotropic Deposition Guide 282</td>
+                <td class="muted">all at zero</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        The requirement overview carries the terminal signature:
+        <b>every category at record scale</b> — the billion-Pyerite
+        mountain, 19 gas types at 1.4M units, 2M-unit R4 moon
+        bills. The titan components' mineral-sink shape shows in the
+        intermediates tier (phase 5 includes the four titan parts
+        with mineral-only inputs — no reaction depth, just volume).
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Reaction throughput summary (owned-copies overlay slot) -->
+  <section class="card">
+    <div class="card-body">
+      <h2>3 · Reaction throughput — the year arithmetic</h2>
+      <p class="card-sub">The owned-copies overlay slot becomes the throughput table at terminal scale: the reaction layer is the plan's body, the year against the Hel's season.</p>
+
+      <table class="asset-table">
+        <thead>
+          <tr>
+            <th>Reaction family</th>
+            <th class="num">Runs</th>
+            <th class="num">Slot-hours</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Carbon family (Polymers · Fiber · Thermosetting · RCF · Oxidizers)</td>
+            <td class="num qty">11,544</td>
+            <td class="num qty">34,632</td>
+            <td class="muted">2,188–2,555 runs per type — the simple-reaction era at terminal scale</td>
+          </tr>
+          <tr>
+            <td>Fullerite polymers (nine types)</td>
+            <td class="num qty">4,376</td>
+            <td class="num qty">13,128</td>
+            <td class="muted">the Jackdaw world at ~200× its bill</td>
+          </tr>
+          <tr>
+            <td>Advanced composites + simple feeds</td>
+            <td class="num qty">6,792</td>
+            <td class="num qty">20,376</td>
+            <td class="muted">Fermionic ×50 · Plasmonic ×467 · the full advanced stack</td>
+          </tr>
+          <tr>
+            <td>Neurolink reactions</td>
+            <td class="num qty">754</td>
+            <td class="num qty">2,262</td>
+            <td class="muted">enhancers ×4, stabilizers, Isotropic Neofullerenes ×3</td>
+          </tr>
+          <tr>
+            <td>Support (solvents · acids)</td>
+            <td class="num qty">4,513</td>
+            <td class="num qty">13,539</td>
+            <td class="muted">Oxy-Organic Solvents · Sulfuric Acid · Carbon Polymers feeds</td>
+          </tr>
+          <tr>
+            <td colspan="4"><span class="muted">Total: </span><b>27,979 runs · 83,937 slot-hours</b><span class="muted"> — at the pool's ~10 parallel reactors that is </span><b>350 days of reactions alone</b><span class="muted">, against the 70.8-day hull build. The manufacturing layer (11,728 runs, mostly minutes-per-run components plus the titan mineral sinks) schedules around the reaction tiers. Merging recurring campaigns is the difference between ~28,000 runs and ~45,000 — not an optimization, a necessity.</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        All numbers real: runs and families from the walk output.
+        The Hel's throughput card at 2.7× — the same computed layer,
+        with the merged-campaign note escalated from "definitional"
+        to "the difference between a year and eighteen months."
+      </div>
+    </div>
+  </section>
+
+  <!-- Calculate bar -->
+  <section class="card">
+    <div class="card-body" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+      <div class="meta-line">
+        Ragnarok ×1 · 82 blueprints (38 missing) · 82 intermediates · 82 raw types (19 gases at zero) · 27,979 reaction runs — Calculate schedules the plan
+      </div>
+      <button class="primary" type="button">Calculate</button>
+    </div>
+  </section>
+
+  <p class="meta-line" style="margin-top: 1rem;">
+    Calculate resolves the full reverse chain and opens the build plan →
+    <a href="build-plan.html">build-plan.html</a> (fresh) ·
+    <a href="build-plan-active.html">build-plan-active.html</a> (mid-flight)
+  </p>
+</main>
+
+</body>
+</html>

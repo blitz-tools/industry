@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Plan — Ragnarok ×1 — active — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a class="active" href="#">Build Planner</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/ragnarok/build-plan-active.html</div>
+</aside>
+
+<main class="content">
+  <div class="page-header">
+    <h1><img class="type-icon" style="width:32px;height:32px;" src="https://images.evetech.net/types/23773/icon?size=32" alt=""> Build Plan — Ragnarok ×1</h1>
+    <div class="actions">
+      <span class="badge plan-state active">Active — day 210</span>
+      <span class="pool-picker">Pool
+        <select aria-label="Participant pool">
+          <option>Corp + included characters (8)</option>
+          <option>Corp members only (4)</option>
+        </select>
+      </span>
+      <button class="icon-button" type="button" title="Re-run planner" aria-label="Re-run planner">⟳</button>
+      <button class="icon-button" type="button" title="Export plan" aria-label="Export plan">⭳</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">420 d</p>
+      <p class="stat-label">Chain end — on schedule; the reaction year is 60% through, component manufacturing opens behind it</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--cyan);">16,780 / 27,979</p>
+      <p class="stat-label">Reaction runs delivered (60%) — the carbon family complete, the polymer and composite tiers at 55%</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">CSC 4 / 5</p>
+      <p class="stat-label">Octavia's hull-gate train — level 4 done, the final level ~3 weeks out; green two waves before the hull installs (day 350)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">0 / 21</p>
+      <p class="stat-label">Hull components delivered — phase-5 manufacturing opens day 260, behind the reaction stack</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">10 jobs</p>
+      <p class="stat-label">Running — polymer and composite reactions across the four reactors (the throughput ceiling, 140 days in)</p>
+    </div>
+  </div>
+
+  <!-- Wave progress -->
+  <div class="wave-bar">
+    <div class="wave-header">
+      <span class="wave-title">Wave progress — day 210 of 420 · 50%</span>
+      <button class="legend-tab" type="button">legend ‹</button>
+    </div>
+    <div class="wave-track">
+      <div class="wave-seg done" style="width: 6%;" title="Procurement front — the mountain's first tranches, fullerites, 38 blueprints, the Ragnarok BPC · day 0–25 · delivered"></div>
+      <div class="wave-seg done" style="width: 4%;" title="W1 — fuel blocks + carbon family opens · day 25–40 · delivered"></div>
+      <div class="wave-seg done" style="width: 7%;" title="W2 — carbon family + neofullerenes · day 40–70 · delivered"></div>
+      <div class="wave-seg current" style="width: 45%;" title="W3 — the reaction year · day 70–260 · running">
+        <div class="seg-fill" style="width: 74%;"></div>
+      </div>
+      <div class="wave-seg ahead" style="width: 12%;" title="W4 — component manufacturing · day 260–310"></div>
+      <div class="wave-seg ahead" style="width: 10%;" title="W5 — capital + supercapital + titan components · day 310–350"></div>
+      <div class="wave-seg ahead" style="width: 16%;" title="W6 — the Ragnarok build · 70.8 d · day 350–420"></div>
+      <div class="now-line" style="left: 50%;"></div>
+      <div class="now-caption" style="left: 50%;">now · day 210</div>
+    </div>
+    <div class="wave-ticks">
+      <span class="tick" style="width: 6%;">acquire</span>
+      <span class="tick" style="width: 4%;">W1</span>
+      <span class="tick" style="width: 7%;">W2 · carbon</span>
+      <span class="tick" style="width: 45%;">W3 · the reaction year</span>
+      <span class="tick" style="width: 12%;">W4 · components</span>
+      <span class="tick" style="width: 10%;">W5 · capital</span>
+      <span class="tick tick-end" style="width: 16%;"><span>W6 · Ragnarok</span><span>100%</span></span>
+    </div>
+
+    <div class="anno" style="margin-top: 1.75rem;">
+      <span class="anno-label">wireframe</span>
+      The mid-flight state of a seasons-long plan: three waves done,
+      the reaction year 74% through its window, everything
+      downstream ahead. The now-line invariant holds (fill edge =
+      17% + 0.74 × 45% = 50.3% ≈ the now-line at 50%). Octavia's final train level tracks in the
+      stats — the parallel ledger the wave model doesn't render,
+      an M9 open question the Hel set surfaced and the Ragnarok
+      stresses at twice the duration.
+    </div>
+  </div>
+
+  <!-- Reverse product chain -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse product chain</h2>
+
+  <div class="chain-flow">
+    <div class="chain-phase">
+      <span class="phase-label">Phase 1</span>
+      <span class="phase-name">Fuel blocks</span>
+      <span class="phase-meta">1,192 runs</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state complete">✓ Stage complete</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 2</span>
+      <span class="phase-name">Carbon family</span>
+      <span class="phase-meta">~6,600 runs</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state complete">✓ Stage complete</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 3</span>
+      <span class="phase-name">Reaction stack</span>
+      <span class="phase-meta">44 types</span>
+      <div class="phase-tags">
+        <span class="activity-tag rxn">reaction</span>
+        <span class="stage-state missing">In progress · 55%</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 4</span>
+      <span class="phase-name">Component inputs</span>
+      <span class="phase-meta">44 types</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 5</span>
+      <span class="phase-name">Hull components</span>
+      <span class="phase-meta">21 types</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">Missing inputs</span>
+      </div>
+    </div>
+    <span class="chain-arrow">→</span>
+    <div class="chain-phase">
+      <span class="phase-label">Phase 6</span>
+      <span class="phase-name">Ragnarok ×1</span>
+      <span class="phase-meta">70.8 d</span>
+      <div class="phase-tags">
+        <span class="activity-tag mfg">manufacture</span>
+        <span class="stage-state missing">Gated — skill + components</span>
+      </div>
+    </div>
+  </div>
+
+  <details class="phase-row" open style="margin-top: 1rem;">
+    <summary>
+      <span class="phase-title">Phase 6 — Target</span>
+      <span class="activity-tag mfg">manufacture</span>
+      <span class="phase-count">1 node</span>
+      <span class="summary-right">
+        <span class="stage-state missing">Gated — skill + components</span>
+      </summary>
+    </summary>
+    <div class="phase-body">
+      <div class="node-row">
+        <img class="type-icon" src="https://images.evetech.net/types/23773/icon?size=32" alt="">
+        <span class="node-name">Ragnarok</span>
+        <span class="node-qty">×1</span>
+        <span class="node-runs">0 of 1 runs · installs day 350</span>
+        <span class="node-right">
+          <span class="badge bpc">BPC held since day 14 — contract filled</span>
+          <span class="stage-chip build">Build</span>
+        </span>
+      </div>
+      <div class="node-row">
+        <span class="node-gating">Double-gated: all 21 hull components (phase-5 manufacturing opens day 260, behind the reaction stack) AND Octavia's Capital Ship Construction 5 (level 4 done, ~3 weeks remain — green around day 231, 119 days of slack before install). The BPC purchase filled at the front — the plan's single most expensive acquisition sits idle for eleven months by completion, the early-BPC carrying-cost observation at its extreme (an M4/M6 question the Hel set surfaced).</span>
+      </div>
+    </div>
+  </details>
+
+  <!-- Intermediates ledger -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Intermediates — delivered vs consumed</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Abbreviated to the ledger's headline rows — the full table carries 82 types. The carbon family is complete and feeding the year; the composite tier is consuming it ahead of its own delivery.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Intermediate</th>
+        <th class="num">Delivered</th>
+        <th class="num">Consumed</th>
+        <th class="num">Held</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57453/icon?size=32" alt="">Carbon Fiber</td>
+        <td class="num qty">442,600</td>
+        <td class="num qty">236,400</td>
+        <td class="num qty">206,200</td>
+        <td class="muted">complete — held for the composite tier's remainder</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57457/icon?size=32" alt="">Reinforced Carbon Fiber</td>
+        <td class="num qty">254,000</td>
+        <td class="num qty">78,000</td>
+        <td class="num qty">176,000</td>
+        <td class="muted">50% — recurring at two levels, both consumers running</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57463/icon?size=32" alt="">Isotropic Neofullerene Alpha-3</td>
+        <td class="num qty">1,875</td>
+        <td class="num qty">880</td>
+        <td class="num qty">995</td>
+        <td class="muted">complete — feeding the neurolink enhancer tier</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/17317/icon?size=32" alt="">Fermionic Condensates</td>
+        <td class="num qty">5,000</td>
+        <td class="num qty">0</td>
+        <td class="num qty">5,000</td>
+        <td class="muted">50% — the Ladar-FTL Communicator's input, held for phase 5</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57462/icon?size=32" alt="">Sense-Heuristic Neurolink Enhancer</td>
+        <td class="num qty">4,230</td>
+        <td class="num qty">0</td>
+        <td class="num qty">4,230</td>
+        <td class="muted">55% — the G-O Trigger Conduit consumes it at phase 5</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">No residue yet — the merged campaign's batch alignment holds, with surpluses landing at the stack's final runs. The ledger at this scale is a logistics instrument: 206,200 Carbon Fiber held against two consuming levels is the merged-campaign decision's payoff, visible.</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The Hel's active-page surfaces at twice the duration and scale:
+    the intermediates ledger as a logistics instrument, the
+    early-BPC carrying-cost observation at its extreme (eleven
+    months idle by completion), and the parallel skill-train
+    ledger (the final CSC level green two waves early). The
+    <b>mineral tranches</b> are this set's addition: the
+    mountain's purchases continue through month 3 — the raw
+    meters fill in stages against a reaction year that consumes
+    them gradually, a procurement-scheduling surface (M6/M10) no
+    prior set needed.
+  </div>
+
+  <!-- Blueprint copy plan -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Blueprint copy plan</h2>
+
+  <p class="meta-line" style="margin: 0 0 0.75rem;"><span class="stage-state ready">Nothing to copy</span> — persists mid-flight: the Hel's state carried over (the BPC is itself a copy; component originals run direct).</p>
+
+  <!-- Raw materials -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Raw materials — acquisition</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Abbreviated to the rows that moved. The mountain draws down in tranches against the reaction year's gradual consumption.</p>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Material</th>
+        <th class="num">Required</th>
+        <th class="num">Available</th>
+        <th style="min-width: 10rem;">Coverage</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/35/icon?size=32" alt="">Pyerite</td>
+        <td class="num qty">1,117,277,000</td>
+        <td class="num">524,000,000</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 47%"></div></div><span class="meter-pct">47% — tranches continue through month 3</span></div></td>
+        <td class="muted">47% consumed or committed by fuel blocks and the carbon family; the titan components' mineral sinks draw at W4–W5</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/30370/icon?size=32" alt="">Fullerite-C50</td>
+        <td class="num qty">137,000</td>
+        <td class="num">0</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill" style="width: 100%"></div></div><span class="meter-pct">100% — committed</span></div></td>
+        <td class="muted">delivered day 18 — consumed by the polymer tier in flight</td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/28695/icon?size=32" alt="">Azure Mykoserocin</td>
+        <td class="num qty">16,640</td>
+        <td class="num">3,200</td>
+        <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 19%"></div></div><span class="meter-pct">19% — staged for the neurolink tier</span></div></td>
+        <td class="muted">13,440 consumed by the delivered Sense-Heuristic runs · remainder committed to the year's close</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Job allocation -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — in flight</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">The polymer and composite reactions run at the pool's full concurrency — 140 days into the reaction year.</p>
+
+  <!-- Octavia Arbitrage -->
+  <section class="char-card-jobs" style="margin-top: 1rem;">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124297138/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">Octavia Arbitrage <span class="badge missing" style="margin-left: 0.4rem;">Hull gate — final level</span></div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 3 reaction in use · skill queue: Capital Ship Construction 4→5 (~3 weeks)</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Reaction slots (polymer tier — W3)</div>
+    <div class="slot-grid">
+      <div class="slot running">
+        <div class="slot-head">
+          <img class="type-icon" src="https://images.evetech.net/types/30304/icon?size=32" alt="">
+          <span class="slot-name">Reaction · PPD Fullerene Fibers 68/380 here</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">1 run · 3 h · C50 fullerites + minerals + blocks · Amamake — refinery</span>
+        <div class="meter"><div class="meter-fill" style="width: 55%;"></div></div>
+        <span class="slot-meta">1.4 h to completion · the reaction year, day 140</span>
+      </div>
+      <div class="slot idle">+ 2 more polymer lines here · training runs between job installs</div>
+    </div>
+  </section>
+
+  <!-- blitzrage -->
+  <section class="char-card-jobs">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/1634367930/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">blitzrage <span class="badge owned" style="margin-left: 0.4rem;">Fourth reactor — out-of-corp</span></div>
+        <div class="char-slots">10 manufacturing · 10 reaction · 10 science slots — 3 reaction in use</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Reaction slots (composite tier — W3)</div>
+    <div class="slot-grid">
+      <div class="slot running">
+        <div class="slot-head">
+          <img class="type-icon" src="https://images.evetech.net/types/33361/icon?size=32" alt="">
+          <span class="slot-name">Reaction · Plasmonic Metamaterials 62/467 here</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">1 run · 3 h · Neo Mercurite + Prometium + blocks · inputs contracted at wave start</span>
+        <div class="meter"><div class="meter-fill" style="width: 55%;"></div></div>
+        <span class="slot-meta">1.4 h to completion · the Ladar-FTL Communicator's stack</span>
+      </div>
+      <div class="slot idle">+ Fermionic Condensates line + 1 more here</div>
+    </div>
+  </section>
+</main>
+
+</body>
+</html>
