@@ -51,6 +51,26 @@ set; once settled they apply to every set (decisions graduate to
   tiers, set before Calculate — eligibility, allocation, and stock
   meters resolve against it. The build-plan header's picker is the
   what-if re-run control.
+- **Facility selection happens on the planner** (2026-11-22 decision
+  of record): a Plan facilities section follows Plan participants —
+  one selector per activity (manufacturing / copying / invention /
+  reactions), pre-selected on the Structures registry default,
+  plan-scoped overrides. Copying is its own selector defaulting to
+  the invention facility's default (copy jobs may run elsewhere and
+  the BPCs travel). A **sell-side market** selector follows: trade
+  hubs plus player markets from the market manager (M15), setting
+  the estimated sell price and profit readout. Landed on the
+  Typhoon reference set; fans out to the remaining sets.
+- **Build-plan pages carry a Market panel** (2026-11-22): the
+  Purchase ⇄ Build chips roll up into per-commodity build-vs-buy
+  verdicts at the selected market, with plan totals and estimated
+  profit; active plans run the readout (cleared input cost, sell
+  price re-checked at wave boundaries, negative profits render
+  pink). Figures illustrative until M15's price sync; verdict
+  arithmetic is M10's.
+- **Currency displays as Ƶ** (2026-11-22): U+01B5 replaces "isk" as
+  the currency symbol globally, and money totals read
+  `<total> Ƶ (<per-item> Ƶ)` — total first, per-item in parens.
 - Dashed yellow `.anno` boxes are wireframe annotations and would
   never ship.
 - Data provenance is documented per set in that set's README:
@@ -138,16 +158,19 @@ request) — the marking mechanism already exists in the plan mockups;
 design it when M14 approaches.
 
 **M10's analysis surfaces: at-milestone design work, not mockup
-sets** (evaluated and decided 2026-11-21): the chain sets already
-carry M10's UI shapes in their honest pre-state — Purchase ⇄ Build
-chips on every node, market-average figures on acquisition tables
-(flagged illustrative), contract-match treatments, `.sync-source`
-provenance lines, and the LP portfolio view (the TFI set). What's
-missing is the *verdict logic* behind them — build-vs-buy decisions
-are calculations over M15's synced prices, which don't exist in
-local tables yet; mocking them now would invent both the data and
-the analysis, front-running M10's recorded design decisions. The
-mockup program's remaining market surfaces are the M15 sync panel
-and the M12 capability surface (both structural — designable
-without real prices), and the program completes with those plus
-M3. M10's design happens at M10, against M15's real data.
+sets** (evaluated 2026-11-21; **revised 2026-11-22**): the chain sets
+carry M10's UI shapes — Purchase ⇄ Build chips on every node,
+market-average figures on acquisition tables (flagged illustrative),
+contract-match treatments, `.sync-source` provenance lines, the LP
+portfolio view (the TFI set), and now the **Market panel** on the
+build-plan pages (Typhoon reference set first): per-commodity
+build-vs-buy verdicts, plan totals, and the estimated-profit
+readout, with illustrative figures. The 2026-11-21 evaluation held
+that mocking verdicts would front-run M10's design decisions; the
+2026-11-22 product direction supersedes it for the *panel shape* —
+mocked now, clearly flagged — while the *verdict logic* still lands
+at M10, against M15's real synced prices. The mockup program's
+remaining market surfaces are the M15 sync panel (the market
+manager) and the M12 capability surface (both structural —
+designable without real prices). M10's analysis design happens at
+M10, against M15's real data.

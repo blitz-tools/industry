@@ -519,6 +519,121 @@
     </tbody>
   </table>
 
+  <!-- Market panel — running -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Market — running estimate</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">
+    The profit readout, live: sell price re-checked at each wave boundary, input cost tracked as buy verdicts and gap coverage actually clear the wallet.
+    <span class="pool-picker">Market
+      <select aria-label="Sell-side market">
+        <option selected>The Forge — Jita IV Moon 4</option>
+        <option>Domain — Amarr VIII</option>
+        <option>Heimatar — Rens</option>
+        <option>Metropolis — Hek</option>
+        <option>Sinq Laison — Dodixie</option>
+        <option>Amamake — 5 Times Nearly Winners (player)</option>
+      </select>
+    </span>
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">71.2M Ƶ</p>
+      <p class="stat-label">Estimated sell price (7.12M Ƶ per Typhoon) · Typhoon 30-day avg −0.4% since calculation</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">18.2M Ƶ</p>
+      <p class="stat-label">Input cost cleared — of 61.4M Ƶ (fuel-block inputs + OOS purchase delivered)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">0.4M Ƶ</p>
+      <p class="stat-label">Install cost paid — of 2.1M Ƶ (running jobs bill at delivery)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--green);">+7.6M Ƶ</p>
+      <p class="stat-label">Estimated profit (+760k Ƶ per) · was +7.7M Ƶ at calculation — price drift, re-checked day 2.7 (W2 delivery)</p>
+    </div>
+  </div>
+
+  <table class="asset-table" style="margin-top: 0.75rem;">
+    <thead>
+      <tr>
+        <th>Open verdicts</th>
+        <th class="num">Need</th>
+        <th class="num">Build cost</th>
+        <th class="num">Buy cost</th>
+        <th>Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57456/icon?size=32" alt="">Pressurized Oxidizers</td>
+        <td class="num qty">5,000</td>
+        <td class="num">1.1M Ƶ</td>
+        <td class="num">1.4M Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">−21% · queued W3 — open until install</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57457/icon?size=32" alt="">Reinforced Carbon Fiber</td>
+        <td class="num qty">12,500</td>
+        <td class="num">1.6M Ƶ</td>
+        <td class="num">1.9M Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">−16% · queued W3</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57486/icon?size=32" alt="">Life Support Backup Unit</td>
+        <td class="num qty">750</td>
+        <td class="num">2.4M Ƶ</td>
+        <td class="num">2.6M Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">−8% · BPC copying 38% — open until W4</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57478/icon?size=32" alt="">Auto-Integrity Preservation Seal</td>
+        <td class="num qty">1,500</td>
+        <td class="num">6.2M Ƶ</td>
+        <td class="num">8.9M Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">−30% · BPC copying 19%, critical path</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/34/icon?size=32" alt="">Tritanium</td>
+        <td class="num qty">25.6M of 52M</td>
+        <td class="num muted">—</td>
+        <td class="num">18.3M Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">gap purchase still open — the largest uncleared line</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/644/icon?size=32" alt="">Typhoon</td>
+        <td class="num qty">10</td>
+        <td class="num muted">this plan</td>
+        <td class="num">71.2M Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">the plan itself vs buying the ships — open until W5 installs</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">
+    Settled since calculation: fuel blocks — built, delivered day 0.3 · Oxy-Organic Solvents — bought 2.1M Ƶ, arriving day 2 · W2 reaction intermediates — jobs running (Carbon Fiber built despite the Buy recommendation: <b>the chip overrode the verdict</b> — recommendations never act on their own).
+  </p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    The running estimate moves with two clocks: <b>input cost</b> only
+    as purchases actually clear (committed ≠ spent), <b>sell price</b>
+    at wave boundaries when the synced 30-day average refreshes — small
+    drifts show as the delta against the calculated figure, and a
+    negative-profit plan renders the tile pink with the same shape.
+    Nothing has sold at day 1.6 (ships deliver day 9.5); the realized
+    column starts at first sale. Figures illustrative until M15's
+    price sync. <b>The verdict table lists open decisions only</b>: a
+    build-verdict row retires when its jobs install, a buy-verdict row
+    when its purchase clears — settled rows roll into the realized
+    ledger above instead of disappearing. A fresh plan lists
+    everything (all verdicts open); a fully-committed plan mid-flight
+    lists nothing (tiles + ledger only). Plan activation itself — the
+    first job install, the Draft → Active transition — changes where
+    the numbers come from (estimates gain actuals), never what's
+    listed; the per-commodity commitment clock does that.
+  </div>
+
   <!-- Job allocation -->
   <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — in flight</h2>
   <p class="meta-line" style="margin: 0 0 0.75rem;">Running jobs show status and time-to-delivery; busy slots queue their next job. Jobs correlate from synced ESI industry jobs.</p>
@@ -557,7 +672,7 @@
           <span class="slot-name">Helium Fuel Block ×4</span>
           <span class="activity-tag mfg">manufacture</span>
         </div>
-        <span class="slot-meta">Delivered · day 0.3 · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta">Delivered · day 0.3 · Amamake - Police Weapons Facility</span>
       </div>
       <div class="slot idle">
         <div class="next-up"><span class="next-label">next up</span>LSBU BPC 1 × 125 runs — waiting on BPC (day 4.2)</div>
@@ -649,7 +764,7 @@
           <span class="slot-name">Oxygen Fuel Block ×10</span>
           <span class="activity-tag mfg">manufacture</span>
         </div>
-        <span class="slot-meta">Delivered · day 0.3 · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta">Delivered · day 0.3 · Amamake - Police Weapons Facility</span>
       </div>
       <div class="slot idle">
         <div class="next-up"><span class="next-label">next up</span>LSBU BPC 2 × 125 runs — waiting on BPC (day 4.2)</div>
@@ -737,7 +852,7 @@
           <span class="slot-name">Hydrogen Fuel Block ×9</span>
           <span class="activity-tag mfg">manufacture</span>
         </div>
-        <span class="slot-meta">Delivered · day 0.3 · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta">Delivered · day 0.3 · Amamake - Police Weapons Facility</span>
       </div>
       <div class="slot idle">
         <div class="next-up"><span class="next-label">next up</span>Typhoon ×10 runs — waiting on components</div>

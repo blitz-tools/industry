@@ -398,7 +398,7 @@
     chain edit — its reaction jobs drop out of the allocation below, it no
     longer counts toward the phase 2 state or percent, its reaction inputs
     leave the raw-material math, and the commodity itself (×100) would land
-    in the acquisition table with an isk figure from the synced market
+    in the acquisition table with a Ƶ figure from the synced market
     prices (M15) — the buy-vs-react verdict itself stays M10's analysis.
     Clicking the chip toggles back to <b>Build</b> and recalculates;
     the phase row's <b>Purchase all</b> bulk toggle sets every node in the
@@ -524,35 +524,35 @@
         <td class="num qty">52,000,000</td>
         <td class="num">26,400,000</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 51%"></div></div><span class="meter-pct">51%</span></div></td>
-        <td class="muted">Mining / market · avg 2.7 isk</td>
+        <td class="muted">Mining / market · avg 2.7 Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/35/icon?size=32" alt="">Pyerite</td>
         <td class="num qty">26,000,000</td>
         <td class="num">19,700,000</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 76%"></div></div><span class="meter-pct">76%</span></div></td>
-        <td class="muted">Mining / market · avg 6.4 isk</td>
+        <td class="muted">Mining / market · avg 6.4 Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/37/icon?size=32" alt="">Isogen</td>
         <td class="num qty">1,300,000</td>
         <td class="num">610,000</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 47%"></div></div><span class="meter-pct">47%</span></div></td>
-        <td class="muted">Mining / market · avg 132 isk</td>
+        <td class="muted">Mining / market · avg 132 Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/39/icon?size=32" alt="">Zydrine</td>
         <td class="num qty">39,000</td>
         <td class="num">12,700</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 33%"></div></div><span class="meter-pct">33%</span></div></td>
-        <td class="muted">Mining / market · avg 1.9k isk</td>
+        <td class="muted">Mining / market · avg 1.9k Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/40/icon?size=32" alt="">Megacyte</td>
         <td class="num qty">19,500</td>
         <td class="num">9,900</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 51%"></div></div><span class="meter-pct">51%</span></div></td>
-        <td class="muted">Mining / market · avg 4.1k isk</td>
+        <td class="muted">Mining / market · avg 4.1k Ƶ</td>
       </tr>
       <tr class="group-row"><td colspan="5">Moon materials</td></tr>
       <tr>
@@ -560,7 +560,7 @@
         <td class="num qty">30,000</td>
         <td class="num">21,500</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 72%"></div></div><span class="meter-pct">72%</span></div></td>
-        <td class="muted">Moon mining / market · avg 310 isk</td>
+        <td class="muted">Moon mining / market · avg 310 Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/16634/icon?size=32" alt="">Atmospheric Gases</td>
@@ -574,7 +574,7 @@
         <td class="num qty">10,000</td>
         <td class="num">3,200</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 32%"></div></div><span class="meter-pct">32%</span></div></td>
-        <td class="muted">Moon mining / market · avg 290 isk</td>
+        <td class="muted">Moon mining / market · avg 290 Ƶ</td>
       </tr>
       <tr class="group-row"><td colspan="5">PI commodities</td></tr>
       <tr>
@@ -611,7 +611,7 @@
         <td class="num qty">14,000</td>
         <td class="num">11,900</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 85%"></div></div><span class="meter-pct">85%</span></div></td>
-        <td class="muted">Ice mining / market · avg 460 isk</td>
+        <td class="muted">Ice mining / market · avg 460 Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/16275/icon?size=32" alt="">Strontium Clathrates</td>
@@ -630,8 +630,126 @@
     Market-average figures come from M15's synced price data (global
     adjusted/average) — the values shown are illustrative. Regional
     order books join with the staged rollout (The Forge first);
-    isk-cost totals and build-vs-buy verdicts are M10's analysis over
+    Ƶ-cost totals and build-vs-buy verdicts are M10's analysis over
     this data.
+  </div>
+
+  <!-- Market panel -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Market — build vs buy</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">
+    The Purchase ⇄ Build chips roll up here: per-commodity build-vs-buy verdicts at the selected market, the estimated sell price, and the plan's profit readout.
+    <span class="pool-picker">Market
+      <select aria-label="Sell-side market">
+        <option selected>The Forge — Jita IV Moon 4</option>
+        <option>Domain — Amarr VIII</option>
+        <option>Heimatar — Rens</option>
+        <option>Metropolis — Hek</option>
+        <option>Sinq Laison — Dodixie</option>
+        <option>Amamake — 5 Times Nearly Winners (player)</option>
+      </select>
+    </span>
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">71.2M Ƶ</p>
+      <p class="stat-label">Estimated sell price (7.12M Ƶ per Typhoon)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">61.4M Ƶ</p>
+      <p class="stat-label">Input cost — buy verdicts 21.6M + gap coverage 39.8M</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">2.1M Ƶ</p>
+      <p class="stat-label">Install cost — system index × facility tax</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--green);">+7.7M Ƶ</p>
+      <p class="stat-label">Estimated profit (+770k Ƶ per) · range +5.1M … +9.8M Ƶ</p>
+    </div>
+  </div>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Commodity</th>
+        <th class="num">Need</th>
+        <th class="num">Build cost</th>
+        <th class="num">Buy cost</th>
+        <th>Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="group-row"><td colspan="5">Components</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57478/icon?size=32" alt="">Auto-Integrity Preservation Seal</td>
+        <td class="num qty">1,500</td>
+        <td class="num">6.2M Ƶ</td>
+        <td class="num">8.9M Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">−30%</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57486/icon?size=32" alt="">Life Support Backup Unit</td>
+        <td class="num qty">750</td>
+        <td class="num">2.4M Ƶ</td>
+        <td class="num">2.6M Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">−8%</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57479/icon?size=32" alt="">Core Temperature Regulator</td>
+        <td class="num qty">10</td>
+        <td class="num">0.3M Ƶ</td>
+        <td class="num">0.4M Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">−25%</span></td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Reaction intermediates</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57453/icon?size=32" alt="">Carbon Fiber</td>
+        <td class="num qty">14,000</td>
+        <td class="num">3.1M Ƶ</td>
+        <td class="num">2.9M Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">+7% — building costs more</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57454/icon?size=32" alt="">Oxy-Organic Solvents</td>
+        <td class="num qty">100</td>
+        <td class="num">2.4M Ƶ</td>
+        <td class="num">2.1M Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">−12% — matches the chip on the chain</span></td>
+      </tr>
+      <tr class="group-row"><td colspan="5">Raw gaps — terminants</td></tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/34/icon?size=32" alt="">Tritanium</td>
+        <td class="num qty">25.6M of 52M</td>
+        <td class="num muted">—</td>
+        <td class="num">18.3M Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">or mine — the market is the floor</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">
+    Totals: input 61.4M Ƶ + install 2.1M Ƶ against sell 71.2M Ƶ (7.12M Ƶ per) — <b style="color: var(--green);">estimated profit +7.7M Ƶ (+770k Ƶ)</b>, +10.8% margin. Verdicts re-run with every chip flip and market change; the range spans the 5th–95th percentile of the 30-day price history.
+  </p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    <b>Value format</b> (2026-11-22 direction): totals read
+    <b>&lt;total&gt; Ƶ (&lt;per-item&gt; Ƶ)</b> — total first, per-item in
+    parens — and Ƶ (U+01B5) replaces "isk" as the currency symbol
+    globally. Profit renders green when positive, pink when negative —
+    the shape carries both signs; this plan happens to be profitable.
+    Figures are <b>illustrative</b>: prices sync at M15, and the verdict
+    arithmetic is M10's analysis over those synced tables (the 2026-11-21
+    at-milestone evaluation is revised by this panel: the <i>shape</i> is
+    now mocked on the chain sets, the logic still lands at M10 against
+    real data). The Carbon Fiber row shows the honest negative case —
+    building costs more than buying. <b>Verdicts are recommendations;
+    the chips are authoritative</b> — a verdict never flips a chip by
+    itself, so the Carbon Fiber chip can stay Build (an override the
+    owner takes when the margin is inside logistics-preference range)
+    and its jobs still run. On the active view, rows retire as their
+    decisions commit — see the market panel there.
   </div>
 
   <!-- Job allocation -->
@@ -678,7 +796,7 @@
           <span class="slot-name">Helium Fuel Block</span>
           <span class="activity-tag mfg">manufacture</span>
         </div>
-        <span class="slot-meta">4 runs · ~1 h · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta">4 runs · ~1 h · Amamake - Police Weapons Facility</span>
         <span class="slot-meta" style="color: var(--green);">Ready to install</span>
       </div>
       <div class="slot ready">
@@ -687,7 +805,7 @@
           <span class="slot-name">Nitrogen Fuel Block</span>
           <span class="activity-tag mfg">manufacture</span>
         </div>
-        <span class="slot-meta">4 runs · ~1 h · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta">4 runs · ~1 h · Amamake - Police Weapons Facility</span>
         <span class="slot-meta" style="color: var(--green);">Ready to install</span>
       </div>
       <div class="slot idle">
@@ -740,7 +858,7 @@
           <span class="slot-name">Oxygen Fuel Block</span>
           <span class="activity-tag mfg">manufacture</span>
         </div>
-        <span class="slot-meta">10 runs · ~2 h · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta">10 runs · ~2 h · Amamake - Police Weapons Facility</span>
         <span class="slot-meta" style="color: var(--green);">Ready to install</span>
       </div>
       <div class="slot idle">
@@ -790,7 +908,7 @@
           <span class="slot-name">Hydrogen Fuel Block</span>
           <span class="activity-tag mfg">manufacture</span>
         </div>
-        <span class="slot-meta">9 runs · ~2 h · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta">9 runs · ~2 h · Amamake - Police Weapons Facility</span>
         <span class="slot-meta" style="color: var(--green);">Ready to install</span>
       </div>
       <div class="slot idle">

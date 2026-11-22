@@ -11,7 +11,7 @@ TE rigs, cost via tax and the M15 cost index).
 
 | File | Shows |
 |---|---|
-| `structures.html` | The registry table grouped by activity (per structure × activity registrations, default badges, the supercapital-assembly capability badge), the add/edit form in edit state with the solar-system type-ahead open, the import-from-sync card (structures the asset sync has seen but that aren't registered), and the multiplier reference card the planner reads |
+| `structures.html` | The registry table grouped by activity (per structure × activity registrations, default badges, the supercapital-assembly capability flag), the add/edit form in edit state with the solar-system type-ahead open, the import-from-sync card (structures the asset sync has seen but that aren't registered — including the market-hub routing note), and the multiplier reference card the planner reads |
 
 ## New components proposed
 
@@ -44,10 +44,18 @@ TE rigs, cost via tax and the M15 cost index).
   entry path. NPC stations don't appear there (complete SDE/ESI data —
   search-and-select in the form instead).
 - **The two facility-class pins stay visible**: supercapital assembly
-  (Hel/Ragnarok — capability badge on the registry, checkbox on the
-  form, gates the final hull job only) and biochemical reactions
-  (Crash — open question annotated on the reactions group, not
-  answered by the mockup).
+  (Hel/Ragnarok — capability flag on the form, security-validated:
+  confirmed 2026-11-22 that no Amamake lowsec facility can hold it,
+  with the nullsec-player-structure requirement a pin needing CCP-docs
+  confirmation; no registered structure holds it today, so supercap
+  chains surface it as an acquisition gap on the final hull job) and
+  biochemical reactions (Crash — open question annotated on the
+  reactions group, not answered by the mockup).
+- **Market hubs don't register here** (corrected 2026-11-22): the
+  corp's "5 times nearly AT winners" is a Keepstar market hub — no
+  industry lines. It appears in the import card as an unimportable
+  routing note and belongs to the market manager (the M15 sync-panel
+  surface): industry facilities in this registry, markets there.
 - **Copying absent from the activity enum** — flagged for the M3/M9
   boundary: copy jobs need a facility default too.
 
@@ -59,12 +67,15 @@ TE rigs, cost via tax and the M15 cost index).
   restricted `Structure #…` rows, and the Osoggur NPC station are all
   synced rows. Amamake's 0.3 / Osoggur's 0.4 / Hek's 0.7 security
   statuses are well-known public values.
-- **Structure types, rigs, tax rates, and the supercapital-assembly
-  capability are invented for the demo** — `universe_locations` does
-  not know them; they are exactly the user-entered fields this page
-  exists to capture. The type assignments are plausible (the chain-set
-  mockups run their capital component and skill-heavy jobs at
-  "Amamake - 5 times nearly AT winners"), but nothing syncs them.
+- **Structure types, rigs, tax rates, and capability flags are
+  invented for the demo** — `universe_locations` does not know them;
+  they are exactly the user-entered fields this page exists to
+  capture. One real-world correction is baked in (2026-11-22):
+  "Amamake - 5 times nearly AT winners" is a Keepstar market hub, so
+  it never registers as an industry facility; "Amamake - Police
+  Weapons Facility" is the manufacturing and copying site and
+  "Amamake - Reactions & Reprocessing" the refinement-and-reactions
+  site (product-owner confirmed).
 - Multiplier values in the reference card: the engineering-complex
   hull bonuses (15/30/50%) are CCP-documented; the rig and reaction
   values are illustrative until confirmed from CCP structure docs at
