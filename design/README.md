@@ -133,3 +133,18 @@ single-row case of that shape).
 Deferred by design: the M14 farming flow (node-marking → bid
 request) — the marking mechanism already exists in the plan mockups;
 design it when M14 approaches.
+
+**M10's analysis surfaces: at-milestone design work, not mockup
+sets** (evaluated and decided 2026-11-21): the chain sets already
+carry M10's UI shapes in their honest pre-state — Purchase ⇄ Build
+chips on every node, market-average figures on acquisition tables
+(flagged illustrative), contract-match treatments, `.sync-source`
+provenance lines, and the LP portfolio view (the TFI set). What's
+missing is the *verdict logic* behind them — build-vs-buy decisions
+are calculations over M15's synced prices, which don't exist in
+local tables yet; mocking them now would invent both the data and
+the analysis, front-running M10's recorded design decisions. The
+mockup program's remaining market surfaces are the M15 sync panel
+and the M12 capability surface (both structural — designable
+without real prices), and the program completes with those plus
+M3. M10's design happens at M10, against M15's real data.
