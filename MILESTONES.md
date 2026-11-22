@@ -112,25 +112,25 @@ above the implementation track per the recorded convention.
 ```mermaid
 flowchart TD
     subgraph gate["🎨 Mockup gate — completes before implementation"]
-        MS3["M3 surface"]
-        MS15["M15 surface"]
-        MS12["M12 surface"]
+        MS3["M3 surface<br/>facility-registry CRUD"]
+        MS15["M15 surface<br/>sync-hub + family status panel"]
+        MS12["M12 surface<br/>ranked recs + gap reports"]
     end
 
-    M1["M1 ✅ Corp pool"]
-    M2["M2 🟡 SDE + catalog<br/>(catalog surface remains)"]
-    M3["M3 Structure manager"]
-    M15["M15 World-state syncs<br/>(incl. LP store offers)"]
-    M4["M4 Planner:<br/>single-BP calculation"]
-    M5["M5 Chain resolution<br/>+ phase view"]
-    M6["M6 Build plans"]
-    M8["M8 Invention T2/T3"]
-    M9["M9 Job orchestration"]
-    M10["M10 Market analysis<br/>(over M15's data)"]
-    M11["M11 DAG viz<br/>(presentation only)"]
-    M12["M12 Capability analysis<br/>— the fork point"]
-    M13["M13 Skill gap +<br/>training recs"]
-    M14["M14 Capsuleer bidding<br/>+ contract farming"]
+    M1["M1 ✅ Corp pool<br/>main char, Director gate,<br/>owner-keyed syncs"]
+    M2["M2 🟡 SDE + catalog<br/>verbatim mirror, admin self-update,<br/>char/corp syncs — catalog surface remains"]
+    M3["M3 Structure manager<br/>user-state facility registry:<br/>activity, type, rigs, security, tax"]
+    M15["M15 World-state syncs<br/>cost indices, contracts, prices,<br/>orders/history, LP store offers"]
+    M4["M4 Planner: single-BP calc<br/>materials, time, install cost,<br/>facility + skill multipliers"]
+    M5["M5 Chain resolution<br/>recursive BOM explosion → phases,<br/>test-first against ten chain anchors"]
+    M6["M6 Build plans<br/>export, track vs. inventory,<br/>job correlation, progress"]
+    M8["M8 Invention T2/T3<br/>decryptor + grade + sibling dispatch,<br/>expected-value math, retry loops"]
+    M9["M9 Job orchestration<br/>slots, skills, waves,<br/>work distribution"]
+    M10["M10 Market analysis<br/>build-vs-buy verdicts,<br/>target profitability"]
+    M11["M11 DAG viz<br/>interactive node-graph view<br/>(presentation only)"]
+    M12["M12 Capability analysis<br/>what should we build:<br/>ranked recs + per-target gaps"]
+    M13["M13 Skill gap + training<br/>multi-character fastest-path,<br/>the fork: train"]
+    M14["M14 Capsuleer bidding<br/>contract farming + bids,<br/>the fork: farm out"]
 
     M1 --> M2
     M2 -->|"catalog query layer"| M4
