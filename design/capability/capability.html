@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Capability — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a href="#">Build Planner</a>
+    <a href="#">Structures</a>
+    <a href="#">Markets</a>
+    <a class="active" href="#">Capability</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+      <a href="#">Observability</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/capability/capability.html</div>
+</aside>
+
+<main class="content">
+  <div class="page-header">
+    <h1>Capability</h1>
+    <div class="actions">
+      <span class="pool-picker">Pool
+        <select aria-label="Participant pool">
+          <option selected>blitz and blitz holdings (corp)</option>
+          <option>Corp + blitzrage (Dark Tribe)</option>
+          <option>Full roster</option>
+        </select>
+      </span>
+      <span class="pool-picker">Market
+        <select aria-label="Sell-side market">
+          <option selected>The Forge — Jita IV Moon 4</option>
+          <option>Domain — Amarr VIII</option>
+          <option>Heimatar — Rens</option>
+          <option>Metropolis — Hek</option>
+          <option>Sinq Laison — Dodixie</option>
+          <option>Amamake — 5 Times Nearly Winners (player)</option>
+        </select>
+      </span>
+    </div>
+  </div>
+  <p class="meta-line" style="margin: -0.5rem 0 1.25rem;">
+    What this pool is positioned to build. The match joins synced
+    skills and owned blueprints against the buildable catalog
+    (<span class="var">5,014</span> products), lazily per target — never
+    pre-expanded. Margin figures arrive with M10 over M15's prices:
+    <span class="badge missing">not yet present</span>
+  </p>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    The last of the three surface mockups (M12 capability — after
+    structures and markets). The demo slice is the ten chain
+    targets, whose buildability positions are real (the chain
+    program's recorded facts); the full catalog matches lazily on
+    demand. <b>Variable content</b>: the
+    <span class="var">soft cyan tint</span> marks spans the app
+    supplies at render time; unmarked text is static scaffolding,
+    help, and curated classifications. Table cells, badges, and
+    meters are dynamic-by-construction and stay unmarked.
+  </div>
+
+  <!-- Recommended end products -->
+  <section class="card" style="margin-top: 1.25rem;">
+    <div class="card-body">
+      <div style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+        <h2>Recommended end products</h2>
+        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+          <span class="meta-line">Rank within buildability groups:</span>
+          <button class="chip-button selected" type="button">Fewest gaps</button>
+          <button class="chip-button" type="button" disabled style="opacity: 0.5; cursor: not-allowed;" title="Margin ranking activates with M10 over M15's synced prices">Est. margin</button>
+          <span class="badge missing">M15</span>
+        </div>
+      </div>
+      <p class="card-sub">Buildability grouping is fixed — producible, partial, blocked — and the sort selects within groups. Fully buildable targets lead either way; the sort only changes whether the partial group orders by closest-to-buildable or by margin once prices exist.</p>
+
+      <table class="asset-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Buildability</th>
+            <th>Gaps</th>
+            <th class="num">Est. margin</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="group-row"><td colspan="5">Producible — every chain layer buildable in pool</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/644/icon?size=32" alt=""> Typhoon</td>
+            <td><span class="stage-state ready">producible</span></td>
+            <td class="muted">—</td>
+            <td class="num muted"><span class="badge missing">M15</span></td>
+            <td style="text-align: right;"><button class="chip-button" type="button">Plan →</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/2679/icon?size=32" alt=""> Scourge Rage Heavy Assault Missile</td>
+            <td><span class="stage-state ready">producible *</span></td>
+            <td class="muted">—</td>
+            <td class="num muted"><span class="badge missing">M15</span></td>
+            <td style="text-align: right;"><button class="chip-button" type="button">Plan →</button></td>
+          </tr>
+          <tr class="group-row"><td colspan="5">Partial — buildable with gaps surfaced</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/26302/icon?size=32" alt=""> Large Trimark Armor Pump II</td>
+            <td><span class="stage-state deliver">partial</span></td>
+            <td>skills <span class="var">1</span></td>
+            <td class="num muted"><span class="badge missing">M15</span></td>
+            <td style="text-align: right;"><button class="chip-button" type="button">Report →</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/10152/icon?size=32" alt=""> Strong Crash Booster</td>
+            <td><span class="stage-state deliver">partial</span></td>
+            <td>skills <span class="var">1</span></td>
+            <td class="num muted"><span class="badge missing">M15</span></td>
+            <td style="text-align: right;"><button class="chip-button" type="button">Report →</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/32311/icon?size=32" alt=""> Typhoon Fleet Issue</td>
+            <td><span class="stage-state deliver">partial</span></td>
+            <td>LP <span class="var">200k TLF</span></td>
+            <td class="num muted"><span class="badge missing">M15</span></td>
+            <td style="text-align: right;"><button class="chip-button" type="button">Report →</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/34828/icon?size=32" alt=""> Jackdaw</td>
+            <td><span class="stage-state deliver">partial</span></td>
+            <td>skills <span class="var">2</span></td>
+            <td class="num muted"><span class="badge missing">M15</span></td>
+            <td style="text-align: right;"><button class="chip-button" type="button">Report →</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/20185/icon?size=32" alt=""> Charon</td>
+            <td><span class="stage-state deliver">partial</span></td>
+            <td>blueprints <span class="var">18</span></td>
+            <td class="num muted"><span class="badge missing">M15</span></td>
+            <td style="text-align: right;"><button class="chip-button" type="button">Report →</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/22440/icon?size=32" alt=""> Panther</td>
+            <td><span class="stage-state deliver">partial</span></td>
+            <td>skills <span class="var">1</span> * · blueprints <span class="var">33</span></td>
+            <td class="num muted"><span class="badge missing">M15</span></td>
+            <td style="text-align: right;"><button class="chip-button" type="button">Report →</button></td>
+          </tr>
+          <tr class="group-row"><td colspan="5">Blocked — a chain layer has no in-pool path</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/22852/icon?size=32" alt=""> Hel</td>
+            <td><span class="stage-state missing">blocked</span></td>
+            <td>blueprints <span class="var">35</span> · facility <span class="var">1</span></td>
+            <td class="num muted"><span class="badge missing">M15</span></td>
+            <td style="text-align: right;"><button class="chip-button" type="button">Report →</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/23773/icon?size=32" alt=""> Ragnarok</td>
+            <td><span class="stage-state missing">blocked</span></td>
+            <td>blueprints <span class="var">38</span> · facility <span class="var">1</span></td>
+            <td class="num muted"><span class="badge missing">M15</span></td>
+            <td style="text-align: right;"><button class="chip-button" type="button">Report →</button></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="meta-line" style="margin: 0.75rem 0 0;">
+        <span class="muted">* pool-relative: producible with <span class="var">blitzrage</span> (out-of-corp) included — the participants distinction. The margin sort activates with M15's price sync; the control renders disabled until then (the staged-state treatment).</span>
+      </p>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        The composed selector (2026-11-22 direction): buildability
+        grouping is fixed; the chip pair selects the within-group
+        sort — <b>Fewest gaps</b> (gap count ascending) or
+        <b>Est. margin</b> (descending, once prices exist). Gap
+        counts are fields per gap type (skills / blueprints / LP /
+        facility), not composed sentences — the Hel row reads
+        "blueprints 35 · facility 1" in any scenario. Gap types are
+        the fork substrate: each maps to its remediation in the gap
+        report below.
+      </div>
+    </div>
+  </section>
+
+  <!-- Gap report -->
+  <section class="card">
+    <div class="card-body">
+      <h2>Gap report — Charon</h2>
+      <p class="card-sub">Per node: the missing thing, its detail, the remediation. The same gap list both fork branches respond to — train (M13), farm out (M14) — and the input the end-goal loop closes on.</p>
+
+      <table class="asset-table">
+        <thead>
+          <tr>
+            <th>Node</th>
+            <th>Gap</th>
+            <th>Detail</th>
+            <th>Remedy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="group-row"><td colspan="4">Blueprints — 8 manufacturing types</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/20186/bpc?size=32" alt=""> Charon Blueprint</td>
+            <td><span class="badge missing">blueprint</span></td>
+            <td class="muted">contract · <span class="var">300M Ƶ</span> · <span class="var">1 listing</span> (The Forge)</td>
+            <td><button class="chip-button selected" type="button">Acquire ▾</button></td>
+          </tr>
+          <tr>
+            <td colspan="4" style="padding: 0 0.5rem;">
+              <div class="residue-card" style="margin: 0.4rem 0;">
+                <div style="font-weight: 650; margin-bottom: 0.5rem;">Acquisition detail — Charon Blueprint <span class="badge plan-state" style="margin-left: 0.5rem;">path: contract</span></div>
+                <div class="residue-group">Matched listings — The Forge · synced <span class="var">8 min ago</span></div>
+                <ul>
+                  <li><span class="var">1 listing</span> · <span class="var">10 × 1-run BPC</span> · <span class="var">ME 10 / TE 20</span> · <span class="var">300M Ƶ</span> total — same-type bundle: one contract covers the whole backfill</li>
+                </ul>
+                <div class="residue-group">Alternatives</div>
+                <ul>
+                  <li>buy the commodity: Charon ≈ <span class="var">2.15B Ƶ</span> <span class="badge missing">M15</span></li>
+                  <li>BPO original: not seeded for this type</li>
+                </ul>
+                <div style="display: flex; gap: 0.75rem; align-items: center; margin-top: 0.6rem;">
+                  <button type="button">Open in planner →</button>
+                  <span class="muted" style="font-size: 0.75rem;">the only action — acquisition decisions are plan-time</span>
+                </div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/21028/bp?size=32" alt=""> Capital Cargo Bay Blueprint</td>
+            <td><span class="badge missing">blueprint</span></td>
+            <td class="muted">contract · backfill to <span class="var">50 runs</span></td>
+            <td><button class="chip-button" type="button">Acquire →</button></td>
+          </tr>
+          <tr>
+            <td colspan="4" class="muted"><span class="var">+ 6 more</span> component blueprints — <span class="var">Capital Propulsion Engine · Capital Armor Plates · Capital Construction Parts · Capital CTR · R-O Neurolink Conduit · Gravimetric-FTL Communicator</span></td>
+          </tr>
+          <tr class="group-row"><td colspan="4">Formulas — 10 reaction types</td></tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/46214/bp?size=32" alt=""> Fermionic Condensates Formula</td>
+            <td><span class="badge missing">formula</span></td>
+            <td class="muted">NPC market · cheap originals</td>
+            <td><button class="chip-button" type="button">Acquire →</button></td>
+          </tr>
+          <tr>
+            <td colspan="4" class="muted"><span class="var">+ 9 more</span> formulas — <span class="var">Dysporite · Ferrofluid · Fluxed Condensates · Prometium · Titanium Chromide · Caesarium Cadmide · Nonlinear Metamaterials · R-O Stabilizer · Plasmonic Metamaterials</span></td>
+          </tr>
+          <tr class="group-row"><td colspan="4">Skills — none required beyond pool</td></tr>
+          <tr>
+            <td colspan="4" class="muted">Capital Ship Construction — held: <span class="var">Octavia Arbitrage (level 1)</span> · required: <span class="var">1</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        <b>Acquire opens an acquisition-detail panel</b> — shown
+        expanded on the Charon Blueprint row (the demo state; it
+        toggles closed in the real page). The panel is an
+        availability drill-down, never a transaction: path-specific
+        matched listings from the synced tables (contracts with
+        runs/ME/TE per the recorded matching rules; NPC-market
+        orders for seeded formulas; LP store offers with the
+        shortfall), the alternatives, and a ladder rung's BPO
+        original with its days-saved when one exists. <b>The single
+        action is "Open in planner"</b> — pre-calculation purchase
+        intent is rejected by the 2026-11-18 decision, so capability
+        shows what it would take and the plan is where the decision
+        lands. Every gap type carries its remediation link —
+        <b>Acquire</b>, <b>Train</b> (M13), <b>Farm</b> (M14). Skill
+        rows render when a target needs them: the
+        no-holder and underleveled-holder states from the chain
+        program (the Hel's Capital Ship Construction
+        <span class="var">1 → 4</span> is the worked example — the
+        row would read "held: Octavia (1) · required: 4" with
+        <b>Train →</b> and <b>Farm →</b> remedies). Charon itself
+        holds every skill gate, so its report shows the held-state
+        row — gaps at zero, the state still legible.
+      </div>
+    </div>
+  </section>
+
+  <!-- BPO obtainment ladder -->
+  <section class="card">
+    <div class="card-body">
+      <h2>BPO obtainment ladder</h2>
+      <p class="card-sub">"This BPO buys N days" — minimum useful BPOs from the chain resolver's phase math, days-saved per rung, cost-checked against market pricing once M10 exists.</p>
+
+      <table class="asset-table">
+        <thead>
+          <tr>
+            <th>BPO</th>
+            <th class="num">Cost</th>
+            <th class="num">Saves</th>
+            <th>Priority</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/57478/bp?size=32" alt=""> Auto-Integrity Preservation Seal Blueprint</td>
+            <td class="num"><span class="var">380M Ƶ</span></td>
+            <td class="num"><span class="var">3.2 d</span></td>
+            <td><span class="stage-state missing">high</span></td>
+            <td style="text-align: right;"><button class="chip-button" type="button">Acquire →</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/57486/bp?size=32" alt=""> Life Support Backup Unit Blueprint</td>
+            <td class="num"><span class="var">290M Ƶ</span></td>
+            <td class="num"><span class="var">1.4 d</span></td>
+            <td><span class="stage-state deliver">medium</span></td>
+            <td style="text-align: right;"><button class="chip-button" type="button">Acquire →</button></td>
+          </tr>
+          <tr>
+            <td><img class="type-icon" src="https://images.evetech.net/types/57479/bp?size=32" alt=""> Core Temperature Regulator Blueprint</td>
+            <td class="num"><span class="var">120M Ƶ</span></td>
+            <td class="num"><span class="var">0.3 d</span></td>
+            <td><span class="stage-state complete">low</span></td>
+            <td style="text-align: right;"><button class="chip-button" type="button">Acquire →</button></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        The ladder math is the recorded closed-form (copy-queue rate
+        ÷ input dead-zone rate, slot-saturation ceiling, days-saved
+        per rung — scale-invariant in the target count). Costs and
+        days-saved here are illustrative; costs check against M15's
+        market prices. Priority is a computed rank from days-saved
+        and cost, rendered as a badge.
+      </div>
+    </div>
+  </section>
+
+  <!-- LP portfolio -->
+  <section class="card">
+    <div class="card-body">
+      <h2>LP portfolio — input</h2>
+      <p class="card-sub">Faction commodities unlock through LP stores; the portfolio reads as its own gap type — wrong-currency wealth is a real state, not an error.</p>
+
+      <table class="asset-table">
+        <tbody>
+          <tr>
+            <td><b>Paragon</b></td>
+            <td class="num"><span class="var">632k LP</span></td>
+            <td class="muted">wrong-currency — no cross-corp conversion; the TFI's store is Republic Fleet / TLF</td>
+          </tr>
+          <tr>
+            <td><b>Republic Fleet</b></td>
+            <td class="num"><span class="var">8.5k LP</span></td>
+            <td class="muted">navy store — the TFI BPC at 500–600k LP</td>
+          </tr>
+          <tr>
+            <td><b>Tribal Liberation Force</b></td>
+            <td class="num"><span class="var">0 LP</span></td>
+            <td class="muted">militia store — the efficient path: 200k LP + 200M Ƶ per 10-pack</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        The LP portfolio is the TFI set's persisted view, promoted
+        to an input here: balances are live (synced via the loyalty
+        scope; corp TLF balance is the curated + distribution
+        workflow M16-adjacent note). The wrong-currency row is a
+        computed state with remediation links in the full build
+        (earn / distribute / switch store) — the TFI set carries the
+        worked story.
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <section class="card">
+    <div class="card-body">
+      <div class="meta-line">
+        <span class="var">5,014</span> buildable products · demo slice: the ten chain targets · <span class="var">2</span> producible · <span class="var">5</span> partial · <span class="var">2</span> blocked · ranked within buildability groups by <span class="var">fewest gaps</span>
+      </div>
+    </div>
+  </section>
+
+  <p class="meta-line" style="margin-top: 1rem;">
+    The gap report is the fork substrate → train (M13) · farm (M14) ·
+    the ranked list feeds the planner →
+    <a href="../typhoon/planner.html">../typhoon/planner.html</a> ·
+    the sibling surfaces →
+    <a href="../structures/structures.html">structures</a> ·
+    <a href="../markets/markets.html">markets</a>
+  </p>
+</main>
+
+</body>
+</html>
