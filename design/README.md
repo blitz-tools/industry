@@ -72,6 +72,16 @@ set; once settled they apply to every set (decisions graduate to
 - **Currency displays as Ƶ** (2026-11-22): U+01B5 replaces "isk" as
   the currency symbol globally, and money totals read
   `<total> Ƶ (<per-item> Ƶ)` — total first, per-item in parens.
+- **Variable content is visually marked** (2026-11-22): `.var` — a
+  20% cyan tint — marks spans the app supplies at render time
+  (computed values, synced data); unmarked text is static
+  scaffolding, help, and curated classifications. Two buckets,
+  spans only. Marking scope: prose-embedded values, stat-tile
+  values, wave-bar titles, tier-summary counts and lists;
+  **table cells, badges, meters, and ledger rows are
+  dynamic-by-construction** (their entire content is data) and stay
+  unmarked — the distinction is noise, not information, there.
+  Reference implementation: the Charon set; fanned out to every set.
 - **No scenario-composed sentences** (2026-11-22, extending the
   no-editorial-prose decision to every surface): UI text is static
   scaffolding with computed values in slots — state badges,
