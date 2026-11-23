@@ -65,7 +65,7 @@ paid contracts), or **pick a better target**.
 | M1 — main character & corporation pool | ✅ **Complete** (PRs #12–#14) |
 | M2 — SDE foundation & blueprint catalog | ✅ **Complete** (PRs #15–#17 + #85, 2026-11-22/23) |
 | Mockup program | ✅ **Complete — 13 of 13** (2026-11-22): ten chain sets (Typhoon → Ragnarok) + the refinement pass + three surfaces (structures M3, markets M15, capability M12); the 2026-11-22 conventions (facilities/markets selection, market panels, wave paging, Ƶ, static scaffolding, variable-content marking) cover every page |
-| M3 — structure manager | ✅ **Complete** — registry, multipliers pinned from live dogma, Build Planner nav (2026-11-23) |
+| M3 — structure manager | ✅ **Complete** (PR #86) — registry, multipliers pinned from live dogma, Build Planner nav (2026-11-23) |
 | M4+ | Not started |
 
 **Pick up at**: **M4 — the planner** (single-blueprint calculation),
@@ -888,7 +888,7 @@ the original scope where they conflict.*
 
 ---
 
-## M3 — Structure manager — ✅ COMPLETE (2026-11-23)
+## M3 — Structure manager — ✅ COMPLETE (PR #86, 2026-11-23)
 
 *Where industry happens changes materials, time, and cost — this is the
 user-state facility registry the planner multiplies against. Scope note
