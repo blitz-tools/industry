@@ -72,6 +72,30 @@ planner consumes (blueprint search, recipe joins, owned-blueprint
 overlay; the SDE-name vs `universe_types` merge rule gets decided
 there). The mockup program is complete; implementation begins.
 
+**Order of operations** (refined 2026-11-22, final pre-implementation
+evaluation): the spine holds (M2 → M4 → M5 → M6 → M9) with three
+refinements the completed design program makes possible:
+
+- **M3 lands immediately after (or alongside) M2**: it is
+  independent (user-state registry, no catalog dependency), fully
+  designed through the revised schema, small, and carries the nav
+  change — removing a dependency from M4's critical path.
+- **M15 starts early and soaks deliberately**: kick off the
+  framework slice + The Forge seed right after M3, so the sync band
+  accumulates rate-limit history and freshness data *while M4/M5/M6
+  are built* — cost indices, contract fallbacks, and prices arrive
+  soaked, and the headroom gate has real expansion history. The
+  remaining families land alongside their consumers per the
+  recorded deferral.
+- **M8 parallels M6/M9** (off M5); **M11 free-floating** after
+  M5/M6; **M10 after M15's soak**; **M12 the fork point**; the
+  M13/M14 choice stays with the product owner at pickup; **M16
+  late**.
+The 2026-11-22 TODO fold-in dissolved the planner-track TODO
+sections into their owning milestones (M6 carries the triaged
+five-item scope; the skill planner generalization moved to M13);
+TODO.md now holds the platform track and smaller items.
+
 **The mockup program's output** (2026-11-19 → 2026-11-21): ten chain
 reference documents (`reference/chains/`, Typhoon through Ragnarok)
 serving as M5's acceptance suite; ten mockup sets (`design/`)
@@ -890,7 +914,10 @@ across the docs, mockups, and merged history, so this late number sits
 with the data-sync track it belongs to. Land it before or alongside the
 planner surfaces that consume it — M4's install cost and
 contract-backfill peek, the M5/M6 backfill tables, M9's BPC selection
-bias.*
+bias. Sequencing refined 2026-11-22: the framework slice + The Forge
+seed start right after M3 and soak while M4/M5/M6 build — the
+pre-consumer gap is the deliberate soak test, and early start
+maximizes it.*
 
 *Origin: scoped 2026-11-19 to the public-contracts sync alone; widened
 the same day into the cohesive world-state band. The remaining
@@ -1088,11 +1115,12 @@ against in-game numbers.
 
 ## M5 — Planner: full chain resolution & phase view
 
-*Build note (2026-11-21): the reference-chain test harness and the
-whole-catalog `--all` census — validating this implementation against
-`reference/chain_expand.py`'s golden outputs, then against every
-buildable product per SDE release — are recorded in TODO.md as
-may-build validation tools for this milestone.*
+*Build note (revised 2026-11-22): the reference-chain test harness
+and the whole-catalog `--all` census — validating this
+implementation against `reference/chain_expand.py`'s golden outputs,
+then against every buildable product per SDE release — are **in-scope
+validation tooling for this milestone** (promoted from may-build in
+the TODO fold-in): test-first against the ten chain anchors.*
 
 *The recursive BOM explosion — the heart of the system. Turns one
 blueprint into an ordered set of production phases. This is the
@@ -1222,16 +1250,21 @@ reality over time.*
   has no plan reference; over-precision isn't worth it.)
 - Plan states: draft → active → complete (all leaf nodes delivered) /
   abandoned.
-- **Pickup note (2026-11-21, deferred by product direction)**: five
-  scope items accumulated in TODO.md during the mockup program —
-  station-container plan bucketing (investigated, feasible),
-  per-character assignment eligibility (Roster-side flag),
-  contract-match fallbacks in acquisition, the skill-plan calculator
-  for participant gaps, and the LP acquisition node type (currency
-  balances, offer variants, corp-LP curated balance + distribution
-  workflow). **Triage at M6 pickup**: decide what's in-scope for M6
-  v1 vs deferred, using the TODO entries' full context. These don't
-  change the dependency structure — they widen M6's surface.
+- **Folded scope (2026-11-22 triage — the five accumulated items,
+  resolved)**: station-container plan bucketing (**v1** — feasible,
+  zero data-layer change, core to concurrent plans);
+  contract-match fallbacks in acquisition (**v1** — M15's contracts
+  soak by then); per-character assignment eligibility, Roster-side
+  flag (**v1** — participants depend on it); the multibuy export
+  (**v1** — small, self-contained, M16's upstream); the LP
+  acquisition node (**split** — currency balances + offer variants
+  in v1, the TFI-designed surfaces; the corp-LP curated workflow
+  deferred to M16); the skill-plan calculator (**deferred to M13** —
+  it is the fork branch). Also carries the plan home: Corporation →
+  Jobs grows into the planner's plan home (review, tracking,
+  management — delete, copy-for-reuse after completion; the navbar
+  fold-in). These widen M6's surface without changing the
+  dependency structure.
 
 **Schema sketch**
 
@@ -1530,6 +1563,14 @@ training the roster toward the target.*
 - Training recommendations presented per character (what to train,
   toward which node's requirement or efficiency gain), working from
   the M12 gap report.
+- **Skill Planner generalization** (folded in 2026-11-22 from TODO):
+  the calculator's logic stands alone as a planner-shaped surface —
+  target commodity + available characters → a skill queue across
+  characters with the industry side's balancing (parallelism,
+  requirements split for earliest satisfaction). Decide at design
+  time how much surface it shares with the build planner (target
+  picker, participants section) — possibly a mode of the planner
+  rather than a separate page.
 - **Skill→efficiency mapping is resolved empirically here**: once the
   efficiency math exists, attempting a complex build (T3 destroyer,
   Carrier chain) self-answers which skills carry efficiencies worth
@@ -1641,6 +1682,11 @@ and held.
 - Character wallet journals (`esi-wallet.read_character_wallet.v1`,
   already registered) are a possible extension for out-of-corp
   participant expenses (the distribution step) — decide at pickup.
+- **Corp-LP curated balance + distribution workflow** (folded in
+  2026-11-22 from M6's triage): the TLF militia balance has no ESI
+  route, so the curated user-state entry and the
+  distribute-to-characters workflow land here with the wallet work
+  they naturally belong to.
 
 **Validation**: tag a material-contract expense against a Typhoon
 plan's job; the industry fees join automatically; the plan's
