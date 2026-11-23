@@ -129,17 +129,13 @@ correlation and any future Location column want it).
 ### Dependency graph (milestone level)
 
 Arrows read "is a dependency of" — the arrow's target needs the
-source. The mockup gate (the three remaining surface mockups) sits
-above the implementation track per the recorded convention.
+source. The mockup gate (the 2026-11-19 convention) completed
+2026-11-22 at 13 of 13 sets — ten chain sets plus the structures,
+markets, and capability surfaces — and is dropped from the graph;
+the implementation track below is cleared to run.
 
 ```mermaid
 flowchart TD
-    subgraph gate["🎨 Mockup gate — completes before implementation"]
-        MS3["M3 surface<br/>facility-registry CRUD"]
-        MS15["M15 surface<br/>sync-hub + family status panel"]
-        MS12["M12 surface<br/>ranked recs + gap reports"]
-    end
-
     M1["M1 ✅ Corp pool<br/>main char, Director gate,<br/>owner-keyed syncs"]
     M2["M2 🟡 SDE + catalog<br/>verbatim mirror, admin self-update,<br/>char/corp syncs — catalog surface remains"]
     M3["M3 Structure manager<br/>user-state facility registry:<br/>activity, type, rigs, security, tax"]
