@@ -52,12 +52,13 @@ _MULTIPLIER_ROWS = [
     (
         "ME rig × security",
         "material consumption (manufacturing, reactions)",
-        "T1 2.0% / T2 2.4% base, ×1.0 high · ×1.9 low · ×2.1 null/WH",
+        "T1 2.0% / T2 2.4% base · EC rigs ×1.0 high / ×1.9 low / ×2.1 null · "
+        "reactor rigs ×1.0 low / ×1.1 null (reactions are low/null only)",
     ),
     (
         "TE rig × security",
         "job time (manufacturing, reactions, invention)",
-        "T1 20% / T2 24% base, same security scaling",
+        "T1 20% / T2 24% base, the same per-family security scaling",
     ),
     (
         "Tax + cost index",

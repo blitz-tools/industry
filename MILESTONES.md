@@ -984,14 +984,16 @@ only in git history):
   ×0.70/×0.99/×0.95, and a discovered **Tatara reaction-time ×0.75**
   (Athanor: none); rigs from live ESI dogma — ME T1 2.0% / T2 2.4%, TE
   T1 20% / T2 24% (identical base values on the refinery and Invention
-  Accelerator rigs); **rig security scaling ×1.0 high / ×1.9 low /
-  ×2.1 null+WH** from fuzzwork's industry calculator (the dump
-  provider's own reference implementation — the dogma effect exists
-  but the location-side value is not exposed via ESI; cross-checked
-  against the ~6% ME fully-rigged nullsec Sotiyo figure). **Both
-  mockup sketch values were wrong**: hulls are 15/20/30% (not
-  15/30/50%) and the security scaling is 1.0/1.9/2.1 (not
-  0.9/1.0/1.1).
+  Accelerator rigs); **rig security scaling from live ESI dogma
+  attributes 2355/2356/2357** (hiSecModifier/lowSecModifier/
+  nullSecModifier — cross-confirmed by everef's database and fuzzwork's
+  calculator): **engineering-complex rigs ×1.0/×1.9/×2.1, refinery
+  reactor rigs ×1.0 low / ×1.1 null with no highsec modifier**
+  (reactions cannot run in highsec — the family split was caught on
+  re-verification; a first pass applying the EC factors to reactor
+  rigs was wrong). **Both mockup sketch values were wrong**: hulls are
+  15/20/30% (not 15/30/50%) and the EC security scaling is 1.0/1.9/2.1
+  (not 0.9/1.0/1.1).
 - **Copying joined the activity enum** (the open question, decided at
   implementation): the planner's Plan-facilities section gives copying
   its own selector defaulting to the invention default, so a distinct

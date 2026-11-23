@@ -13,13 +13,13 @@ pass is a table edit here, never a code change elsewhere:
   −2.0/−2.4, attributeEngRigTimeBonus −20/−24; refinery
   RefRigMatBonus/RefRigTimeBonus identical; the Invention Accelerator
   rigs carry the same time values).
-- Security scaling of rig effectiveness (×1.0 high / ×1.9 low / ×2.1
-  null+WH): fuzzwork's industry calculator (the SDE dump provider's
-  own reference implementation), cross-checked against the community
-  figure of ~6% ME on a fully-rigged nullsec Sotiyo (1% hull + 2.4% ×
-  2.1). The dogma route exists (effect 6842 scales the rig bonus
-  attributes by securityModifier) but the location-side value is not
-  exposed through ESI item dogma — re-pin if CCP rebalances.
+- Security scaling of rig effectiveness: live ESI dogma attributes
+  2355/2356/2357 (hiSecModifier/lowSecModifier/nullSecModifier),
+  cross-confirmed by everef's database and fuzzwork's calculator.
+  Engineering-complex rigs scale ×1.0/×1.9/×2.1; refinery reactor rigs
+  scale ×1.0 low / ×1.1 null and carry no highsec modifier (reactions
+  cannot run in highsec). The family split was caught on re-verification
+  — a first pass applying the EC factors to reactor rigs was wrong.
 
 Two structural discoveries recorded for M4 (2026-11-23): structure rigs
 are **per material category** ("Basic Large Ship", "Equipment",
@@ -126,17 +126,30 @@ RIG_BASE_PERCENT: dict[tuple[str, str], dict[str, float]] = {
     ("reactions", "te"): {"t1": 20.0, "t2": 24.0},
 }
 
-# Rig effectiveness scales with system security class.
-SECURITY_RIG_FACTOR: dict[str, float] = {"high": 1.0, "low": 1.9, "null": 2.1}
+# Rig effectiveness scales with system security class — differently by
+# rig family (live ESI dogma attributes 2355/2356/2357 —
+# hiSecModifier/lowSecModifier/nullSecModifier — cross-confirmed by
+# everef's database and fuzzwork's calculator): engineering-complex
+# rigs ×1.0/×1.9/×2.1; refinery reactor rigs ×1.0 low / ×1.1 null with
+# no highsec modifier (reactions cannot run in highsec — a hisec
+# refinery registers for reprocessing, not reactors).
+SECURITY_RIG_FACTOR: dict[str, dict[str, float]] = {
+    "manufacturing": {"high": 1.0, "low": 1.9, "null": 2.1},
+    "copying": {},
+    "invention": {"high": 1.0, "low": 1.9, "null": 2.1},
+    "reactions": {"low": 1.0, "null": 1.1},
+}
 
 
 def effective_rig_percent(activity: str, field: str, tier: str, security: str) -> float:
-    """A rig tier's actual reduction at a security class (base ×
-    security factor; no rig or no security known → 0)."""
+    """A rig tier's actual reduction at a security class (base × the
+    activity's security factor; no rig, no factor for the class, or no
+    security known → 0)."""
     base = RIG_BASE_PERCENT.get((activity, field), {}).get(tier, 0.0)
     if not base:
         return 0.0
-    return base * SECURITY_RIG_FACTOR.get(security, 1.0)
+    factor = SECURITY_RIG_FACTOR.get(activity, {}).get(security, 1.0)
+    return base * factor
 
 
 # --- Registry reads -----------------------------------------------------------

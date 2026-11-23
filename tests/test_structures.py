@@ -400,3 +400,34 @@ async def test_unauthenticated_redirects(client):
     assert response.status_code in (302, 303)
     response = await client.get("/structures")
     assert response.status_code == 302
+
+
+def test_effective_rig_percent_by_family():
+    """Rig security scaling is per rig family (live ESI dogma 2355-2357):
+    engineering-complex rigs ×1.0/×1.9/×2.1, refinery reactor rigs
+    ×1.0 low / ×1.1 null with no highsec factor."""
+    from app.facilities import effective_rig_percent
+
+    # EC rigs (manufacturing, invention).
+    assert effective_rig_percent(
+        "manufacturing", "me", "t2", "null"
+    ) == pytest.approx(2.4 * 2.1)
+    assert effective_rig_percent(
+        "invention", "te", "t1", "low"
+    ) == pytest.approx(20.0 * 1.9)
+    assert effective_rig_percent(
+        "manufacturing", "me", "t1", "high"
+    ) == pytest.approx(2.0)
+    # Reactor rigs scale differently.
+    assert effective_rig_percent(
+        "reactions", "me", "t2", "null"
+    ) == pytest.approx(2.4 * 1.1)
+    assert effective_rig_percent(
+        "reactions", "te", "t1", "low"
+    ) == pytest.approx(20.0)
+    # Copying has no rig effect; a class with no factor for the family
+    # (hisec reactions — impossible in practice) defaults to unscaled.
+    assert effective_rig_percent("copying", "te", "t1", "low") == 0.0
+    assert effective_rig_percent(
+        "reactions", "me", "t1", "high"
+    ) == pytest.approx(2.0)
