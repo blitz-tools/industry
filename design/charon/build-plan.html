@@ -980,28 +980,28 @@
         <td class="num qty">11,794,550</td>
         <td class="num">4,200,000</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 36%"></div></div><span class="meter-pct">36%</span></div></td>
-        <td class="muted">Mining / market · avg 6.4 isk</td>
+        <td class="muted">Mining / market · avg 6.4 Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/36/icon?size=32" alt="">Mexallon</td>
         <td class="num qty">3,279,900</td>
         <td class="num">1,950,000</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 59%"></div></div><span class="meter-pct">59%</span></div></td>
-        <td class="muted">Mining / market · avg 48 isk</td>
+        <td class="muted">Mining / market · avg 48 Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/34/icon?size=32" alt="">Tritanium</td>
         <td class="num qty">3,278,500</td>
         <td class="num">2,880,000</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 88%"></div></div><span class="meter-pct">88%</span></div></td>
-        <td class="muted">Mining / market · avg 2.7 isk</td>
+        <td class="muted">Mining / market · avg 2.7 Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/37/icon?size=32" alt="">Isogen</td>
         <td class="num qty">911,850</td>
         <td class="num">610,000</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 67%"></div></div><span class="meter-pct">67%</span></div></td>
-        <td class="muted">Mining / market · avg 132 isk</td>
+        <td class="muted">Mining / market · avg 132 Ƶ</td>
       </tr>
       <tr class="group-row"><td colspan="5">Moon materials</td></tr>
       <tr>
@@ -1009,14 +1009,14 @@
         <td class="num qty">68,100</td>
         <td class="num">21,500</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 32%"></div></div><span class="meter-pct">32%</span></div></td>
-        <td class="muted">Moon mining / market · avg 310 isk</td>
+        <td class="muted">Moon mining / market · avg 310 Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/16634/icon?size=32" alt="">Atmospheric Gases</td>
         <td class="num qty">68,100</td>
         <td class="num">8,400</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 12%"></div></div><span class="meter-pct">12%</span></div></td>
-        <td class="muted">Moon mining / market · avg 280 isk</td>
+        <td class="muted">Moon mining / market · avg 280 Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/16643/icon?size=32" alt="">Cadmium</td>
@@ -1060,7 +1060,7 @@
         <td class="num qty">24,850</td>
         <td class="num">11,900</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill warn" style="width: 48%"></div></div><span class="meter-pct">48%</span></div></td>
-        <td class="muted">Ice mining / market · avg 460 isk</td>
+        <td class="muted">Ice mining / market · avg 460 Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/16272/icon?size=32" alt="">Heavy Water</td>
@@ -1075,7 +1075,7 @@
         <td class="num qty">1,280</td>
         <td class="num">0</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — gas sites, blocks neurolink conduits</span></div></td>
-        <td class="muted">Gas site harvesting / market · avg 12k isk</td>
+        <td class="muted">Gas site harvesting / market · avg 12k Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/30371/icon?size=32" alt="">Fullerite-C60</td>
@@ -1102,12 +1102,106 @@
     Market-average figures come from M15's synced price data (global
     adjusted/average) — the values shown are illustrative. Regional
     order books join with the staged rollout (The Forge first);
-    isk-cost totals and build-vs-buy verdicts (mine the gap vs buy it,
+    Ƶ-cost totals and build-vs-buy verdicts (mine the gap vs buy it,
     contract vs market) are M10's analysis over this data.
   </div>
 
+
+  <!-- Market panel -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Market — build vs buy</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">
+    The Purchase ⇄ Build chips roll up here: per-commodity build-vs-buy verdicts at the selected market, the estimated sell price, and the plan's profit readout.
+    <span class="pool-picker">Market
+      <select aria-label="Sell-side market">
+        <option selected>The Forge — Jita IV Moon 4</option>
+        <option>Domain — Amarr VIII</option>
+        <option>Heimatar — Rens</option>
+        <option>Metropolis — Hek</option>
+        <option>Sinq Laison — Dodixie</option>
+        <option>Amamake — 5 Times Nearly Winners (player)</option>
+      </select>
+    </span>
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">2.15B Ƶ</p>
+      <p class="stat-label">Estimated sell price (2.15B Ƶ per Charon)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">1.83B Ƶ</p>
+      <p class="stat-label">Input cost — buy verdicts 0.61B + gap coverage 1.22B</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">71M Ƶ</p>
+      <p class="stat-label">Install cost — system index × facility tax</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--green);">+180M Ƶ</p>
+      <p class="stat-label">Estimated profit (+180M Ƶ per) · +8.4% · range +92M … +262M Ƶ</p>
+    </div>
+  </div>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Commodity</th>
+        <th class="num">Need</th>
+        <th class="num">Build cost</th>
+        <th class="num">Buy cost</th>
+        <th>Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/21027/icon?size=32" alt=""> Capital Cargo Bay</td>
+        <td class="num qty">200</td>
+        <td class="num">380M Ƶ</td>
+        <td class="num">310M Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">−18% — the flipped chip on the chain</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/20186/bpc?size=32" alt=""> Charon Blueprint (BPC ×1)</td>
+        <td class="num qty">1 run</td>
+        <td class="num muted">—</td>
+        <td class="num">300M Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">the real The Forge contract — acquisition, not a verdict</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/21009/icon?size=32" alt=""> Capital Propulsion Engine</td>
+        <td class="num qty">5</td>
+        <td class="num">210M Ƶ</td>
+        <td class="num">265M Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">−21%</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/35/icon?size=32" alt=""> Pyerite gap</td>
+        <td class="num qty">13.0M of 26M</td>
+        <td class="num muted">—</td>
+        <td class="num">412M Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">or mine — the market is the floor</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Figures illustrative until M15's price sync; verdict arithmetic is
+    M10's. Verdicts are recommendations — the chips are authoritative
+    (full format and lifecycle notes on the
+    <a href="../typhoon/build-plan.html">Typhoon reference set</a>).
+  </div>
+
   <!-- Job allocation -->
-  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — wave 1</h2>
+  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.75rem 0 0.5rem;">
+    <h2 style="margin: 0; font-size: 1.05rem; color: var(--cyan);">Job allocation</h2>
+    <div class="wave-pager">
+      <button class="icon-button" type="button" aria-label="Previous wave" title="No earlier wave" disabled>‹</button>
+      <span class="wave-pager-label">Wave 1</span>
+      <button class="icon-button" type="button" aria-label="Next wave" title="W2 — R4 reactions · 9 jobs · day 1.3–3.2">›</button>
+    </div>
+    <span class="meta-line">current — installs now; paging right is view-only foresight until inputs arrive</span>
+  </div>
   <p class="meta-line" style="margin: 0 0 0.75rem;">Recommended installs per character, from synced skills and live slot occupancy — eligibility first (only characters holding the job's required skills receive it), and each job's duration uses its assignee's skill multiplier, so the chain-end estimate reflects who runs what. Reaction formulas can't be copied — one job per BPO. Each queued job is assigned to exactly one character; queues show the next job plus at most one "then", with a count for anything deeper.</p>
 
   <div class="anno">
@@ -1150,7 +1244,7 @@
           <span class="slot-name">Nitrogen Fuel Block</span>
           <span class="activity-tag mfg">manufacture</span>
         </div>
-        <span class="slot-meta">11 runs · ~2 h · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta">11 runs · ~2 h · Amamake - Police Weapons Facility</span>
         <span class="slot-meta" style="color: var(--green);">Ready to install</span>
       </div>
       <div class="slot ready">
@@ -1159,7 +1253,7 @@
           <span class="slot-name">Oxygen Fuel Block</span>
           <span class="activity-tag mfg">manufacture</span>
         </div>
-        <span class="slot-meta">14 runs · ~3 h · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta">14 runs · ~3 h · Amamake - Police Weapons Facility</span>
         <span class="slot-meta" style="color: var(--green);">Ready to install</span>
       </div>
       <div class="slot idle">+ 7 idle</div>
@@ -1207,7 +1301,7 @@
           <span class="slot-name">Hydrogen Fuel Block</span>
           <span class="activity-tag mfg">manufacture</span>
         </div>
-        <span class="slot-meta">11 runs · ~2 h · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta">11 runs · ~2 h · Amamake - Police Weapons Facility</span>
         <span class="slot-meta" style="color: var(--green);">Ready to install</span>
       </div>
       <div class="slot idle">
@@ -1257,7 +1351,7 @@
           <span class="slot-name">Helium Fuel Block</span>
           <span class="activity-tag mfg">manufacture</span>
         </div>
-        <span class="slot-meta">11 runs · ~2 h · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta">11 runs · ~2 h · Amamake - Police Weapons Facility</span>
         <span class="slot-meta" style="color: var(--green);">Ready to install</span>
       </div>
       <div class="slot idle">+ 9 idle</div>

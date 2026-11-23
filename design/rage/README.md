@@ -22,6 +22,14 @@ or farm).
 | `build-plan.html` | Freshly calculated plan: 5-wave bar (reactions → invention parallel branch → GPG → two BPC-bound ammo rounds, 2.7 d), 5-phase chain with per-node batch over-delivery, copy plan (4 one-run BPCs, 32 min), top-up invention plan (4 attempts · 81% · expected residue preview), required blueprints (11 to acquire, all NPC-seeded), gaps-only acquisition (moon stack + Rocket Fuel + Morphite), wave-1 allocation across the Reactions-5 holders |
 | `build-plan-active.html` | The same plan mid-flight (day 1.5 of 2.7, 55%) with the **over-delivery realized**: top-up complete at 1 Rage + 1 Javelin success (the sibling by-product banked), GPG delivered, ammo round 1 running at 65% with the 2-run top-up job riding the invented BPC, the residue card (Javelin BPC · 8 spare runs · reaction surpluses), delivered-units meter at 0 with 350,000 in flight |
 
+**2026-11-22 fan-out**: every page carries the standard 2026-11-22
+conventions — the planner's Plan facilities and sell-side market
+sections, the build plan's Market panel (build-vs-buy verdicts +
+estimated profit) and wave pager, the active page's running market
+readout with open verdicts — populated with this chain's data — **the negative-profit case**: at these prices the missiles buy cheaper than the plan builds them (the pink tile is the shape working; a stock or foundry decision, not arbitrage). All Ƶ figures are illustrative
+until M15's price sync; full section notes live on the Typhoon
+reference set.
+
 ## Data provenance
 
 - Quantities, phases, runs, and the invention layer come from

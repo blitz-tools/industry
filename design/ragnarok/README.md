@@ -18,6 +18,14 @@ than reaction depth.
 | `build-plan.html` | The terminal wave bar (420 d across seven segments; the reaction year owns 45%, the hull 16%), six-phase chain flow with the titan mineral-sink flavor at phase 5, representative phase-tree nodes (AIPS 1,067 runs · the four titan parts), the Hel's absent-copy state carried over, 82-blueprint inventory, billion-scale acquisition meters (Pyerite 0.06%), wave-1 allocation with Octavia's parallel 4-month train |
 | `build-plan-active.html` | Day 210 of 420 (50%): the reaction year 70% through its window, the carbon family complete and feeding the tiers, the intermediates ledger as a logistics instrument (206,200 Carbon Fiber held across two consuming levels), the double-gated target (components + the final train level, 119 days of slack), the early-BPC carrying-cost observation at its extreme (eleven months idle), and **mineral tranches** — the mountain's staged purchases against the year's gradual consumption, a procurement-scheduling surface no prior set needed |
 
+**2026-11-22 fan-out**: every page carries the standard 2026-11-22
+conventions — the planner's Plan facilities and sell-side market
+sections, the build plan's Market panel (build-vs-buy verdicts +
+estimated profit) and wave pager, the active page's running market
+readout with open verdicts — populated with this chain's data — the manufacturing hint carries the supercapital assembly gap, and the verdict table includes the four NPC-seeded titan mineral-sink BPOs. All Ƶ figures are illustrative
+until M15's price sync; full section notes live on the Typhoon
+reference set.
+
 ## Data provenance
 
 - Quantities, phases, runs, and the throughput arithmetic come

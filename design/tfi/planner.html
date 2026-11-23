@@ -86,7 +86,7 @@
         Commodity-first targeting (2026-11-20 decision of record). The
         faction signature in the sub-line: the BPC's acquisition path is
         <b>LP store</b>, not invention or market — the fifth path, and the
-        first gated by a currency rather than ISK. The T1 Typhoon sits
+        first gated by a currency rather than Ƶ. The T1 Typhoon sits
         right beside it in results — the faction hull and its T1 parent
         share the autocomplete, differing only in the acquisition path.
       </div>
@@ -165,7 +165,88 @@
         to the plan.
       </div>
 
+
       <hr class="divider">
+
+      <!-- Plan facilities -->
+      <h2 style="font-size: 0.95rem;">Plan facilities</h2>
+      <p class="card-sub">Where each activity runs. Defaults come from the Structures registry (one per activity); overrides are plan-scoped — the registry stays untouched. Every calculation multiplies against these: material requirements (ME rig), job durations (TE rig + structure hull), and install cost (system cost index × facility tax).</p>
+
+      <div class="form-grid">
+        <div class="field">
+          <label class="field-label" for="fac-mfg">Manufacturing</label>
+          <select class="form-select" id="fac-mfg">
+            <option selected>Amamake - Police Weapons Facility</option>
+            <option>Hek - IChooseYou Market and Industry</option>
+            <option>Osoggur VI - Urban Management Information Center</option>
+          </select>
+          <span class="field-hint">Azbel (medium) · ME T1 · TE T1 · tax 0.5% — registry default</span>
+        </div>
+        <div class="field">
+          <label class="field-label" for="fac-copy">Copying</label>
+          <select class="form-select" id="fac-copy">
+            <option selected>Amamake - Police Weapons Facility</option>
+            <option>Hek - IChooseYou Market and Industry</option>
+          </select>
+          <span class="field-hint">BPCs are the LP purchase — nothing to copy</span>
+        </div>
+        <div class="field">
+          <label class="field-label" for="fac-inv">Invention</label>
+          <select class="form-select" id="fac-inv">
+            <option selected>Amamake - Police Weapons Facility</option>
+            <option>Hek - IChooseYou Market and Industry</option>
+          </select>
+          <span class="field-hint">faction BPCs are bought from the LP store, not invented</span>
+        </div>
+        <div class="field">
+          <label class="field-label" for="fac-rxn">Reactions</label>
+          <select class="form-select" id="fac-rxn">
+            <option selected>Amamake - Reactions &amp; Reprocessing</option>
+            <option>Amamake - Police Refinery</option>
+          </select>
+          <span class="field-hint">Tatara (large refinery) · reaction T2 · tax 0.5% — registry default · also reprocesses</span>
+        </div>
+      </div>
+
+      <p class="meta-line" style="margin-top: 0.75rem;">
+        This plan multiplies: materials × ME T1 rig (−2.0% at the Azbel, lowsec) · job time × hull −30% and TE T1 rig · install cost = base × system index <span class="badge missing">3.1% — syncs at M15</span> × tax 0.5%
+      </p>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        Same section as the reference set (see
+        <a href="../typhoon/planner.html">../typhoon/planner.html</a>
+        for the full notes): registry defaults pre-selected, dropdowns
+        list the structures registered per activity, copying is its own
+        selector defaulting to the invention facility's default, and
+        overrides never write back to the registry.
+      </div>
+
+      <hr class="divider">
+
+      <!-- Sell-side market -->
+      <h2 style="font-size: 0.95rem;">Sell-side market</h2>
+      <p class="card-sub">Where the product would sell — sets the estimated sell price and the profit readout on the build plan. Buy-side verdicts (build vs buy per commodity) read the same market's prices.</p>
+
+      <span class="pool-picker">Market
+        <select aria-label="Sell-side market">
+          <option selected>The Forge — Jita IV Moon 4 (trade hub)</option>
+          <option>Domain — Amarr VIII (trade hub)</option>
+          <option>Heimatar — Rens (trade hub)</option>
+          <option>Metropolis — Hek (trade hub)</option>
+          <option>Sinq Laison — Dodixie (trade hub)</option>
+          <option>Amamake — 5 Times Nearly Winners (player market)</option>
+        </select>
+      </span>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        The market list comes from the market manager (the M15
+        sync-panel surface) — five trade hubs by default, custom and
+        player markets addable. Prices sync at M15; every Ƶ figure
+        downstream is illustrative until then.
+      </div>
+
 
       <h2 style="font-size: 0.95rem;">Requirements at target ×10</h2>
       <p class="card-sub">The full chain for ten faction battleships, resolved at selection — quantities track the target stepper live. Calculate schedules the plan; nothing here waits for it.</p>
@@ -185,7 +266,7 @@
               <tr class="group-row"><td colspan="3">LP-earned — the target's BPC</td></tr>
               <tr>
                 <td><img class="type-icon" src="https://images.evetech.net/types/32312/bpc?size=32" alt="">Typhoon Fleet Issue Blueprint</td>
-                <td class="muted">Tribal Liberation Force militia store — 10-pack at 200k LP + 200M ISK + 8× Imperial War Reserves Supply Package, or singles at 100k LP (see the offer table below); navy stores 500–600k LP</td>
+                <td class="muted">Tribal Liberation Force militia store — 10-pack at 200k LP + 200M Ƶ + 8× Imperial War Reserves Supply Package, or singles at 100k LP (see the offer table below); navy stores 500–600k LP</td>
                 <td><span class="badge missing">LP — 0 of 200k held</span></td>
               </tr>
               <tr class="group-row"><td colspan="3">Owned — the Typhoon component world</td></tr>
@@ -319,14 +400,14 @@
   <section class="card">
     <div class="card-body">
       <h2>3 · LP acquisition — offer variants &amp; shortfall</h2>
-      <p class="card-sub">The owned-copies overlay slot becomes the offer table: every way to buy the ten BPCs, priced in LP + ISK + items, against the pool's live balances per corporation. This is the faction analog of the decryptor and grade tables — the computed choice layer between the target and the schedule.</p>
+      <p class="card-sub">The owned-copies overlay slot becomes the offer table: every way to buy the ten BPCs, priced in LP + Ƶ + items, against the pool's live balances per corporation. This is the faction analog of the decryptor and grade tables — the computed choice layer between the target and the schedule.</p>
 
       <table class="asset-table">
         <thead>
           <tr>
             <th>Offer</th>
             <th class="num">LP each</th>
-            <th class="num">ISK each</th>
+            <th class="num">Ƶ each</th>
             <th>Items</th>
             <th>Total for ×10</th>
             <th>Balance check</th>
@@ -338,7 +419,7 @@
             <td class="num qty">20,000</td>
             <td class="num qty">20M</td>
             <td class="muted">8× Imperial War Reserves Supply Package</td>
-            <td class="muted">200k LP + 200M ISK</td>
+            <td class="muted">200k LP + 200M Ƶ</td>
             <td class="muted"><span style="color: var(--pink);">TLF held: 0 — 200k short</span></td>
           </tr>
           <tr>
@@ -346,7 +427,7 @@
             <td class="num qty">100,000</td>
             <td class="num qty">20M</td>
             <td class="muted">—</td>
-            <td class="muted">1M LP + 200M ISK</td>
+            <td class="muted">1M LP + 200M Ƶ</td>
             <td class="muted"><span style="color: var(--pink);">5× the pack's LP</span></td>
           </tr>
           <tr>
@@ -385,7 +466,7 @@
         (live-pulled 2026-11-21), balances from the character loyalty
         read post-re-auth. The offer table is the faction set's
         computed-choice layer — variant selection (LP-scarce vs
-        ISK-scarce vs item-sourced) presented the way invention sets
+        Ƶ-scarce vs item-sourced) presented the way invention sets
         present decryptors. The shortfall is the plan's front story:
         a currency the plan must <b>earn</b> (gameplay) or <b>move</b>
         (corp distribution), not buy on any market.

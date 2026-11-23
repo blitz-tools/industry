@@ -19,6 +19,14 @@ volumes.
 | `build-plan.html` | Freshly calculated plan: wave bar with the invention batch as W1 (2.2 d of a 16.0 d chain), 6-phase reverse chain with the T1 hull riding at phase 5, the invention plan (10 attempts · Process decryptor · ME_eff −1 · 92%, with the out-of-corp distribution step for blitzrage's materials), required blueprints across three acquisition paths, Typhoon-world copy plan, gaps-only acquisition with the NPC-market-goods category, wave-1 allocation with all ten of blitzrage's science slots on invention |
 | `build-plan-active.html` | The same plan mid-flight (day 6.5 of 16.0): invention complete at 2/10 successes (E = 2.2, actuals-against-expectation framing), two ≈5.5-day T2 component jobs running at 9%, the invented BPC waiting in the hangar, CJD delivered on Octavia |
 
+**2026-11-22 fan-out**: every page carries the standard 2026-11-22
+conventions — the planner's Plan facilities and sell-side market
+sections, the build plan's Market panel (build-vs-buy verdicts +
+estimated profit) and wave pager, the active page's running market
+readout with open verdicts — populated with this chain's data (all four facility selectors in use — the one chain where copying, invention, manufacturing, and reactions all run). All Ƶ figures are illustrative
+until M15's price sync; full section notes live on the Typhoon
+reference set.
+
 ## Data provenance
 
 - Quantities, phases, runs, and the invention layer come from

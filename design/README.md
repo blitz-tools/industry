@@ -60,7 +60,7 @@ set; once settled they apply to every set (decisions graduate to
   the BPCs travel). A **sell-side market** selector follows: trade
   hubs plus player markets from the market manager (M15), setting
   the estimated sell price and profit readout. Landed on the
-  Typhoon reference set; fans out to the remaining sets.
+  Typhoon reference set and fanned out to every set (2026-11-22).
 - **Build-plan pages carry a Market panel** (2026-11-22): the
   Purchase ⇄ Build chips roll up into per-commodity build-vs-buy
   verdicts at the selected market, with plan totals and estimated
@@ -71,6 +71,17 @@ set; once settled they apply to every set (decisions graduate to
 - **Currency displays as Ƶ** (2026-11-22): U+01B5 replaces "isk" as
   the currency symbol globally, and money totals read
   `<total> Ƶ (<per-item> Ƶ)` — total first, per-item in parens.
+- **Job allocation pages through waves** (2026-11-22): a `‹ Wave ## ›`
+  pager on the job-allocation section — the current wave is always
+  the default view until it completes; paging left shows historical
+  waves, paging right shows future waves at their current readiness.
+  A future-wave job whose inputs arrived early renders eligible with
+  an **Early start** control (per-job, owner-chosen, never
+  automatic); taken early starts show as pre-started, running inside
+  the future wave and counted in the plan. This is pipelining's UI
+  preview — the scheduler stays serial until the M9 pipelining
+  decision. Landed on the Typhoon reference set and fanned out to
+  every set (2026-11-22).
 - Dashed yellow `.anno` boxes are wireframe annotations and would
   never ship.
 - Data provenance is documented per set in that set's README:

@@ -379,8 +379,64 @@
     </tbody>
   </table>
 
+
+  <!-- Market panel — running -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Market — running estimate</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">
+    The profit readout, live: sell price re-checked at each wave boundary, input cost tracked as buy verdicts and gap coverage actually clear the wallet.
+    <span class="pool-picker">Market
+      <select aria-label="Sell-side market">
+        <option selected>The Forge — Jita IV Moon 4</option>
+        <option>Domain — Amarr VIII</option>
+        <option>Heimatar — Rens</option>
+        <option>Metropolis — Hek</option>
+        <option>Sinq Laison — Dodixie</option>
+        <option>Amamake — 5 Times Nearly Winners (player)</option>
+      </select>
+    </span>
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">2.15B Ƶ</p>
+      <p class="stat-label">Estimated sell price (2.15B Ƶ per Charon) · freighter 30-day avg +0.2% since calculation</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">1.61B Ƶ</p>
+      <p class="stat-label">Input cost cleared — of 1.83B Ƶ</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">54M Ƶ</p>
+      <p class="stat-label">Install cost paid — of 71M Ƶ</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--green);">+176M Ƶ</p>
+      <p class="stat-label">Estimated profit (+176M Ƶ per) · was +180M — contract backfills landed on estimate; re-checks at W5 delivery (day 21.7)</p>
+    </div>
+  </div>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">Settled since calculation: fuel blocks through components — built and delivered by day 9.9; the Charon build (W5) committed at install. No open verdicts remain — this is the fully-committed state: tiles and realized ledger only.</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Same lifecycle as the reference set (full notes on the
+    <a href="../typhoon/build-plan-active.html">Typhoon active page</a>):
+    input cost tracks only cleared purchases, sell price re-checks at
+    wave boundaries, verdict rows retire on commitment (build rows at
+    job install, buy rows at purchase clearing), and settled rows roll
+    into the realized ledger. Figures illustrative until M15.
+  </div>
+
   <!-- Job allocation -->
-  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — in flight</h2>
+  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.75rem 0 0.5rem;">
+    <h2 style="margin: 0; font-size: 1.05rem; color: var(--cyan);">Job allocation</h2>
+    <div class="wave-pager">
+      <button class="icon-button" type="button" aria-label="Previous wave" title="W4 — capital + regular components · 8 jobs · day 7.8–9.9">‹</button>
+      <span class="wave-pager-label">Wave 5</span>
+      <button class="icon-button" type="button" aria-label="Next wave" title="Final wave" disabled>›</button>
+    </div>
+    <span class="meta-line">current — the section shows the current wave until it completes; paging left is history, right is a future wave's readiness</span>
+  </div>
   <p class="meta-line" style="margin: 0 0 0.75rem;">Running jobs show status and time-to-delivery; busy slots queue their next job. Jobs correlate from synced ESI industry jobs.</p>
 
   <!-- schlepzrage -->
@@ -401,7 +457,7 @@
           <span class="slot-name">Nitrogen Fuel Block ×11</span>
           <span class="activity-tag mfg">manufacture</span>
         </div>
-        <span class="slot-meta">Delivered · day 0.2 · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta">Delivered · day 0.2 · Amamake - Police Weapons Facility</span>
       </div>
       <div class="slot idle">+ 9 idle</div>
     </div>
@@ -438,7 +494,7 @@
           <span class="slot-name">Charon ×1</span>
           <span class="activity-tag mfg">manufacture</span>
         </div>
-        <span class="slot-meta">Amamake - 5 times nearly AT winners · only Capital Ship Construction holder</span>
+        <span class="slot-meta">Amamake - Police Weapons Facility · only Capital Ship Construction holder</span>
         <span class="slot-countdown">9.3 d to delivery</span>
         <div class="meter"><div class="meter-fill" style="width: 21%"></div></div>
       </div>

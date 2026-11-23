@@ -332,8 +332,85 @@
     </tbody>
   </table>
 
+
+  <!-- Market panel — running -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Market — running estimate</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">
+    The profit readout, live: sell price re-checked at each wave boundary, input cost tracked as buy verdicts and gap coverage actually clear the wallet.
+    <span class="pool-picker">Market
+      <select aria-label="Sell-side market">
+        <option selected>The Forge — Jita IV Moon 4</option>
+        <option>Domain — Amarr VIII</option>
+        <option>Heimatar — Rens</option>
+        <option>Metropolis — Hek</option>
+        <option>Sinq Laison — Dodixie</option>
+        <option>Amamake — 5 Times Nearly Winners (player)</option>
+      </select>
+    </span>
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">82M Ƶ</p>
+      <p class="stat-label">Estimated sell price (82M Ƶ per Jackdaw) · 30-day avg −0.8% since calculation</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">38M Ƶ</p>
+      <p class="stat-label">Input cost cleared — of 51M Ƶ</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">1.4M Ƶ</p>
+      <p class="stat-label">Install cost paid — of 2.1M Ƶ</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--green);">+31M Ƶ</p>
+      <p class="stat-label">Estimated profit (+31M Ƶ per) · was +29M — relic purchase cleared; re-checks at W4 delivery (day 2.5)</p>
+    </div>
+  </div>
+
+  <table class="asset-table" style="margin-top: 0.75rem;">
+    <thead>
+      <tr>
+        <th>Open verdicts</th>
+        <th class="num">Need</th>
+        <th class="num">Build cost</th>
+        <th class="num">Buy cost</th>
+        <th>Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/34828/icon?size=32" alt=""> Jackdaw</td>
+        <td class="num qty">1</td>
+        <td class="num">this plan Ƶ</td>
+        <td class="num">82M Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">running in W4 — committed at install; the 39 unused BPC runs are residue, not an open verdict</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">Settled since calculation: invention (2 of 5 succeeded, E = 1.3) · polymers · hybrid components — all committed by day 0.5</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Same lifecycle as the reference set (full notes on the
+    <a href="../typhoon/build-plan-active.html">Typhoon active page</a>):
+    input cost tracks only cleared purchases, sell price re-checks at
+    wave boundaries, verdict rows retire on commitment (build rows at
+    job install, buy rows at purchase clearing), and settled rows roll
+    into the realized ledger. Figures illustrative until M15.
+  </div>
+
   <!-- Job allocation -->
-  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — in flight</h2>
+  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.75rem 0 0.5rem;">
+    <h2 style="margin: 0; font-size: 1.05rem; color: var(--cyan);">Job allocation</h2>
+    <div class="wave-pager">
+      <button class="icon-button" type="button" aria-label="Previous wave" title="W3 — 8 hybrid tech component jobs, 10 min each · day 0.35–0.4">‹</button>
+      <span class="wave-pager-label">Wave 4</span>
+      <button class="icon-button" type="button" aria-label="Next wave" title="Final wave" disabled>›</button>
+    </div>
+    <span class="meta-line">current — the section shows the current wave until it completes; paging left is history, right is a future wave's readiness</span>
+  </div>
   <p class="meta-line" style="margin: 0 0 0.75rem;">Running jobs show status and time-to-delivery; busy slots queue their next job. Jobs correlate from synced ESI industry jobs.</p>
 
   <!-- blitzrage -->
@@ -378,7 +455,7 @@
           <span class="slot-name">Fuel blocks · Hydrogen + Nitrogen</span>
           <span class="activity-tag mfg">manufacture</span>
         </div>
-        <span class="slot-meta">Delivered · day 0.05 · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta">Delivered · day 0.05 · Amamake - Police Weapons Facility</span>
       </div>
       <div class="slot done">
         <div class="slot-head">
@@ -434,7 +511,7 @@
           <span class="slot-name">Jackdaw ×1</span>
           <span class="activity-tag mfg">manufacture</span>
         </div>
-        <span class="slot-meta">50 h run · Amamake - 5 times nearly AT winners · sole Advanced Small Ship Construction holder</span>
+        <span class="slot-meta">50 h run · Amamake - Police Weapons Facility · sole Advanced Small Ship Construction holder</span>
         <span class="slot-countdown">0.7 d to delivery</span>
         <div class="meter"><div class="meter-fill" style="width: 65%"></div></div>
       </div>

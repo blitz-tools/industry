@@ -185,7 +185,7 @@
       <span class="phase-count">1 node</span>
       <span class="summary-right">
         <span class="stage-state missing">Gated — skill + components</span>
-      </summary>
+      </span>
     </summary>
     <div class="phase-body">
       <div class="node-row">
@@ -317,8 +317,92 @@
     </tbody>
   </table>
 
+
+  <!-- Market panel — running -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Market — running estimate</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">
+    The profit readout, live: sell price re-checked at each wave boundary, input cost tracked as buy verdicts and gap coverage actually clear the wallet.
+    <span class="pool-picker">Market
+      <select aria-label="Sell-side market">
+        <option selected>The Forge — Jita IV Moon 4</option>
+        <option>Domain — Amarr VIII</option>
+        <option>Heimatar — Rens</option>
+        <option>Metropolis — Hek</option>
+        <option>Sinq Laison — Dodixie</option>
+        <option>Amamake — 5 Times Nearly Winners (player)</option>
+      </select>
+    </span>
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">87.5B Ƶ</p>
+      <p class="stat-label">Estimated sell price (87.5B Ƶ per Ragnarok) · 30-day mineral-basket avg +0.9% since calculation</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">52.6B Ƶ</p>
+      <p class="stat-label">Input cost cleared — of 78.2B Ƶ</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">1.1B Ƶ</p>
+      <p class="stat-label">Install cost paid — of 1.9B Ƶ</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--green);">+6.9B Ƶ</p>
+      <p class="stat-label">Estimated profit (+6.9B Ƶ per) · was +7.4B — tranche buys tracking estimate; re-checks at the reaction year's month boundaries</p>
+    </div>
+  </div>
+
+  <table class="asset-table" style="margin-top: 0.75rem;">
+    <thead>
+      <tr>
+        <th>Open verdicts</th>
+        <th class="num">Need</th>
+        <th class="num">Build cost</th>
+        <th class="num">Buy cost</th>
+        <th>Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="type-icon-none"></span> Component manufacturing (W4/W5)</td>
+        <td class="num qty">82 buildables</td>
+        <td class="num muted">—</td>
+        <td class="num">None Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">queued — opens day 260, behind the reaction year</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/23773/icon?size=32" alt=""> The Ragnarok build</td>
+        <td class="num qty">1</td>
+        <td class="num">this plan Ƶ</td>
+        <td class="num">87.5B Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">gated on components + the CSC 5 train — open until W6 (day 350)</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">Settled since calculation: fuel blocks · the carbon family · seven months of the reaction year · titan-sink BPOs (filled at the front — eleven months idle, the carrying-cost extreme) — committed</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Same lifecycle as the reference set (full notes on the
+    <a href="../typhoon/build-plan-active.html">Typhoon active page</a>):
+    input cost tracks only cleared purchases, sell price re-checks at
+    wave boundaries, verdict rows retire on commitment (build rows at
+    job install, buy rows at purchase clearing), and settled rows roll
+    into the realized ledger. Figures illustrative until M15.
+  </div>
+
   <!-- Job allocation -->
-  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — in flight</h2>
+  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.75rem 0 0.5rem;">
+    <h2 style="margin: 0; font-size: 1.05rem; color: var(--cyan);">Job allocation</h2>
+    <div class="wave-pager">
+      <button class="icon-button" type="button" aria-label="Previous wave" title="W2 — carbon family + neofullerenes (2,188–2,213 runs per type) · day 40–70">‹</button>
+      <span class="wave-pager-label">Wave 3</span>
+      <button class="icon-button" type="button" aria-label="Next wave" title="W4 — component manufacturing: CTR, AIPS (1,067 runs), LSBU, titan mineral sinks · day 260–310">›</button>
+    </div>
+    <span class="meta-line">current — the section shows the current wave until it completes; paging left is history, right is a future wave's readiness</span>
+  </div>
   <p class="meta-line" style="margin: 0 0 0.75rem;">The polymer and composite reactions run at the pool's full concurrency — 140 days into the reaction year.</p>
 
   <!-- Octavia Arbitrage -->
