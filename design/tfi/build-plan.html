@@ -60,7 +60,7 @@
     </div>
     <div class="stat">
       <p class="stat-value">0 blueprints</p>
-      <p class="stat-label">To acquire by market — every build-world blueprint owned; the BPC comes by LP purchase (10-pack: 200k LP + 200M ISK + 8× supply packages)</p>
+      <p class="stat-label">To acquire by market — every build-world blueprint owned; the BPC comes by LP purchase (10-pack: 200k LP + 200M Ƶ + 8× supply packages)</p>
     </div>
     <div class="stat">
       <p class="stat-value">7 jobs</p>
@@ -182,7 +182,7 @@
       <span class="summary-right">
         <span class="stage-state missing">BPCs — LP front</span>
         <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
-      </summary>
+      </span>
     </summary>
     <div class="phase-body">
       <div class="node-row">
@@ -196,7 +196,7 @@
         </span>
       </div>
       <div class="node-row">
-        <span class="node-gating">Gated on the LP front: 200k TLF LP (held 0) + 200M ISK + 8× Imperial War Reserves Supply Package for the 10-pack — or the corp distribution if the curated militia balance covers it. Components and minerals are ready or purchasable on any day; the ten 1-run BPCs each host one 5 h job (job-lock per BPC — the Trimark shape, with the BPC count set by the offer variant rather than invention dice). Runs per LP BPC pinned at 1 (community convention; verify at purchase).</span>
+        <span class="node-gating">Gated on the LP front: 200k TLF LP (held 0) + 200M Ƶ + 8× Imperial War Reserves Supply Package for the 10-pack — or the corp distribution if the curated militia balance covers it. Components and minerals are ready or purchasable on any day; the ten 1-run BPCs each host one 5 h job (job-lock per BPC — the Trimark shape, with the BPC count set by the offer variant rather than invention dice). Runs per LP BPC pinned at 1 (community convention; verify at purchase).</span>
       </div>
     </div>
   </details>
@@ -301,7 +301,7 @@
         <td><span class="activity-tag mfg">manufacture</span></td>
         <td><span class="badge missing">Missing</span></td>
         <td class="muted">TLF militia store, 10-pack offer · see the LP acquisition plan above</td>
-        <td class="num qty">200k LP + 200M isk</td>
+        <td class="num qty">200k LP + 200M Ƶ</td>
       </tr>
       <tr class="group-row"><td colspan="5">Owned</td></tr>
       <tr>
@@ -331,7 +331,7 @@
         <td class="num qty">40,000,000</td>
         <td class="num">652,411</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 2%"></div></div><span class="meter-pct">2%</span></div></td>
-        <td class="muted">Market / mining · ~7B isk</td>
+        <td class="muted">Market / mining · ~7B Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/34/icon?size=32" alt="">Tritanium</td>
@@ -354,8 +354,95 @@
     </tbody>
   </table>
 
+
+  <!-- Market panel -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Market — build vs buy</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">
+    The Purchase ⇄ Build chips roll up here: per-commodity build-vs-buy verdicts at the selected market, the estimated sell price, and the plan's profit readout.
+    <span class="pool-picker">Market
+      <select aria-label="Sell-side market">
+        <option selected>The Forge — Jita IV Moon 4</option>
+        <option>Domain — Amarr VIII</option>
+        <option>Heimatar — Rens</option>
+        <option>Metropolis — Hek</option>
+        <option>Sinq Laison — Dodixie</option>
+        <option>Amamake — 5 Times Nearly Winners (player)</option>
+      </select>
+    </span>
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">7.05B Ƶ</p>
+      <p class="stat-label">Estimated sell price (705M Ƶ per TFI)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">5.9B Ƶ</p>
+      <p class="stat-label">Input cost — LP layer ≈2.0B (200k TLF LP + 200M Ƶ per 10-pack) + minerals 3.9B</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">96M Ƶ</p>
+      <p class="stat-label">Install cost — system index × facility tax</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--green);">+1.06B Ƶ</p>
+      <p class="stat-label">Estimated profit (+106M Ƶ per) · +15.0% · range +0.8B … +1.3B Ƶ</p>
+    </div>
+  </div>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Commodity</th>
+        <th class="num">Need</th>
+        <th class="num">Build cost</th>
+        <th class="num">Buy cost</th>
+        <th>Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/32312/bpc?size=32" alt=""> TFI Blueprint 10-pack (BPC ×10)</td>
+        <td class="num qty">10 ships</td>
+        <td class="num muted">—</td>
+        <td class="num">200k TLF LP + 200M Ƶ Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">the LP store acquisition — currency-gated, not a market verdict</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57478/icon?size=32" alt=""> Auto-Integrity Preservation Seal</td>
+        <td class="num qty">2,000</td>
+        <td class="num">1.2B Ƶ</td>
+        <td class="num">1.7B Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">−29%</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/34/icon?size=32" alt=""> Tritanium</td>
+        <td class="num qty">80M units</td>
+        <td class="num muted">—</td>
+        <td class="num">2.9B Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">the Typhoon mountain at ×10</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Figures illustrative until M15's price sync; verdict arithmetic is
+    M10's. Verdicts are recommendations — the chips are authoritative
+    (full format and lifecycle notes on the
+    <a href="../typhoon/build-plan.html">Typhoon reference set</a>).
+  </div>
+
   <!-- Job allocation -->
-  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — build world (W1)</h2>
+  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.75rem 0 0.5rem;">
+    <h2 style="margin: 0; font-size: 1.05rem; color: var(--cyan);">Job allocation</h2>
+    <div class="wave-pager">
+      <button class="icon-button" type="button" aria-label="Previous wave" title="No earlier wave" disabled>‹</button>
+      <span class="wave-pager-label">Wave 1</span>
+      <button class="icon-button" type="button" aria-label="Next wave" title="W2 — ten 1-run hull jobs, 5 h each, all parallel · day 19–21">›</button>
+    </div>
+    <span class="meta-line">current — installs now; paging right is view-only foresight until inputs arrive</span>
+  </div>
   <p class="meta-line" style="margin: 0 0 0.75rem;">The build world's seven jobs install the day the LP front resolves — every gate green, every input on hand. Shown at their ready state; the plan's real front is the LP table above.</p>
 
   <div class="anno">

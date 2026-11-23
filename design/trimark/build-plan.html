@@ -360,21 +360,21 @@
         <td class="num qty">230</td>
         <td class="num">0</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — direct rig input</span></div></td>
-        <td class="muted">Wreck salvaging / market · avg 120k isk</td>
+        <td class="muted">Wreck salvaging / market · avg 120k Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/25624/icon?size=32" alt="">Intact Armor Plates</td>
         <td class="num qty">200</td>
         <td class="num">0</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0%</span></div></td>
-        <td class="muted">Wreck salvaging / market · avg 150k isk</td>
+        <td class="muted">Wreck salvaging / market · avg 150k Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/25609/icon?size=32" alt="">Nanite Compound</td>
         <td class="num qty">150</td>
         <td class="num">0</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0%</span></div></td>
-        <td class="muted">Wreck salvaging / market · avg 90k isk</td>
+        <td class="muted">Wreck salvaging / market · avg 90k Ƶ</td>
       </tr>
       <tr class="group-row"><td colspan="5">Minerals</td></tr>
       <tr>
@@ -382,7 +382,7 @@
         <td class="num qty">82</td>
         <td class="num">0</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — R.A.M. input</span></div></td>
-        <td class="muted">Mining / market · avg 260 isk</td>
+        <td class="muted">Mining / market · avg 260 Ƶ</td>
       </tr>
     </tbody>
   </table>
@@ -399,8 +399,95 @@
     contrast the volume story on the ammo side.
   </div>
 
+
+  <!-- Market panel -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Market — build vs buy</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">
+    The Purchase ⇄ Build chips roll up here: per-commodity build-vs-buy verdicts at the selected market, the estimated sell price, and the plan's profit readout.
+    <span class="pool-picker">Market
+      <select aria-label="Sell-side market">
+        <option selected>The Forge — Jita IV Moon 4</option>
+        <option>Domain — Amarr VIII</option>
+        <option>Heimatar — Rens</option>
+        <option>Metropolis — Hek</option>
+        <option>Sinq Laison — Dodixie</option>
+        <option>Amamake — 5 Times Nearly Winners (player)</option>
+      </select>
+    </span>
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">1.48B Ƶ</p>
+      <p class="stat-label">Estimated sell price (148M Ƶ per rig)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">1.12B Ƶ</p>
+      <p class="stat-label">Input cost — salvage 0.94B + decryptors + copies</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">38M Ƶ</p>
+      <p class="stat-label">Install cost — system index × facility tax</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--green);">+322M Ƶ</p>
+      <p class="stat-label">Estimated profit (+32.2M Ƶ per) · +21.8% · range +265M … +391M Ƶ</p>
+    </div>
+  </div>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Commodity</th>
+        <th class="num">Need</th>
+        <th class="num">Build cost</th>
+        <th class="num">Buy cost</th>
+        <th>Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/25894/icon?size=32" alt=""> T1 Large Trimark Armor Pump (build input)</td>
+        <td class="num qty">10</td>
+        <td class="num">9.8M Ƶ</td>
+        <td class="num">16M Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">−39% — the T2 build consumes these</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/25624/icon?size=32" alt=""> Intact Armor Plates gap</td>
+        <td class="num qty">of 1,120</td>
+        <td class="num muted">—</td>
+        <td class="num">96M Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">salvage market — at zero in stock</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/34202/icon?size=32" alt=""> Attainment Decryptor</td>
+        <td class="num qty">30</td>
+        <td class="num muted">—</td>
+        <td class="num">15M Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">invention inputs — no build path</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Figures illustrative until M15's price sync; verdict arithmetic is
+    M10's. Verdicts are recommendations — the chips are authoritative
+    (full format and lifecycle notes on the
+    <a href="../typhoon/build-plan.html">Typhoon reference set</a>).
+  </div>
+
   <!-- Job allocation -->
-  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — wave 1</h2>
+  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.75rem 0 0.5rem;">
+    <h2 style="margin: 0; font-size: 1.05rem; color: var(--cyan);">Job allocation</h2>
+    <div class="wave-pager">
+      <button class="icon-button" type="button" aria-label="Previous wave" title="No earlier wave" disabled>‹</button>
+      <span class="wave-pager-label">Wave 1</span>
+      <button class="icon-button" type="button" aria-label="Next wave" title="W2 — invention batch 1: 30 attempts in parallel · 6.5 h · day 0.63–0.9">›</button>
+    </div>
+    <span class="meta-line">current — installs now; paging right is view-only foresight until inputs arrive</span>
+  </div>
   <p class="meta-line" style="margin: 0 0 0.75rem;">Recommended installs per character, from synced skills and live slot occupancy — eligibility first. The copy pairs roll on the two corp BPOs (factory roles: schlepzrage + Octavia), R.A.M. goes anywhere with slots, and invention installs in wave 2 once copies land. Amarr Encryption Methods is simulated per the program convention — any of the three spread characters may hold it.</p>
 
   <div class="anno">

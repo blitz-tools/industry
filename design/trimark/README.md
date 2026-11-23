@@ -21,6 +21,14 @@ the smallest acquisition surface in the program (8 raw types).
 | `build-plan.html` | Freshly calculated plan: copy plan (30 one-run BPCs, sizing rationale), invention plan (batch 1 at 30 attempts / E 10.2 / 60% + the conditional re-arm row), no-dead-zone wave bar (copy 15 h → invention 6.5 h → ten 12.5 h builds, 1.4 d), 3-phase chain, required blueprints (1 to acquire), gaps-only acquisition (salvage + Isogen), wave-1 allocation (copy pairs rolling on 2 corp BPOs) |
 | `build-plan-active.html` | The same plan mid-flight (day 1.2 of 1.9, 65%) with the **shortfall branch realized**: batch 1 complete at 8/10 (E was 10.2), the loop-state card (successes/attempt-budget meters, re-arm with cause, both residue directions held), re-arm copy wave + batch 2 running at 48%, build phase gated, material residue visible |
 
+**2026-11-22 fan-out**: every page carries the standard 2026-11-22
+conventions — the planner's Plan facilities and sell-side market
+sections, the build plan's Market panel (build-vs-buy verdicts +
+estimated profit) and wave pager, the active page's running market
+readout with open verdicts — populated with this chain's data — the active market panel tracks the retry loop's open verdicts. All Ƶ figures are illustrative
+until M15's price sync; full section notes live on the Typhoon
+reference set.
+
 ## Data provenance
 
 - Quantities, phases, runs, and the invention layer come from

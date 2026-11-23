@@ -199,7 +199,7 @@
       <span class="summary-right">
         <span class="stage-state missing">Missing inputs</span>
         <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
-      </summary>
+      </span>
     </summary>
     <div class="phase-body">
       <div class="node-row">
@@ -256,7 +256,7 @@
       <span class="summary-right">
         <span class="stage-state missing">Skill gate — training</span>
         <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
-      </summary>
+      </span>
     </summary>
     <div class="phase-body">
       <div class="node-row">
@@ -357,7 +357,7 @@
         <td class="num qty">146,813,500</td>
         <td class="num">652,411</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0.4%"></div></div><span class="meter-pct">0.4% — the program's largest single procurement</span></div></td>
-        <td class="muted">Market / mining · ~25B isk at market average</td>
+        <td class="muted">Market / mining · ~25B Ƶ at market average</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/36/icon?size=32" alt="">Mexallon</td>
@@ -389,8 +389,102 @@
 
   <p class="meta-line" style="margin: 0.5rem 0 0;">Partially covered: the R4 moon materials (Hydrocarbons 22k of 692k, Atmospheric Gases 94k of 692k), ice products (Liquid Ozone 75k of 360k, Heavy Water 33k of 175k), and the fuel-block stock (2,398 Nitrogen / 1,027 Helium blocks ≈ 2 of 12.5 needed runs). Everything else — PI tier-4, R8/R64, Morphite — is at or near zero. Market-average figures illustrative (M15 synced prices).</p>
 
+
+  <!-- Market panel -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Market — build vs buy</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">
+    The Purchase ⇄ Build chips roll up here: per-commodity build-vs-buy verdicts at the selected market, the estimated sell price, and the plan's profit readout.
+    <span class="pool-picker">Market
+      <select aria-label="Sell-side market">
+        <option selected>The Forge — Jita IV Moon 4</option>
+        <option>Domain — Amarr VIII</option>
+        <option>Heimatar — Rens</option>
+        <option>Metropolis — Hek</option>
+        <option>Sinq Laison — Dodixie</option>
+        <option>Amamake — 5 Times Nearly Winners (player)</option>
+      </select>
+    </span>
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">22.8B Ƶ</p>
+      <p class="stat-label">Estimated sell price (22.8B Ƶ per Hel)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">20.9B Ƶ</p>
+      <p class="stat-label">Input cost — mineral tranches 14.2B + BPC 5.2B + reaction inputs</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">512M Ƶ</p>
+      <p class="stat-label">Install cost — system index × facility tax</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--pink);">−0.9B Ƶ</p>
+      <p class="stat-label">Estimated profit (−0.9B Ƶ per) · −4.1% · range −1.8B … +0.2B Ƶ</p>
+    </div>
+  </div>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Commodity</th>
+        <th class="num">Need</th>
+        <th class="num">Build cost</th>
+        <th class="num">Buy cost</th>
+        <th>Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/21009/icon?size=32" alt=""> Capital Propulsion Engine</td>
+        <td class="num qty">50</td>
+        <td class="num">3.1B Ƶ</td>
+        <td class="num">4.1B Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">−24%</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/22853/bpc?size=32" alt=""> Hel Blueprint (BPC ×1)</td>
+        <td class="num qty">1 run</td>
+        <td class="num muted">—</td>
+        <td class="num">5.2B Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">contract acquisition — the plan's single most expensive item</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/35/icon?size=32" alt=""> Pyerite tranche</td>
+        <td class="num qty">146.8M units</td>
+        <td class="num muted">—</td>
+        <td class="num">3.1B Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">mineral mountain — tranches priced at market</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/17317/icon?size=32" alt=""> Fermionic Condensates</td>
+        <td class="num qty">stack</td>
+        <td class="num">210M Ƶ</td>
+        <td class="num">248M Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">−15%</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Figures illustrative until M15's price sync; verdict arithmetic is
+    M10's. Verdicts are recommendations — the chips are authoritative
+    (full format and lifecycle notes on the
+    <a href="../typhoon/build-plan.html">Typhoon reference set</a>). <b>The supercapital straddle</b>: the profit range crosses zero — supercap margins live and die with the mineral market (the tranches are 68% of input cost). The facilities section carries the supercap gap: no registered structure holds the assembly capability, a nullsec acquisition prerequisite recorded as an M3 pin.
+  </div>
+
   <!-- Job allocation -->
-  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — wave 1</h2>
+  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.75rem 0 0.5rem;">
+    <h2 style="margin: 0; font-size: 1.05rem; color: var(--cyan);">Job allocation</h2>
+    <div class="wave-pager">
+      <button class="icon-button" type="button" aria-label="Previous wave" title="No earlier wave" disabled>‹</button>
+      <span class="wave-pager-label">Wave 1</span>
+      <button class="icon-button" type="button" aria-label="Next wave" title="W2 — carbon family + Isotropic Neofullerenes (875–900 runs per type) · day 40–65">›</button>
+    </div>
+    <span class="meta-line">current — installs now; paging right is view-only foresight until inputs arrive</span>
+  </div>
   <p class="meta-line" style="margin: 0 0 0.75rem;">Recommended installs per character, from synced skills and live slot occupancy — eligibility first. Fuel-block runs go to manufacturing slots anywhere; the carbon family's opening reactions spread across the four reactors. Octavia's skill train starts day 0 in parallel.</p>
 
   <div class="anno">

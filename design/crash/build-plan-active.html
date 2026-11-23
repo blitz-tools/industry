@@ -327,8 +327,92 @@
     </tbody>
   </table>
 
+
+  <!-- Market panel — running -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Market — running estimate</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">
+    The profit readout, live: sell price re-checked at each wave boundary, input cost tracked as buy verdicts and gap coverage actually clear the wallet.
+    <span class="pool-picker">Market
+      <select aria-label="Sell-side market">
+        <option selected>The Forge — Jita IV Moon 4</option>
+        <option>Domain — Amarr VIII</option>
+        <option>Heimatar — Rens</option>
+        <option>Metropolis — Hek</option>
+        <option>Sinq Laison — Dodixie</option>
+        <option>Amamake — 5 Times Nearly Winners (player)</option>
+      </select>
+    </span>
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">1.53B Ƶ</p>
+      <p class="stat-label">Estimated sell price (15.3M Ƶ per booster) · 30-day avg +2.4% since calculation — contraband logistics premium</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">0.88B Ƶ</p>
+      <p class="stat-label">Input cost cleared — of 1.21B Ƶ</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">7M Ƶ</p>
+      <p class="stat-label">Install cost paid — of 12M Ƶ</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--green);">+305M Ƶ</p>
+      <p class="stat-label">Estimated profit (+3.05M Ƶ per) · was +308M — gas buys cleared on estimate; re-checks at W3 completion (day 7.7)</p>
+    </div>
+  </div>
+
+  <table class="asset-table" style="margin-top: 0.75rem;">
+    <thead>
+      <tr>
+        <th>Open verdicts</th>
+        <th class="num">Need</th>
+        <th class="num">Build cost</th>
+        <th class="num">Buy cost</th>
+        <th>Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="type-icon-none"></span> Strong-tier reactions</td>
+        <td class="num qty">92 runs</td>
+        <td class="num muted">—</td>
+        <td class="num">None Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">running in W3 — committed at install</span></td>
+      </tr>
+      <tr>
+        <td><span class="type-icon-none"></span> Booster manufacture</td>
+        <td class="num qty">100</td>
+        <td class="num muted">—</td>
+        <td class="num">None Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">queued W4 — open until the max job installs (day 7.7)</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">Settled since calculation: standard + improved tiers · Frentix line · gas and reagent purchases — committed</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Same lifecycle as the reference set (full notes on the
+    <a href="../typhoon/build-plan-active.html">Typhoon active page</a>):
+    input cost tracks only cleared purchases, sell price re-checks at
+    wave boundaries, verdict rows retire on commitment (build rows at
+    job install, buy rows at purchase clearing), and settled rows roll
+    into the realized ledger. Figures illustrative until M15.
+  </div>
+
   <!-- Job allocation -->
-  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — in flight</h2>
+  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.75rem 0 0.5rem;">
+    <h2 style="margin: 0; font-size: 1.05rem; color: var(--cyan);">Job allocation</h2>
+    <div class="wave-pager">
+      <button class="icon-button" type="button" aria-label="Previous wave" title="W2 — improved tier: 92 runs consuming both standard lines · day 2.9–5.3">‹</button>
+      <span class="wave-pager-label">Wave 3</span>
+      <button class="icon-button" type="button" aria-label="Next wave" title="W4 — booster manufacture: one max job, 33.3 h, Drug Manufacturing 5 (simulated) · day 7.7–9.1">›</button>
+    </div>
+    <span class="meta-line">current — the section shows the current wave until it completes; paging left is history, right is a future wave's readiness</span>
+  </div>
   <p class="meta-line" style="margin: 0 0 0.75rem;">The strong and Frentix lines run across the four reactors, two jobs each; the manufacturing cap queues next on any Industry line.</p>
 
   <!-- Octavia Arbitrage -->

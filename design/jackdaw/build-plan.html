@@ -479,21 +479,21 @@
         <td class="num qty">163</td>
         <td class="num">0</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — direct component input</span></div></td>
-        <td class="muted">w-space sites / market · avg 240k isk</td>
+        <td class="muted">w-space sites / market · avg 240k Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/30254/icon?size=32" alt="">Electromechanical Hull Sheeting</td>
         <td class="num qty">140</td>
         <td class="num">0</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0%</span></div></td>
-        <td class="muted">w-space sites / market · avg 55k isk</td>
+        <td class="muted">w-space sites / market · avg 55k Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/30021/icon?size=32" alt="">Modified Fluid Router</td>
         <td class="num qty">76</td>
         <td class="num">0</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0%</span></div></td>
-        <td class="muted">w-space sites / market · avg 90k isk</td>
+        <td class="muted">w-space sites / market · avg 90k Ƶ</td>
       </tr>
       <tr>
         <td colspan="5" class="muted">+ 12 more salvage types at zero — Powdered C-540 Graphite ×30 · Cartesian Temporal Coordinator ×8 · Fused Nanomechanical Engines ×8 · Resonance Calibration Matrix ×8 · Emergent Combat Analyzer ×8 · Heuristic Selfassemblers ×6 · Melted Nanoribbons ×4 · Central System Controller ×3 · Defensive Control Node ×3 · Emergent Combat Intelligence ×3 · Jump Drive Control Nexus ×3 · Thermoelectric Catalysts ×3</td>
@@ -504,7 +504,7 @@
         <td class="num qty">700</td>
         <td class="num">0</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — feeds PPD Fullerene Fibers</span></div></td>
-        <td class="muted">w-space gas sites / market · avg 900 isk</td>
+        <td class="muted">w-space gas sites / market · avg 900 Ƶ</td>
       </tr>
       <tr>
         <td colspan="5" class="muted">+ 8 more fullerites at zero — C60 ×400 · C70 ×400 · C84 ×300 · C28 / C32 / C72 ×200 each · C320 / C540 ×100 each</td>
@@ -515,7 +515,7 @@
         <td class="num qty">382</td>
         <td class="num">0</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — reaction input (T3 signature)</span></div></td>
-        <td class="muted">Mining / market · avg 260 isk</td>
+        <td class="muted">Mining / market · avg 260 Ƶ</td>
       </tr>
       <tr class="group-row"><td colspan="5">PI commodities</td></tr>
       <tr>
@@ -538,7 +538,7 @@
         <td class="num qty">450</td>
         <td class="num">0</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — blocks the Oxygen fuel-block job</span></div></td>
-        <td class="muted">Ice mining / market · avg 320 isk</td>
+        <td class="muted">Ice mining / market · avg 320 Ƶ</td>
       </tr>
       <tr>
         <td colspan="5" class="muted">+ Nitrogen Isotopes ×450 and Helium Isotopes ×450, both at zero — Hydrogen Isotopes (×450 needed) covered 21×</td>
@@ -559,8 +559,95 @@
     customer. Market-average figures illustrative (M15 synced prices).
   </div>
 
+
+  <!-- Market panel -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Market — build vs buy</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">
+    The Purchase ⇄ Build chips roll up here: per-commodity build-vs-buy verdicts at the selected market, the estimated sell price, and the plan's profit readout.
+    <span class="pool-picker">Market
+      <select aria-label="Sell-side market">
+        <option selected>The Forge — Jita IV Moon 4</option>
+        <option>Domain — Amarr VIII</option>
+        <option>Heimatar — Rens</option>
+        <option>Metropolis — Hek</option>
+        <option>Sinq Laison — Dodixie</option>
+        <option>Amamake — 5 Times Nearly Winners (player)</option>
+      </select>
+    </span>
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">82M Ƶ</p>
+      <p class="stat-label">Estimated sell price (82M Ƶ per Jackdaw)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">51M Ƶ</p>
+      <p class="stat-label">Input cost — relic 28M + polymers + components + datacores</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">2.1M Ƶ</p>
+      <p class="stat-label">Install cost — system index × facility tax</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--green);">+29M Ƶ</p>
+      <p class="stat-label">Estimated profit (+29M Ƶ per) · +35.4% · range +21M … +38M Ƶ</p>
+    </div>
+  </div>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Commodity</th>
+        <th class="num">Need</th>
+        <th class="num">Build cost</th>
+        <th class="num">Buy cost</th>
+        <th>Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="type-icon-none"></span> Hybrid Tech Component</td>
+        <td class="num qty">46</td>
+        <td class="num">11M Ƶ</td>
+        <td class="num">15M Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">−27%</span></td>
+      </tr>
+      <tr>
+        <td><span class="type-icon-none"></span> Fullerite polymers</td>
+        <td class="num qty">from C50 + minerals</td>
+        <td class="num">4.2M Ƶ</td>
+        <td class="num">5.1M Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">−18%</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/34412/icon?size=32" alt=""> Intact Relic</td>
+        <td class="num qty">1</td>
+        <td class="num muted">—</td>
+        <td class="num">28M Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">or farm in w-space — the market is the floor</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Figures illustrative until M15's price sync; verdict arithmetic is
+    M10's. Verdicts are recommendations — the chips are authoritative
+    (full format and lifecycle notes on the
+    <a href="../typhoon/build-plan.html">Typhoon reference set</a>).
+  </div>
+
   <!-- Job allocation -->
-  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — wave 1</h2>
+  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.75rem 0 0.5rem;">
+    <h2 style="margin: 0; font-size: 1.05rem; color: var(--cyan);">Job allocation</h2>
+    <div class="wave-pager">
+      <button class="icon-button" type="button" aria-label="Previous wave" title="No earlier wave" disabled>‹</button>
+      <span class="wave-pager-label">Wave 1</span>
+      <button class="icon-button" type="button" aria-label="Next wave" title="W2 — 9 polymer reactions (3 h, one formula each) + R.A.M. · day 0.15–0.3">›</button>
+    </div>
+    <span class="meta-line">current — installs now; paging right is view-only foresight until inputs arrive</span>
+  </div>
   <p class="meta-line" style="margin: 0 0 0.75rem;">Recommended installs per character, from synced skills and live slot occupancy — eligibility first. The five invention attempts take five of blitzrage's science slots (simulated skill holder; one relic each, no job-lock); the fuel blocks go to the corp members so reactions open on schedule. blitzrage is out-of-corp: everything its jobs consume arrives by contract, not the office hangars.</p>
 
   <div class="anno">
@@ -623,7 +710,7 @@
           <span class="slot-name">Hydrogen Fuel Block</span>
           <span class="activity-tag mfg">manufacture</span>
         </div>
-        <span class="slot-meta">1 run · 15 min · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta">1 run · 15 min · Amamake - Police Weapons Facility</span>
         <span class="slot-meta" style="color: var(--green);">Ready to install</span>
       </div>
       <div class="slot ready">
@@ -660,7 +747,7 @@
           <span class="slot-name">Oxygen Fuel Block</span>
           <span class="activity-tag mfg">manufacture</span>
         </div>
-        <span class="slot-meta">1 run · 15 min · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta">1 run · 15 min · Amamake - Police Weapons Facility</span>
         <span class="slot-meta" style="color: var(--green);">Ready to install</span>
       </div>
       <div class="slot ready">

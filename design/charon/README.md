@@ -14,6 +14,14 @@ classes (gas, tier-4 PI, molecular-forging tools).
 | `build-plan.html` | Freshly calculated plan: wave-progress bar, 6-phase reverse chain with recurring fuel blocks, capital components with BPC-via-contract badges, Cargo Bay flipped to Purchase (missing-blueprint alternative demo), required blueprints inverted (9 missing with backfill table), owned-BPO-only copy plan, gaps-only acquisition with the new categories, wave-1 job allocation |
 | `build-plan-active.html` | The same plan mid-flight (day 12.4 of 21.7): wave-progress bar at 57% (legend expanded), phases 1–5 complete, the single 11.8-day ship build running at 21%, contract backfills all filled |
 
+**2026-11-22 fan-out**: every page carries the standard 2026-11-22
+conventions — the planner's Plan facilities and sell-side market
+sections, the build plan's Market panel (build-vs-buy verdicts +
+estimated profit) and wave pager, the active page's running market
+readout with open verdicts — populated with this chain's data — the Charon active page demonstrates the fully-committed market state (tiles + realized ledger, no open verdicts). All Ƶ figures are illustrative
+until M15's price sync; full section notes live on the Typhoon
+reference set.
+
 ## Data provenance
 
 - Quantities, phases, runs, job shapes, and the 21.7 d / 25.7 d chain

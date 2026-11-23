@@ -21,6 +21,14 @@ page.
 | `build-plan.html` | The compressed seven-segment wave bar (222 d illustrative; reaction stack owns 52%, hull 20%), six-phase chain flow (every prior set's world is a phase), representative phase-tree nodes with the 18-component hull tier, the third absent-copy state, 79-blueprint inventory (capital BPs / 48 formula originals / the ~70B contract BPC), mineral-mountain acquisition, wave-1 allocation with Octavia's parallel skill train |
 | `build-plan-active.html` | Day 110 of 222 (50%): the reaction stack 89% through its window, carbon family complete and feeding the tiers, the intermediates ledger at supercapital scale (merged-campaign payoffs visible — 83,600 Carbon Fiber held across two consuming levels), the double-gated target node (components + skill train with 51 days of slack), the early-BPC carrying-cost note |
 
+**2026-11-22 fan-out**: every page carries the standard 2026-11-22
+conventions — the planner's Plan facilities and sell-side market
+sections, the build plan's Market panel (build-vs-buy verdicts +
+estimated profit) and wave pager, the active page's running market
+readout with open verdicts — populated with this chain's data — the manufacturing hint carries the **supercapital assembly gap** (no registered facility holds it; nullsec pin), and the profit range **straddles zero** with the mineral tranches at 68% of input cost. All Ƶ figures are illustrative
+until M15's price sync; full section notes live on the Typhoon
+reference set.
+
 ## Data provenance
 
 - Quantities, phases, runs, and the throughput arithmetic come from

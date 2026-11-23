@@ -198,7 +198,7 @@
       <span class="summary-right">
         <span class="stage-state missing">Missing inputs</span>
         <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
-      </summary>
+      </span>
     </summary>
     <div class="phase-body">
       <div class="node-row">
@@ -255,7 +255,7 @@
       <span class="summary-right">
         <span class="stage-state missing">Skill gate — 4-month train</span>
         <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
-      </summary>
+      </span>
     </summary>
     <div class="phase-body">
       <div class="node-row">
@@ -338,7 +338,7 @@
         <td class="num qty">1,117,277,000</td>
         <td class="num">652,411</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0.06%"></div></div><span class="meter-pct">0.06% — 7.6× the Hel's mountain</span></div></td>
-        <td class="muted">Market / mining · ~190B isk at market average</td>
+        <td class="muted">Market / mining · ~190B Ƶ at market average</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/34/icon?size=32" alt="">Tritanium</td>
@@ -366,8 +366,102 @@
 
   <p class="meta-line" style="margin: 0.5rem 0 0;">Partially covered: the R4 moon materials (3–12% of 2M-unit bills), ice products (8–24%), fuel-block stock (~2 of 30 runs). Everything else ≈0%. Market-average figures illustrative (M15 synced prices).</p>
 
+
+  <!-- Market panel -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Market — build vs buy</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">
+    The Purchase ⇄ Build chips roll up here: per-commodity build-vs-buy verdicts at the selected market, the estimated sell price, and the plan's profit readout.
+    <span class="pool-picker">Market
+      <select aria-label="Sell-side market">
+        <option selected>The Forge — Jita IV Moon 4</option>
+        <option>Domain — Amarr VIII</option>
+        <option>Heimatar — Rens</option>
+        <option>Metropolis — Hek</option>
+        <option>Sinq Laison — Dodixie</option>
+        <option>Amamake — 5 Times Nearly Winners (player)</option>
+      </select>
+    </span>
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">87.5B Ƶ</p>
+      <p class="stat-label">Estimated sell price (87.5B Ƶ per Ragnarok)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">78.2B Ƶ</p>
+      <p class="stat-label">Input cost — mineral tranches 61.4B + titan-sink BPOs 2.6B + reaction inputs</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">1.9B Ƶ</p>
+      <p class="stat-label">Install cost — system index × facility tax</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--green);">+7.4B Ƶ</p>
+      <p class="stat-label">Estimated profit (+7.4B Ƶ per) · +8.4% · range +4.1B … +11.2B Ƶ</p>
+    </div>
+  </div>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Commodity</th>
+        <th class="num">Need</th>
+        <th class="num">Build cost</th>
+        <th class="num">Buy cost</th>
+        <th>Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="type-icon-none"></span> Titan mineral-sink BPOs (4 types)</td>
+        <td class="num qty">1 each</td>
+        <td class="num muted">—</td>
+        <td class="num">2.6B Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">NPC-seeded originals — Jump Bridge Array, Clone Vat Bay, Doomsday mount, turret hardpoint</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/57478/icon?size=32" alt=""> Auto-Integrity Preservation Seal</td>
+        <td class="num qty">4,300</td>
+        <td class="num">2.6B Ƶ</td>
+        <td class="num">3.5B Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">−27%</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/35/icon?size=32" alt=""> Pyerite tranches</td>
+        <td class="num qty">1.117B units</td>
+        <td class="num muted">—</td>
+        <td class="num">8.4B Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">7.6× the Hel's mountain — tranches feed in through month 3</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/23773/icon?size=32" alt=""> Ragnarok</td>
+        <td class="num qty">1</td>
+        <td class="num">this plan Ƶ</td>
+        <td class="num">87.5B Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">the plan itself — open until W6 installs (day 350)</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Figures illustrative until M15's price sync; verdict arithmetic is
+    M10's. Verdicts are recommendations — the chips are authoritative
+    (full format and lifecycle notes on the
+    <a href="../typhoon/build-plan.html">Typhoon reference set</a>).
+  </div>
+
   <!-- Job allocation -->
-  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — wave 1</h2>
+  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.75rem 0 0.5rem;">
+    <h2 style="margin: 0; font-size: 1.05rem; color: var(--cyan);">Job allocation</h2>
+    <div class="wave-pager">
+      <button class="icon-button" type="button" aria-label="Previous wave" title="No earlier wave" disabled>‹</button>
+      <span class="wave-pager-label">Wave 1</span>
+      <button class="icon-button" type="button" aria-label="Next wave" title="W2 — carbon family + neofullerenes (2,188–2,213 runs per type) · day 40–70">›</button>
+    </div>
+    <span class="meta-line">current — installs now; paging right is view-only foresight until inputs arrive</span>
+  </div>
   <p class="meta-line" style="margin: 0 0.75rem;">Recommended installs per character, from synced skills and live slot occupancy. Fuel-block runs go to manufacturing slots anywhere; the carbon family's opening reactions spread across the four reactors. Octavia's train starts day 0 in parallel.</p>
 
   <div class="anno">

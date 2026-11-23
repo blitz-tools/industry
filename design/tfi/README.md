@@ -21,6 +21,14 @@ familiar mineral mountain.
 | `build-plan.html` | The acquisition-front-dominated wave bar (83% LP front · 7% components · 10% hulls), the currency-gated target node (a new gating reason with earn/distribute/switch-store remediations), the **LP acquisition plan** (per-source balances, paths, lead times — the curated corp balance and the distribution workflow), the fourth absent-copy state, gaps-only mineral mountain, the build world's ready-state allocation |
 | `build-plan-active.html` | Day 12 of 21 (57%): the **LP front filling** (104k of 200k across two FW farmers — a dead zone with its own progress meter), the build world delivered early and waiting (components built day 3–4 inside the front), the **LP ledger** (earners, rates, target line, and the wrong-currency rows persisting as the portfolio view), hull wave queued on the purchase |
 
+**2026-11-22 fan-out**: every page carries the standard 2026-11-22
+conventions — the planner's Plan facilities and sell-side market
+sections, the build plan's Market panel (build-vs-buy verdicts +
+estimated profit) and wave pager, the active page's running market
+readout with open verdicts — populated with this chain's data — the market panel prices the **LP layer** (the 10-pack acquisition is a currency-gated row, not a market verdict), and the active pager's current view is the **LP front**, the earn-side wave. All Ƶ figures are illustrative
+until M15's price sync; full section notes live on the Typhoon
+reference set.
+
 ## Data provenance
 
 - Quantities, phases, and the build world come from

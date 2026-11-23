@@ -309,8 +309,92 @@
     </tbody>
   </table>
 
+
+  <!-- Market panel — running -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Market — running estimate</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">
+    The profit readout, live: sell price re-checked at each wave boundary, input cost tracked as buy verdicts and gap coverage actually clear the wallet.
+    <span class="pool-picker">Market
+      <select aria-label="Sell-side market">
+        <option selected>The Forge — Jita IV Moon 4</option>
+        <option>Domain — Amarr VIII</option>
+        <option>Heimatar — Rens</option>
+        <option>Metropolis — Hek</option>
+        <option>Sinq Laison — Dodixie</option>
+        <option>Amamake — 5 Times Nearly Winners (player)</option>
+      </select>
+    </span>
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">1.95B Ƶ</p>
+      <p class="stat-label">Estimated sell price (3,900 Ƶ per missile) · 30-day avg −0.3% since calculation</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">1.32B Ƶ</p>
+      <p class="stat-label">Input cost cleared — of 2.06B Ƶ</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">26M Ƶ</p>
+      <p class="stat-label">Install cost paid — of 44M Ƶ</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--pink);">−149M Ƶ</p>
+      <p class="stat-label">Estimated profit (−298 Ƶ per) · was −154M — reaction-input buys cleared slightly under estimate; re-checks at W4 completion</p>
+    </div>
+  </div>
+
+  <table class="asset-table" style="margin-top: 0.75rem;">
+    <thead>
+      <tr>
+        <th>Open verdicts</th>
+        <th class="num">Need</th>
+        <th class="num">Build cost</th>
+        <th class="num">Buy cost</th>
+        <th>Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="type-icon-none"></span> Ammo round 2</td>
+        <td class="num qty">7 × 4-run jobs</td>
+        <td class="num muted">—</td>
+        <td class="num">None Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">queued W5 — open until install</span></td>
+      </tr>
+      <tr>
+        <td><span class="type-icon-none"></span> Javelin sibling output</td>
+        <td class="num qty">residue</td>
+        <td class="num muted">—</td>
+        <td class="num">None Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">banked BPC runs and 8,595 surplus missiles are residue, never verdicts</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">Settled since calculation: round 1 (8 jobs) · the 2-run top-up · reaction stack — committed</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Same lifecycle as the reference set (full notes on the
+    <a href="../typhoon/build-plan-active.html">Typhoon active page</a>):
+    input cost tracks only cleared purchases, sell price re-checks at
+    wave boundaries, verdict rows retire on commitment (build rows at
+    job install, buy rows at purchase clearing), and settled rows roll
+    into the realized ledger. Figures illustrative until M15.
+  </div>
+
   <!-- Job allocation -->
-  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — in flight</h2>
+  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.75rem 0 0.5rem;">
+    <h2 style="margin: 0; font-size: 1.05rem; color: var(--cyan);">Job allocation</h2>
+    <div class="wave-pager">
+      <button class="icon-button" type="button" aria-label="Previous wave" title="W3 — Graviton Pulse Generator, 300 runs, one 12.5 h job · day 0.65–1.17">‹</button>
+      <span class="wave-pager-label">Wave 4</span>
+      <button class="icon-button" type="button" aria-label="Next wave" title="W5 — round 2: 7 × 4-run jobs, 10.7 h · day 2.28–2.73">›</button>
+    </div>
+    <span class="meta-line">current — the section shows the current wave until it completes; paging left is history, right is a future wave's readiness</span>
+  </div>
   <p class="meta-line" style="margin: 0 0 0.75rem;">Round 1's eight manufacturing jobs spread across the Industry-5 holders; round 2 queues behind them on the same BPCs (job-lock — one job per BPC at a time).</p>
 
   <!-- blitzrage -->

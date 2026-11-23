@@ -203,6 +203,7 @@
       <span class="summary-right">
         <span class="stage-state missing">Missing inputs</span>
         <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </span>
     </summary>
     <div class="phase-body">
       <div class="node-row">
@@ -229,6 +230,7 @@
       <span class="summary-right">
         <span class="stage-state missing">Missing inputs</span>
         <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </span>
     </summary>
     <div class="phase-body">
       <div class="node-row">
@@ -275,6 +277,7 @@
       <span class="summary-right">
         <span class="stage-state missing">Missing inputs</span>
         <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </span>
     </summary>
     <div class="phase-body">
       <div class="node-row">
@@ -318,6 +321,7 @@
       <span class="summary-right">
         <span class="stage-state ready">Pool 98 of 100 runs</span>
         <span class="phase-bulk" title="Set every node in this phase to Purchase">Purchase all</span>
+      </span>
     </summary>
     <div class="phase-body">
       <div class="node-row">
@@ -480,21 +484,21 @@
         <td class="num qty">200</td>
         <td class="num">0</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — Caesarium Cadmide input</span></div></td>
-        <td class="muted">Moon mining / market · avg 3.8k isk</td>
+        <td class="muted">Moon mining / market · avg 3.8k Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/16647/icon?size=32" alt="">Caesium</td>
         <td class="num qty">200</td>
         <td class="num">0</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0%</span></div></td>
-        <td class="muted">Moon mining / market · avg 4.1k isk</td>
+        <td class="muted">Moon mining / market · avg 4.1k Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/16642/icon?size=32" alt="">Vanadium</td>
         <td class="num qty">200</td>
         <td class="num">0</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 0%"></div></div><span class="meter-pct">0% — Vanadium Hafnite input</span></div></td>
-        <td class="muted">Moon mining / market · avg 3.5k isk</td>
+        <td class="muted">Moon mining / market · avg 3.5k Ƶ</td>
       </tr>
       <tr>
         <td colspan="5" class="muted">+ 7 more R8/R64 types at zero — Hafnium ×200 · Platinum ×100 · Technetium ×100 · Mercury ×100 · Neodymium ×100 · Titanium ×100 · Chromium ×100</td>
@@ -505,7 +509,7 @@
         <td class="num qty">100</td>
         <td class="num">6</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 6%"></div></div><span class="meter-pct">6% — direct ammo input</span></div></td>
-        <td class="muted">Mercoxit mining / market · avg 1.6k isk</td>
+        <td class="muted">Mercoxit mining / market · avg 1.6k Ƶ</td>
       </tr>
       <tr class="group-row"><td colspan="5">NPC market goods — no producer in the SDE</td></tr>
       <tr>
@@ -529,8 +533,95 @@
     the availability surface previous chains never had.
   </div>
 
+
+  <!-- Market panel -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Market — build vs buy</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">
+    The Purchase ⇄ Build chips roll up here: per-commodity build-vs-buy verdicts at the selected market, the estimated sell price, and the plan's profit readout.
+    <span class="pool-picker">Market
+      <select aria-label="Sell-side market">
+        <option selected>The Forge — Jita IV Moon 4</option>
+        <option>Domain — Amarr VIII</option>
+        <option>Heimatar — Rens</option>
+        <option>Metropolis — Hek</option>
+        <option>Sinq Laison — Dodixie</option>
+        <option>Amamake — 5 Times Nearly Winners (player)</option>
+      </select>
+    </span>
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">1.95B Ƶ</p>
+      <p class="stat-label">Estimated sell price (3,900 Ƶ per missile)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">2.06B Ƶ</p>
+      <p class="stat-label">Input cost — reaction stack 1.71B + datacores + mineral gaps</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">44M Ƶ</p>
+      <p class="stat-label">Install cost — system index × facility tax</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--pink);">−154M Ƶ</p>
+      <p class="stat-label">Estimated profit (−308 Ƶ per) · −7.6% · range −221M … −96M Ƶ</p>
+    </div>
+  </div>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Commodity</th>
+        <th class="num">Need</th>
+        <th class="num">Build cost</th>
+        <th class="num">Buy cost</th>
+        <th>Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/16680/icon?size=32" alt=""> Phenolic Composites</td>
+        <td class="num qty">2,100</td>
+        <td class="num">48M Ƶ</td>
+        <td class="num">54M Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">−11%</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/9830/icon?size=32" alt=""> Rocket Fuel</td>
+        <td class="num qty">gap</td>
+        <td class="num muted">—</td>
+        <td class="num">22M Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">NPC-seeded — no producer, no build path</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/20415/icon?size=32" alt=""> Molecular Engineering Datacore</td>
+        <td class="num qty">32</td>
+        <td class="num muted">—</td>
+        <td class="num">61M Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">invention inputs</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Figures illustrative until M15's price sync; verdict arithmetic is
+    M10's. Verdicts are recommendations — the chips are authoritative
+    (full format and lifecycle notes on the
+    <a href="../typhoon/build-plan.html">Typhoon reference set</a>). <b>The negative case</b>: at these prices the missiles buy cheaper off the market than this plan builds them — the pink tile is the shape working. Plans like this are stock or foundry decisions, not arbitrage; the verdict table shows which slices to keep building and which to flip to Purchase.
+  </div>
+
   <!-- Job allocation -->
-  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — wave 1</h2>
+  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.75rem 0 0.5rem;">
+    <h2 style="margin: 0; font-size: 1.05rem; color: var(--cyan);">Job allocation</h2>
+    <div class="wave-pager">
+      <button class="icon-button" type="button" aria-label="Previous wave" title="No earlier wave" disabled>‹</button>
+      <span class="wave-pager-label">Wave 1</span>
+      <button class="icon-button" type="button" aria-label="Next wave" title="W2 — tier-2 reactions (4) + invention top-up (4 attempts, 12.67 h) in parallel · day 0.13–0.65">›</button>
+    </div>
+    <span class="meta-line">current — installs now; paging right is view-only foresight until inputs arrive</span>
+  </div>
   <p class="meta-line" style="margin: 0 0 0.75rem;">Recommended installs per character, from synced skills and live slot occupancy — eligibility first. Reactions spread across the four Reactions-5 holders (one job per formula per character); blitzrage takes the copies and, with Graviton Physics 4, the component job to follow.</p>
 
   <div class="anno">

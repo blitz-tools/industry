@@ -304,8 +304,92 @@
     </tbody>
   </table>
 
+
+  <!-- Market panel — running -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Market — running estimate</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">
+    The profit readout, live: sell price re-checked at each wave boundary, input cost tracked as buy verdicts and gap coverage actually clear the wallet.
+    <span class="pool-picker">Market
+      <select aria-label="Sell-side market">
+        <option selected>The Forge — Jita IV Moon 4</option>
+        <option>Domain — Amarr VIII</option>
+        <option>Heimatar — Rens</option>
+        <option>Metropolis — Hek</option>
+        <option>Sinq Laison — Dodixie</option>
+        <option>Amamake — 5 Times Nearly Winners (player)</option>
+      </select>
+    </span>
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">7.05B Ƶ</p>
+      <p class="stat-label">Estimated sell price (705M Ƶ per TFI) · 30-day avg unchanged; TLF LP earning on pace</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">1.9B Ƶ</p>
+      <p class="stat-label">Input cost cleared — of 5.9B Ƶ</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">12M Ƶ</p>
+      <p class="stat-label">Install cost paid — of 96M Ƶ</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--green);">+1.02B Ƶ</p>
+      <p class="stat-label">Estimated profit (+102M Ƶ per) · was +1.06B — early mineral buys cleared on estimate; the LP layer earns through day 17.5</p>
+    </div>
+  </div>
+
+  <table class="asset-table" style="margin-top: 0.75rem;">
+    <thead>
+      <tr>
+        <th>Open verdicts</th>
+        <th class="num">Need</th>
+        <th class="num">Build cost</th>
+        <th class="num">Buy cost</th>
+        <th>Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/32312/bpc?size=32" alt=""> TFI BPC 10-pack</td>
+        <td class="num qty">10 ships</td>
+        <td class="num muted">—</td>
+        <td class="num">200k TLF LP + 200M Ƶ Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">currency-gated — earning at ~10.4k LP/day combined (104k of 200k at day 12); no market shortcut</span></td>
+      </tr>
+      <tr>
+        <td><span class="type-icon-none"></span> Mineral tranches</td>
+        <td class="num qty">remaining</td>
+        <td class="num muted">—</td>
+        <td class="num">None Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">staged buys aligned to the component waves</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="meta-line" style="margin: 0.5rem 0 0;">Settled since calculation: AIPS/LSBU/CTR inputs already in hangar · early mineral tranches — committed</p>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Same lifecycle as the reference set (full notes on the
+    <a href="../typhoon/build-plan-active.html">Typhoon active page</a>):
+    input cost tracks only cleared purchases, sell price re-checks at
+    wave boundaries, verdict rows retire on commitment (build rows at
+    job install, buy rows at purchase clearing), and settled rows roll
+    into the realized ledger. Figures illustrative until M15.
+  </div>
+
   <!-- Job allocation -->
-  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — in flight</h2>
+  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.75rem 0 0.5rem;">
+    <h2 style="margin: 0; font-size: 1.05rem; color: var(--cyan);">Job allocation</h2>
+    <div class="wave-pager">
+      <button class="icon-button" type="button" aria-label="Previous wave" title="No earlier wave" disabled>‹</button>
+      <span class="wave-pager-label">LP front</span>
+      <button class="icon-button" type="button" aria-label="Next wave" title="W1 — components: AIPS 3 max jobs · LSBU 2 · CTR 1 · the carbon-family top-up · day 17.5–19">›</button>
+    </div>
+    <span class="meta-line">current — the section shows the current wave until it completes; paging left is history, right is a future wave's readiness</span>
+  </div>
   <p class="meta-line" style="margin: 0 0 0.75rem;">The build world is idle-by-design (everything delivered early); the active work is the two FW farmers plus the staged hull wave queued behind the LP purchase.</p>
 
   <!-- Octavia Arbitrage -->

@@ -636,14 +636,14 @@
         <td class="num qty">5,380,556</td>
         <td class="num">2,880,000</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 53%"></div></div><span class="meter-pct">53%</span></div></td>
-        <td class="muted">Mining / market · avg 2.7 isk</td>
+        <td class="muted">Mining / market · avg 2.7 Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/35/icon?size=32" alt="">Pyerite</td>
         <td class="num qty">3,248,444</td>
         <td class="num">1,970,000</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 61%"></div></div><span class="meter-pct">61%</span></div></td>
-        <td class="muted">Mining / market · avg 6.4 isk</td>
+        <td class="muted">Mining / market · avg 6.4 Ƶ</td>
       </tr>
       <tr class="group-row"><td colspan="5">Moon materials</td></tr>
       <tr>
@@ -651,7 +651,7 @@
         <td class="num qty">900</td>
         <td class="num">6</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 1%"></div></div><span class="meter-pct">1% — direct hull input; top moon material</span></div></td>
-        <td class="muted">Moon mining / market · avg 9k isk</td>
+        <td class="muted">Moon mining / market · avg 9k Ƶ</td>
       </tr>
       <tr>
         <td><img class="type-icon" src="https://images.evetech.net/types/16643/icon?size=32" alt="">Vanadium</td>
@@ -681,7 +681,7 @@
         <td class="num qty">26,250</td>
         <td class="num">11,900</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 45%"></div></div><span class="meter-pct">45%</span></div></td>
-        <td class="muted">Ice mining / market · avg 460 isk</td>
+        <td class="muted">Ice mining / market · avg 460 Ƶ</td>
       </tr>
       <tr class="group-row"><td colspan="5">NPC market goods</td></tr>
       <tr>
@@ -689,7 +689,7 @@
         <td class="num qty">450</td>
         <td class="num">3</td>
         <td><div class="meter-cell"><div class="meter"><div class="meter-fill low" style="width: 1%"></div></div><span class="meter-pct">1% — NPC-seeded, no blueprint exists</span></div></td>
-        <td class="muted">Market (NPC-sold) · avg 12k isk</td>
+        <td class="muted">Market (NPC-sold) · avg 12k Ƶ</td>
       </tr>
     </tbody>
   </table>
@@ -705,8 +705,102 @@
     being a manufactured-looking commodity.
   </div>
 
+
+  <!-- Market panel -->
+  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Market — build vs buy</h2>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">
+    The Purchase ⇄ Build chips roll up here: per-commodity build-vs-buy verdicts at the selected market, the estimated sell price, and the plan's profit readout.
+    <span class="pool-picker">Market
+      <select aria-label="Sell-side market">
+        <option selected>The Forge — Jita IV Moon 4</option>
+        <option>Domain — Amarr VIII</option>
+        <option>Heimatar — Rens</option>
+        <option>Metropolis — Hek</option>
+        <option>Sinq Laison — Dodixie</option>
+        <option>Amamake — 5 Times Nearly Winners (player)</option>
+      </select>
+    </span>
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-value">1.62B Ƶ</p>
+      <p class="stat-label">Estimated sell price (1.62B Ƶ per Panther)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">1.28B Ƶ</p>
+      <p class="stat-label">Input cost — datacores 84M + reaction inputs + mineral gaps</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value">58M Ƶ</p>
+      <p class="stat-label">Install cost — system index × facility tax</p>
+    </div>
+    <div class="stat">
+      <p class="stat-value" style="color: var(--green);">+282M Ƶ</p>
+      <p class="stat-label">Estimated profit (+282M Ƶ per) · +17.4% · range +214M … +351M Ƶ</p>
+    </div>
+  </div>
+
+  <table class="asset-table">
+    <thead>
+      <tr>
+        <th>Commodity</th>
+        <th class="num">Need</th>
+        <th class="num">Build cost</th>
+        <th class="num">Buy cost</th>
+        <th>Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/11541/icon?size=32" alt=""> Photon Microprocessor</td>
+        <td class="num qty">1,600</td>
+        <td class="num">96M Ƶ</td>
+        <td class="num">118M Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">−19%</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/25887/icon?size=32" alt=""> Caldari Starship Engineering Datacore</td>
+        <td class="num qty">64</td>
+        <td class="num muted">—</td>
+        <td class="num">84M Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">invention inputs — no build path</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/34/icon?size=32" alt=""> Tritanium gap</td>
+        <td class="num qty">5.1M of 8.4M</td>
+        <td class="num muted">—</td>
+        <td class="num">138M Ƶ</td>
+        <td><span class="stage-chip purchase">Buy</span> <span class="muted">or mine — the market is the floor</span></td>
+      </tr>
+      <tr>
+        <td><img class="type-icon" src="https://images.evetech.net/types/22440/icon?size=32" alt=""> Panther</td>
+        <td class="num qty">1</td>
+        <td class="num">this plan Ƶ</td>
+        <td class="num">1.62B Ƶ</td>
+        <td><span class="stage-chip build">Build</span> <span class="muted">the plan itself vs buying the ship — open until W4 installs</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="anno" style="margin-top: 0.75rem;">
+    <span class="anno-label">wireframe</span>
+    Figures illustrative until M15's price sync; verdict arithmetic is
+    M10's. Verdicts are recommendations — the chips are authoritative
+    (full format and lifecycle notes on the
+    <a href="../typhoon/build-plan.html">Typhoon reference set</a>).
+  </div>
+
   <!-- Job allocation -->
-  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — wave 1</h2>
+  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.75rem 0 0.5rem;">
+    <h2 style="margin: 0; font-size: 1.05rem; color: var(--cyan);">Job allocation</h2>
+    <div class="wave-pager">
+      <button class="icon-button" type="button" aria-label="Previous wave" title="No earlier wave" disabled>‹</button>
+      <span class="wave-pager-label">Wave 1</span>
+      <button class="icon-button" type="button" aria-label="Next wave" title="W2 — R4 + advanced reactions · day 2.8–5.6">›</button>
+    </div>
+    <span class="meta-line">current — installs now; paging right is view-only foresight until inputs arrive</span>
+  </div>
   <p class="meta-line" style="margin: 0 0 0.75rem;">Recommended installs per character, from synced skills and live slot occupancy — eligibility first. The invention batch takes all ten of blitzrage's science slots (sole skill holder, one attempt per source BPC); copy jobs go to the others so the batch never queues behind copying. blitzrage is out-of-corp: everything its jobs consume arrives by contract, not the office hangars.</p>
 
   <div class="anno">
@@ -784,7 +878,7 @@
           <span class="slot-name">Hydrogen Fuel Block</span>
           <span class="activity-tag mfg">manufacture</span>
         </div>
-        <span class="slot-meta">22 runs · ~4 h · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta">22 runs · ~4 h · Amamake - Police Weapons Facility</span>
         <span class="slot-meta" style="color: var(--green);">Ready to install</span>
       </div>
       <div class="slot idle">
@@ -812,7 +906,7 @@
           <span class="slot-name">Helium Fuel Block</span>
           <span class="activity-tag mfg">manufacture</span>
         </div>
-        <span class="slot-meta">6 runs · ~1 h · Amamake - 5 times nearly AT winners</span>
+        <span class="slot-meta">6 runs · ~1 h · Amamake - Police Weapons Facility</span>
         <span class="slot-meta" style="color: var(--green);">Ready to install</span>
       </div>
       <div class="slot idle">

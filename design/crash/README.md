@@ -23,6 +23,14 @@ originals.
 | `build-plan.html` | Reaction-dominated wave bar (three 2.4 d tiers + a 17% manufacturing sliver + the acquisition front, 9.1 d), DAG-shaped chain flow (Frentix joins at phase 3), phase tree with cross-drug gating notes, the absent copy plan (no copy activity exists), required blueprints (~21 originals + the booster BP acquisition pin), gaps-only gas acquisition, wave-1 allocation across four reactors |
 | `build-plan-active.html` | The same plan mid-flight (day 6.5 of 9.1, 71%): standard + improved tiers complete, strong + Frentix running level at 52%, the **intermediates ledger** (delivered vs consumed per drug line — this set's active-page contribution), zero residue until the cascade's final run, the manufacturing cap queued on any Industry line |
 
+**2026-11-22 fan-out**: every page carries the standard 2026-11-22
+conventions — the planner's Plan facilities and sell-side market
+sections, the build plan's Market panel (build-vs-buy verdicts +
+estimated profit) and wave pager, the active page's running market
+readout with open verdicts — populated with this chain's data. All Ƶ figures are illustrative
+until M15's price sync; full section notes live on the Typhoon
+reference set.
+
 ## Data provenance
 
 - Quantities, phases, runs, and the batch cascade come from

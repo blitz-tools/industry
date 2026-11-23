@@ -23,6 +23,14 @@ the missing-skills scenario.
 | `build-plan.html` | Freshly calculated plan: the inverse-Charon wave bar (W1–W3 inside the first 20%, W4 ship build at 80%), 4-phase chain with the mixed-activity polymer phase, invention plan (5 Intact attempts · 78% · one 1 h window · no job-lock · out-of-corp distribution step), required blueprints across four paths, the absent copy plan, gaps-only acquisition led by sleeper salvage and fullerites, wave-1 allocation with blitzrage's five invention slots |
 | `build-plan-active.html` | The same plan mid-flight (day 1.8 of 2.5, 72%): invention complete at 2/5 successes (E = 1.3) with the over-delivery realized (40-run BPC, 1 used), reactions and components delivered inside day 0.5, ship build running at 62% on Octavia |
 
+**2026-11-22 fan-out**: every page carries the standard 2026-11-22
+conventions — the planner's Plan facilities and sell-side market
+sections, the build plan's Market panel (build-vs-buy verdicts +
+estimated profit) and wave pager, the active page's running market
+readout with open verdicts — populated with this chain's data. All Ƶ figures are illustrative
+until M15's price sync; full section notes live on the Typhoon
+reference set.
+
 ## Data provenance
 
 - Quantities, phases, runs, and the invention layer come from
