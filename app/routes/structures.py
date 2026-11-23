@@ -97,9 +97,14 @@ async def _form_structure(
 async def structures_page(
     request: Request,
     db: DbDep,
-    structure_id: int | None = None,
+    esi: EsiDep,
+    structure: int | None = None,
     activity: str | None = None,
 ):
+    """The registry page. The import prefill resolves the sighting's
+    system security through the cached ESI client — an action-triggered
+    render (the Import chip was just clicked), like the roster's
+    metadata fetches, not a passive page load."""
     if not is_authenticated(request):
         return _login()
     # The import card links with ?import=<location id> ("import" is a
@@ -108,6 +113,11 @@ async def structures_page(
     import_location = int(import_raw) if import_raw.isdigit() else None
 
     rows = await registration_rows(db)
+    # Per-structure registered activities: the registry rows cross-link
+    # a structure's other registrations and offer "+ activity".
+    structure_activities: dict[int, list[str]] = {}
+    for row in rows:
+        structure_activities.setdefault(row.structure_id, []).append(row.activity)
     groups = [
         (activity_key, ACTIVITY_LABELS[activity_key],
          [row for row in rows if row.activity == activity_key])
@@ -116,9 +126,12 @@ async def structures_page(
 
     # The form's edit state: (structure, activity) selects a
     # registration to edit, or an unregistered activity on an existing
-    # structure (the add-registration mode). An import location
-    # pre-fills a blank form from a sync sighting.
-    form_structure = await _form_structure(db, structure_id)
+    # structure (the add-registration mode — `?structure=<id>&form=add`,
+    # the registry rows' "+ activity" control). An import location
+    # pre-fills a blank form from a sync sighting. The panel itself is
+    # hidden unless one of these states (or ?form=add) asks for it —
+    # the Add structure button and the row Edit links reveal it.
+    form_structure = await _form_structure(db, structure)
     form_registration = None
     if form_structure is not None and activity in ACTIVITIES:
         form_registration = (
@@ -129,6 +142,40 @@ async def structures_page(
                 )
             )
         ).scalar_one_or_none()
+    # The structure's registered activities — for the form's chip
+    # markers (a picked registered activity edits; an unregistered one
+    # registers) and the registry rows' cross-links.
+    registered: list[str] = []
+    if form_structure is not None:
+        registered = list(
+            (
+                await db.execute(
+                    select(StructureRegistration.activity)
+                    .where(StructureRegistration.structure_id == form_structure.id)
+                    .order_by(StructureRegistration.id)
+                )
+            ).scalars()
+        )
+    if activity not in ACTIVITIES:
+        if form_structure is not None:
+            # The add-registration mode starts on the first activity
+            # the structure does not host yet; fully registered falls
+            # back to its first registration (plain edit).
+            activity = next(
+                (a for a in ACTIVITIES if a not in registered),
+                registered[0] if registered else "manufacturing",
+            )
+        else:
+            activity = "manufacturing"
+        if form_structure is not None and activity in registered:
+            form_registration = (
+                await db.execute(
+                    select(StructureRegistration).where(
+                        StructureRegistration.structure_id == form_structure.id,
+                        StructureRegistration.activity == activity,
+                    )
+                )
+            ).scalar_one_or_none()
     imported = None
     imported_system_name = None
     if import_location is not None and form_structure is None:
@@ -148,6 +195,20 @@ async def structures_page(
                     )
                 )
             ).scalar_one_or_none()
+    # The type-ahead input's display value: never a bare None.
+    form_system_name = (
+        (form_structure.system_name if form_structure else None)
+        or imported_system_name
+        or ""
+    )
+    # The security chips' initial selection: the structure's stored class
+    # in edit mode; the imported sighting's system resolves through ESI
+    # (its class is what the save would store); none on a blank form.
+    form_security_class = form_structure.security_class if form_structure else None
+    if form_structure is None and imported is not None and imported.system_id:
+        resolved_import = await resolve_system(db, esi, imported.system_id)
+        if resolved_import is not None:
+            form_security_class = resolved_import[1]
 
     return templates.TemplateResponse(
         request,
@@ -162,12 +223,23 @@ async def structures_page(
             },
             "import_candidates": await import_candidates(db),
             "multiplier_rows": _MULTIPLIER_ROWS,
+            # The panel shows only when a link asked for it: the Add
+            # structure button (?form=add), an Edit link (structure +
+            # activity), or an import.
+            "show_form": (
+                request.query_params.get("form") == "add"
+                or form_structure is not None
+                or imported is not None
+            ),
             # Form state
             "form_structure": form_structure,
             "form_activity": activity if activity in ACTIVITIES else None,
             "form_registration": form_registration,
+            "registered_activities": registered,
+            "structure_activities": structure_activities,
             "imported": imported,
-            "imported_system_name": imported_system_name,
+            "form_system_name": form_system_name,
+            "form_security_class": form_security_class,
             "structure_types": STRUCTURE_TYPES,
             "activity_types": ACTIVITY_STRUCTURE_TYPES,
             "rig_tiers": RIG_TIERS,
@@ -179,10 +251,12 @@ async def structures_page(
 
 
 @router.get("/structures/systems/search")
-async def structures_systems_search(request: Request, db: DbDep, q: str = ""):
+async def structures_systems_search(
+    request: Request, db: DbDep, esi: EsiDep, q: str = ""
+):
     if not is_authenticated(request):
         return JSONResponse({"systems": []}, status_code=403)
-    return JSONResponse({"systems": await system_suggestions(db, q)})
+    return JSONResponse({"systems": await system_suggestions(db, esi, q)})
 
 
 @router.post("/structures")
@@ -287,6 +361,7 @@ async def structures_save(request: Request, db: DbDep, esi: EsiDep):
                 "import_candidates": await import_candidates(db),
                 "multiplier_rows": _MULTIPLIER_ROWS,
                 "form_structure": structure,
+                "show_form": True,  # errors render inside the panel
                 "form_activity": activity if activity in ACTIVITIES else None,
                 "form_registration": None,
                 "imported": None,
@@ -359,10 +434,14 @@ async def structures_save(request: Request, db: DbDep, esi: EsiDep):
     registration.tax_rate = tax_rate
 
     # Default demotion: unchecking leaves the activity default-less;
-    # setting a new default demotes the previous one. Demote before the
-    # flag lands so the partial unique index never sees two defaults.
+    # setting a new default demotes the previous one. The demotion MUST
+    # reach the database before the promotion flushes — SQLAlchemy
+    # batches same-table updates into one executemany ordered by
+    # primary key, so code order means nothing: a promotion landing
+    # first momentarily creates two defaults and trips the partial
+    # unique index (the crash a promote-with-lower-id edit hit). The
+    # flush between them is the barrier.
     registration.is_default = False
-    await db.flush()
     if is_default:
         others = (
             await db.execute(
@@ -375,6 +454,7 @@ async def structures_save(request: Request, db: DbDep, esi: EsiDep):
         ).scalars().all()
         for other in others:
             other.is_default = False
+        await db.flush()
         registration.is_default = True
 
     await db.commit()

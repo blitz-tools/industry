@@ -105,6 +105,8 @@ a:hover {
   margin-top: auto;
   padding: 1rem 1.25rem;
   border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.8rem;
 }
 
 .sidebar-footer a {
@@ -172,7 +174,7 @@ a:hover {
 .content {
   margin-left: var(--sidebar-width);
   padding: 2rem;
-  max-width: 72rem;
+  max-width: 84rem;
 }
 
 /* Pages whose content should use the whole viewport (roster cards). */
@@ -216,18 +218,19 @@ a:hover {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 1.25rem;
+  margin: 0 0 1.5rem;
 }
 
 .stat {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.25rem;
 }
 
 .stat-value {
   margin: 0;
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
 }
@@ -416,7 +419,6 @@ a:hover {
 
 .icon-button.danger:hover {
   border-color: var(--pink);
-  background: transparent;
   color: var(--pink);
 }
 
@@ -970,13 +972,13 @@ button.danger:hover {
   border-radius: 4px;
 }
 
+/* Color-only variants: the shared .badge base (mockups.css alignment)
+   carries the shape; the margin keeps inline-after-name placement on
+   the blueprint pages. */
 .badge.bpc {
   margin-left: 0.4rem;
-  padding: 0.05rem 0.3rem;
-  border: 1px solid var(--purple);
-  border-radius: 4px;
+  border-color: var(--purple);
   color: var(--purple);
-  font-size: 0.7rem;
 }
 
 /* "Main" marker on roster cards — same shape as the BPC badge, green to
@@ -994,11 +996,8 @@ button.danger:hover {
 /* Blueprint original/copy markers — same shape as the bpc badge. */
 .badge.bpo {
   margin-left: 0.4rem;
-  padding: 0.05rem 0.3rem;
-  border: 1px solid var(--green);
-  border-radius: 4px;
+  border-color: var(--green);
   color: var(--green);
-  font-size: 0.7rem;
 }
 
 /* Industry job status colors on the corporation jobs table. */
@@ -1094,14 +1093,108 @@ button.danger:hover {
   font-size: 0.85rem;
 }
 
-/* --- Structures registry (M3) ------------------------------------------ */
 
-/* Two-column responsive field grid for registry CRUD forms. */
+/* --- Shared component library, aligned to design/shared/mockups.css -----
+   The mockup program is the styling source of truth; these are the
+   chrome and current-page components, ported verbatim from
+   mockups.css. Planner-specific components (meters, wave bars, phase
+   rows, ...) stay in the mockups until their consuming milestone. */
+
+.muted {
+  color: var(--muted);
+}
+
+.asset-table .muted {
+  color: var(--muted);
+}
+
+/* Page-header action cluster + the primary (filled hover) button. */
+.page-header .actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+button.primary,
+.button.primary {
+  font-size: 1.05rem;
+  padding: 0.6rem 1.75rem;
+}
+
+/* Card rhythm: stacked cards and their subtitles. */
+.card + .card {
+  margin-top: 1.25rem;
+}
+
+.card .card-sub {
+  margin: 0.15rem 0 0.75rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* The form card lets the autocomplete dropdown escape it. */
+.card.overflow-visible {
+  overflow: visible;
+}
+
+.meta-line {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* Provenance / freshness line under tables. */
+.sync-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.sync-source::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  flex: none;
+}
+
+/* Badges: one base shape, color-only variants. */
+.badge {
+  display: inline-block;
+  padding: 0.05rem 0.3rem;
+  border: 1px solid;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.badge.owned { border-color: var(--green); color: var(--green); }
+.badge.hisec { border-color: var(--green); color: var(--green); }
+.badge.lowsec { border-color: var(--yellow); color: var(--yellow); }
+.badge.nullsec { border-color: var(--pink); color: var(--pink); }
+.badge.capability { border-color: var(--purple); color: var(--purple); }
+.badge.missing { border-color: var(--muted); color: var(--muted); }
+
+/* Responsive field grid for registry CRUD forms. Wide layout: the
+   first column is wide enough for all four activity chips on one line
+   and the rig column is narrow; narrower viewports fall back to the
+   mockup's even auto-fit grid. */
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
-  gap: 1rem 1.5rem;
-  align-items: start;
+  grid-template-columns:
+    minmax(24rem, 1.5fr) minmax(16rem, 1fr) minmax(16rem, 1fr)
+    minmax(10rem, 0.7fr);
+  gap: 0.9rem 1.5rem;
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 78rem) {
+  .form-grid {
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  }
 }
 
 .field {
@@ -1112,26 +1205,25 @@ button.danger:hover {
 }
 
 .field-label {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   color: var(--muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .field-hint {
-  font-size: 0.75rem;
-  color: var(--faint);
+  color: var(--muted);
+  font-size: 0.72rem;
 }
 
 .form-input,
 .form-select {
-  padding: 0.4rem 0.5rem;
+  padding: 0.45rem 0.7rem;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: var(--radius);
   background: var(--bg);
   color: var(--text);
   font: inherit;
-  font-size: 0.95rem;
   width: 100%;
   box-sizing: border-box;
 }
@@ -1145,8 +1237,14 @@ button.danger:hover {
 .form-check {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
   font-size: 0.9rem;
+  gap: 0.5rem;
+}
+
+.form-check input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--green);
 }
 
 .form-actions {
@@ -1164,6 +1262,7 @@ button.danger:hover {
 
 .chip-row .chip-button {
   position: relative;
+  text-decoration: none;
 }
 
 .chip-row .chip-button input {
@@ -1172,6 +1271,7 @@ button.danger:hover {
   pointer-events: none;
 }
 
+.chip-button.selected,
 .chip-row .chip-button.selected,
 .chip-row .chip-button:has(input:checked) {
   border-color: var(--cyan);
@@ -1182,31 +1282,6 @@ button.danger:hover {
   border-color: var(--cyan);
 }
 
-/* Text link styled as a small chip (the import card's Import action). */
-.chip-link {
-  padding: 0.05rem 0.5rem;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  color: var(--muted);
-  font-size: 0.75rem;
-  text-decoration: none;
-}
-
-.chip-link:hover {
-  border-color: var(--cyan);
-  color: var(--cyan);
-}
-
-.button-link {
-  color: var(--muted);
-  text-decoration: none;
-  align-self: center;
-}
-
-.button-link:hover {
-  color: var(--cyan);
-}
-
 /* A form that renders as one inline control (row icon buttons). */
 .inline-form {
   display: inline;
@@ -1214,60 +1289,78 @@ button.danger:hover {
 
 /* Registry group headers inside the asset table. */
 .asset-table .group-row td {
-  padding: 0.5rem 0.6rem;
-  border-top: 1px solid var(--line);
-  color: var(--muted);
+  color: var(--cyan);
   font-size: 0.8rem;
-  background: rgba(102, 217, 239, 0.04);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding-top: 0.75rem;
+  text-transform: uppercase;
 }
 
 /* Activity tags (registry group headers). */
 .activity-tag {
   display: inline-block;
-  padding: 0.05rem 0.45rem;
+  padding: 0.02rem 0.4rem;
+  border: 1px solid;
   border-radius: 4px;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 0.65rem;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 
-.activity-tag.mfg { color: var(--green); border: 1px solid var(--green); }
-.activity-tag.copy { color: var(--cyan); border: 1px solid var(--cyan); }
-.activity-tag.inv { color: var(--purple); border: 1px solid var(--purple); }
-.activity-tag.rxn { color: var(--yellow); border: 1px solid var(--yellow); }
+.activity-tag.mfg { color: var(--green); border-color: var(--green); }
+.activity-tag.copy { color: var(--cyan); border-color: var(--cyan); }
+.activity-tag.inv { color: var(--purple); border-color: var(--purple); }
+.activity-tag.rxn { color: var(--yellow); border-color: var(--yellow); }
 
-/* Security badges (registry rows, form state). */
-.badge.hisec { color: var(--green); border: 1px solid var(--green); border-radius: 4px; padding: 0.05rem 0.3rem; font-size: 0.7rem; }
-.badge.lowsec { color: var(--yellow); border: 1px solid var(--yellow); border-radius: 4px; padding: 0.05rem 0.3rem; font-size: 0.7rem; }
-.badge.nullsec { color: var(--pink); border: 1px solid var(--pink); border-radius: 4px; padding: 0.05rem 0.3rem; font-size: 0.7rem; }
-.badge.capability { color: var(--purple); border: 1px solid var(--purple); border-radius: 4px; padding: 0.05rem 0.3rem; font-size: 0.7rem; }
-.badge.missing { color: var(--muted); border: 1px solid var(--muted); border-radius: 4px; padding: 0.05rem 0.3rem; font-size: 0.7rem; }
-
-/* System type-ahead (the planner's commodity search reuses this shape
-   at M4). */
+/* Type-ahead search field and dropdown (the planner's commodity search
+   reuses this shape at M4). */
 .search-wrap {
   position: relative;
+  max-width: 36rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.05rem;
+}
+
+.search-input:focus {
+  border-color: var(--cyan);
+  outline: none;
+}
+
+/* Inside a form field the search input reads as a form input, not the
+   planner's big search box. */
+.field .search-input {
+  font-size: 0.95rem;
 }
 
 .autocomplete {
   position: absolute;
-  top: calc(100% + 2px);
+  top: calc(100% + 4px);
   left: 0;
-  right: 0;
-  min-width: 100%;
-  z-index: 20;
+  width: 57rem;
+  max-width: 78vw;
+  z-index: 10;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 4px;
-  max-height: 18rem;
-  overflow-y: auto;
+  border-radius: var(--radius);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 55%);
+  overflow: hidden;
 }
 
 .autocomplete-row {
   display: flex;
   gap: 0.6rem;
-  align-items: center;
-  padding: 0.4rem 0.6rem;
+  align-items: flex-start;
+  padding: 0.5rem 0.75rem;
   cursor: pointer;
 }
 
@@ -1276,18 +1369,103 @@ button.danger:hover {
   background: var(--hover);
 }
 
-.ac-name {
-  font-size: 0.9rem;
+.autocomplete-row img {
+  width: 32px;
+  height: 32px;
+  border-radius: 3px;
 }
 
-.ac-sub {
-  font-size: 0.75rem;
-  color: var(--faint);
+.autocomplete-row .ac-name {
+  color: var(--text);
+}
+
+.autocomplete-row .ac-sub {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.autocomplete-row .ac-right {
+  margin-left: auto;
+  margin-top: 0.1rem;
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
 }
 
 .autocomplete-footer {
-  padding: 0.3rem 0.6rem;
-  font-size: 0.7rem;
-  color: var(--faint);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--muted);
   border-top: 1px solid var(--line);
+}
+
+/* Security chips: class-colored when selected. */
+.chip-button.security-chip.hisec:has(input:checked),
+.chip-button.security-chip.hisec.selected {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.chip-button.security-chip.lowsec:has(input:checked),
+.chip-button.security-chip.lowsec.selected {
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+
+.chip-button.security-chip.nullsec:has(input:checked),
+.chip-button.security-chip.nullsec.selected {
+  border-color: var(--pink);
+  color: var(--pink);
+}
+
+/* Registry rows: a structure's other registrations + the add-activity
+   control, as small chips under the structure name. */
+.row-activity-links {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+.chip-button.mini {
+  padding: 0.02rem 0.4rem;
+  font-size: 0.68rem;
+  text-decoration: none;
+}
+
+.chip-button.mini.add {
+  border-style: dashed;
+}
+
+/* Delete-confirmation dialog (native <dialog>, modal). */
+#delete-dialog {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  padding: 1.25rem 1.5rem;
+  min-width: 24rem;
+  max-width: 32rem;
+}
+
+#delete-dialog::backdrop {
+  background: rgb(0 0 0 / 60%);
+}
+
+#delete-dialog h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+}
+
+#delete-dialog p {
+  margin: 0 0 0.5rem;
+}
+
+/* Security chips locked to a selected system's class. */
+.chip-row.locked {
+  opacity: 0.55;
+}
+
+.chip-row.locked .chip-button {
+  cursor: not-allowed;
 }

@@ -265,12 +265,15 @@ async def import_candidates(db: AsyncSession) -> list[ImportCandidate]:
 
 
 async def system_suggestions(
-    db: AsyncSession, query: str, *, limit: int = 8
+    db: AsyncSession, esi: ESIClient, query: str, *, limit: int = 8
 ) -> list[dict]:
     """Type-ahead over the systems the app has resolved (local only —
     ESI's /search/ route is gone, so systems outside the synced
     footprint can't be suggested yet; entering them lands when a sync
-    observes them, a recorded limitation)."""
+    observes them, a recorded limitation). Each suggestion carries the
+    system's security (ESI per candidate, ETag-cached) so the form can
+    select the matching security chip on pick — the mockup's
+    "security 0.3 · lowsec" row."""
     pattern = f"{query.strip()}%"
     rows = (
         await db.execute(
@@ -286,7 +289,27 @@ async def system_suggestions(
             .limit(limit)
         )
     ).all()
-    return [{"system_id": system_id, "name": name} for system_id, name in rows]
+    suggestions = []
+    for system_id, name in rows:
+        security_status: float | None = None
+        try:
+            body = await esi.get_public(f"/universe/systems/{system_id}/")
+            security_status = float(body.get("security_status", 0.0))
+        except Exception:
+            security_status = None  # ESI down: the chip stays unselected
+        suggestions.append(
+            {
+                "system_id": system_id,
+                "name": name,
+                "security_status": security_status,
+                "security_class": (
+                    classify_security(security_status)
+                    if security_status is not None
+                    else None
+                ),
+            }
+        )
+    return suggestions
 
 
 async def resolve_system(

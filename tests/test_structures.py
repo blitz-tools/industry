@@ -290,15 +290,45 @@ async def test_unknown_system_rejected(app, client):
 
 @respx.mock
 async def test_system_typeahead_local_only(app, client, db_session):
+    """Local suggestions carry the system's security (ESI per candidate,
+    ETag-cached) so the form can select the matching chip on pick."""
     seed_system(db_session, 30004482, "Amamake")
     seed_system(db_session, 30002053, "Hek")
     await db_session.commit()
+    respx.get("https://esi.test/latest/universe/systems/30004482/").respond(
+        json={"name": "Amamake", "security_status": 0.3}
+    )
+    respx.get("https://esi.test/latest/universe/systems/30002053/").respond(
+        json={"name": "Hek", "security_status": 0.7}
+    )
     response = await (await _login(client)).get(
         "/structures/systems/search", params={"q": "am"}
     )
     assert response.status_code == 200
     systems = response.json()["systems"]
     assert [s["name"] for s in systems] == ["Amamake"]
+    assert systems[0]["security_class"] == "low"
+    assert systems[0]["security_status"] == pytest.approx(0.3)
+
+
+@respx.mock
+async def test_system_typeahead_esi_down_leaves_security_unknown(
+    app, client, db_session
+):
+    """ESI unreachable: suggestions still name systems; security reads
+    None so the chips stay in the user's hand."""
+    seed_system(db_session, 30004482, "Amamake")
+    await db_session.commit()
+    respx.get("https://esi.test/latest/universe/systems/30004482/").respond(
+        status_code=500
+    )
+    response = await (await _login(client)).get(
+        "/structures/systems/search", params={"q": "amam"}
+    )
+    assert response.status_code == 200
+    (system,) = response.json()["systems"]
+    assert system["name"] == "Amamake"
+    assert system["security_class"] is None
 
 
 @respx.mock
@@ -349,11 +379,21 @@ async def test_import_prefills_form(app, client, db_session):
         ),
     ])
     await db_session.commit()
+    respx.get("https://esi.test/latest/universe/systems/30004482/").respond(
+        json={"name": "Amamake", "security_status": 0.3}
+    )
     response = await (await _login(client)).get(
         "/structures", params={"import": 10**12 + 1}
     )
     assert response.status_code == 200
     assert "Lirerim - Chlorohus" in response.text
+    # The imported system's security selects its chip (resolved through
+    # the cached ESI client at prefill).
+    import re as re_mod
+
+    assert re_mod.search(
+        r'name="security_class" value="low"[\s\S]{0,80}?checked', response.text
+    )
     # The sighting's location id rides the form as the import tie.
     assert 'name="location_id" value="1000000000001"' in response.text
 
@@ -431,3 +471,158 @@ def test_effective_rig_percent_by_family():
     assert effective_rig_percent(
         "reactions", "me", "t1", "high"
     ) == pytest.approx(2.0)
+
+
+@respx.mock
+async def test_add_form_defaults_and_markup(app, client):
+    """The blank add form's script contract: manufacturing checked by
+    default (so the type list and rigs populate), the type-ahead
+    attributes render as single-quoted parseable JSON (double quotes
+    inside a double-quoted attribute broke the HTML and killed the
+    script), the tax field is a percent number input, and no field
+    renders a bare None."""
+    import json as jsonlib
+    import re
+
+    client = await _login(client)
+    response = await client.get("/structures")
+    assert response.status_code == 200
+    text = response.text
+    # Manufacturing pre-selected on a blank form.
+    assert re.search(r'value="manufacturing"[\s\S]{0,80}?checked', text)
+    # Single-quoted, parseable JSON attributes.
+    match = re.search(r"data-activity-types='([^']*)'", text)
+    assert match, "activity-types attribute must be single-quoted"
+    assert sorted(jsonlib.loads(match.group(1))) == [
+        "copying", "invention", "manufacturing", "reactions"
+    ]
+    assert re.search(r"data-activity-labels='([^']*)'", text)
+    # Tax as a percent number input; no bare None anywhere.
+    assert re.search(r'id="tax" type="number"[^>]*min="0"', text)
+    assert 'value="None"' not in text
+
+
+@respx.mock
+async def test_form_panel_hidden_by_default_and_revealed(app, client, db_session):
+    """The add/edit panel is hidden until a link asks for it (?form=add,
+    a row's Edit link, or an import). The Edit link's query param is
+    `structure` — it must bind: an earlier name mismatch (the route read
+    `structure_id`) left Edit silently reloading a blank form."""
+    structure = await seed_structure(db_session)
+    db_session.add(
+        StructureRegistration(structure_id=structure.id, activity="manufacturing")
+    )
+    await db_session.commit()
+    client = await _login(client)
+
+    default = await client.get("/structures")
+    assert 'id="structure-form" hidden' in default.text
+
+    add = await client.get("/structures", params={"form": "add"})
+    assert 'id="structure-form" hidden' not in add.text
+
+    edit = await client.get(
+        "/structures",
+        params={"structure": structure.id, "activity": "manufacturing"},
+    )
+    assert 'id="structure-form" hidden' not in edit.text
+    # The edit form is populated — the param bound and the structure
+    # loaded.
+    assert f'value="{structure.name}"' in edit.text
+
+
+@respx.mock
+async def test_add_registration_mode_and_cross_links(app, client, db_session):
+    """Multi-activity structures are discoverable: registry rows show a
+    structure's other registrations plus a "+ activity" control, and the
+    add-registration form (?structure=<id>&form=add) starts on the first
+    unregistered activity with the registered chips marked."""
+    import re as re_mod
+
+    structure = await seed_structure(db_session)
+    db_session.add(
+        StructureRegistration(structure_id=structure.id, activity="manufacturing")
+    )
+    await db_session.commit()
+    client = await _login(client)
+
+    page = await client.get("/structures")
+    assert "+ activity" in page.text
+
+    form = await client.get(
+        "/structures", params={"structure": structure.id, "form": "add"}
+    )
+    assert 'id="structure-form" hidden' not in form.text
+    # First unregistered activity preselected; the registered one marked.
+    assert re_mod.search(r'value="copying"[\s\S]{0,80}?checked', form.text)
+    assert "Manufacturing ✓" in form.text
+
+
+@respx.mock
+async def test_default_promotion_lower_id_does_not_crash(app, client, db_session):
+    """The owner's crash: promoting a registration whose primary key
+    sorts BEFORE the current default's. SQLAlchemy batches same-table
+    updates into one executemany ordered by id, so the promotion landed
+    first, momentarily created two defaults, and tripped the partial
+    unique index. The demotion must flush before the promotion."""
+    first = await seed_structure(db_session, name="Alpha Tatara",
+                                 structure_type="tatara")
+    second = await seed_structure(db_session, name="Beta Athanor",
+                                  structure_type="athanor")
+    db_session.add_all([
+        StructureRegistration(structure_id=first.id, activity="reactions"),
+        StructureRegistration(structure_id=second.id, activity="reactions",
+                              is_default=True),
+    ])
+    await db_session.commit()
+    # first.id < second.id: the promotion sorts before the demotion.
+    assert first.id < second.id
+
+    respx.get("https://esi.test/latest/universe/systems/30004482/").respond(
+        json=AMAMAKE
+    )
+    response = await (await _login(client)).post(
+        "/structures",
+        data=form_for(first, name="Alpha Tatara", structure_type="tatara",
+                      activity="reactions", me_rig="none", te_rig="t2",
+                      is_default="on"),
+    )
+    assert response.status_code == 303, response.text
+    defaults = (
+        await db_session.execute(
+            select(StructureRegistration).where(
+                StructureRegistration.activity == "reactions",
+                StructureRegistration.is_default,
+            )
+        )
+    ).scalars().all()
+    assert len(defaults) == 1
+    assert defaults[0].structure_id == first.id
+
+
+@respx.mock
+async def test_tax_rate_two_decimal_places(app, client, db_session):
+    """Tax accepts two decimals (step 0.01) and displays without padding
+    zeros: 0.25% stores 0.0025 and renders back as 0.25%."""
+    with respx.mock:
+        respx.get("https://esi.test/latest/universe/systems/30004482/").respond(
+            json=AMAMAKE
+        )
+        response = await (await _login(client)).post(
+            "/structures", data=form_for(tax_rate="0.25%")
+        )
+    assert response.status_code == 303, response.text
+    registration = (
+        await db_session.execute(select(StructureRegistration))
+    ).scalar_one()
+    assert registration.tax_rate == pytest.approx(0.0025)
+
+    page = await (await _login(client)).get("/structures")
+    assert "0.25%" in page.text
+    # The edit form echoes the value without padding zeros.
+    form = await (await _login(client)).get(
+        "/structures",
+        params={"structure": registration.structure_id,
+                "activity": "manufacturing"},
+    )
+    assert 'value="0.25"' in form.text
