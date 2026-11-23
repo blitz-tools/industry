@@ -18,5 +18,8 @@ data/
 .ruff_cache/
 .dev-reload-paused
 
+# Local session scratch (commit messages, PR bodies, transform scripts)
+.local/
+
 # Docs build output
 site/
