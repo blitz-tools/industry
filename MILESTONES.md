@@ -493,6 +493,22 @@ Two consequences worth stating outright:
   the conclusion. Consequence for process: every mockup section names
   its bucket, so "is this feature actually buildable?" is checkable
   at design time — a section with no bucket is a design bug.
+  **Extension — no scenario-composed sentences, on any surface**
+  (2026-11-22, from the M15 sync-panel review, extending this
+  decision beyond the planner): UI text is **static scaffolding with
+  computed values in slots** — fixed labels, state badges
+  (blocked / ready / pending / scope-needed / estimate-stale),
+  structured fields, table rows. A sentence whose *structure* would
+  change per scenario (which candidate gets named, which remediation
+  lever exists, whether a gate is blocked) is infeasible to build
+  into general application code and must decompose into badge +
+  fields + static help text, with remediations as links/actions
+  rather than narrated. Fixed-template sentences with value slots
+  ("input {X} + install {Y} against sell {Z}") are fine — the
+  template is static, only the slot values are computed. The
+  2026-11-22 design sweep applied this across the mockups (the
+  markets headroom card became candidate rows; active market
+  readouts and settled ledger lines became fixed-slot fields).
 - **The planner targets commodities, not blueprints** (2026-11-20,
   from the planner-entry review): search and target selection are the
   **built commodity + unit count** — the defining request is "10
@@ -954,6 +970,18 @@ framework.*
   per-family sync duration, and staleness per table. The standing
   requirement: the app never rides its rate limits — the panel exists
   to answer that question continuously while the band soaks.
+  **Central page + subset rule** (2026-11-22): **Admin >
+  Observability** holds all available observability data centrally;
+  specific pages show subsets (the Markets sync panel shows its
+  families and headroom; the structures page its sync-source lines)
+  but the checks are never duplicated — one stored dataset,
+  page-filtered views, the central page authoritative. **Storage**
+  (2026-11-22): local by default, exportable to third-party storage
+  domains — Prometheus, Loki, Thanos, or other open-source
+  observability applications. **Code tracing for debugging** is
+  future work on the same stack: OpenTelemetry where possible,
+  extending the metrics note to request/job spans (TODO.md carries
+  the item).
   Storage-format note (2026-11-19): consider OpenTelemetry
   conventions for the telemetry records so over-time views and
   graphing for API tuning consume them naturally — zero-code Python

@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Markets — wireframe</title>
+  <link rel="stylesheet" href="../shared/mockups.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a class="brand" href="#">soliton</a>
+  <nav>
+    <a href="#">Dashboard</a>
+    <a href="#">Build Planner</a>
+    <a href="#">Structures</a>
+    <a class="active" href="#">Markets</a>
+    <div class="nav-group">
+      <span class="nav-group-label">Character</span>
+      <a href="#">Blueprints</a>
+      <a href="#">Skills</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Corporation</span>
+      <a href="#">Assets</a>
+      <a href="#">Blueprints</a>
+      <a href="#">Jobs</a>
+    </div>
+    <div class="nav-group">
+      <span class="nav-group-label">Admin</span>
+      <a href="#">SDE Data</a>
+      <a href="#">Observability</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">static wireframe<br>design/markets/markets.html</div>
+</aside>
+
+<main class="content">
+  <div class="page-header">
+    <h1>Markets</h1>
+    <div class="actions">
+      <button class="primary" type="button">Add market</button>
+    </div>
+  </div>
+  <p class="meta-line" style="margin: -0.5rem 0 1.25rem;">
+    The synced market list and its world-state band — the planner's
+    sell-side market selector reads the enabled set, the same way the
+    facilities section reads the Structures registry. Division of
+    record: <b>industry facilities in the structure manager, markets
+    here</b>.
+  </p>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    The second of the three surface mockups (M15 sync panel, after
+    M3's structures page — same registry/status shape against the
+    reference component set). The market list is user state feeding
+    planner selectors; the sync families and rate-limit headroom
+    below are its observability subset — <b>Admin &gt; Observability
+    holds the central view</b> (nav entry added above), and nothing
+    here duplicates those checks: one stored dataset, page-filtered.
+  </div>
+
+  <!-- Market sources -->
+  <section class="card" style="margin-top: 1.25rem;">
+    <div class="card-body">
+      <h2>Market sources</h2>
+      <p class="card-sub">The five trade hubs are included by default and each is disableable without deletion — a disabled hub stays listed, drops from the planner's market selector, and stops consuming rate-limit budget. Custom and player-structure markets carry full edit/delete.</p>
+
+      <table class="asset-table">
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th>Type</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="group-row"><td colspan="5">Trade hubs — the five-hub target set, staged rollout gates each expansion</td></tr>
+          <tr>
+            <td><b>The Forge</b> <span class="muted">· seed</span></td>
+            <td class="muted">trade hub</td>
+            <td class="muted">Jita · region 10000002</td>
+            <td><span class="badge owned">enabled · syncing</span></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Domain</td>
+            <td class="muted">trade hub</td>
+            <td class="muted">Amarr · region 10000043</td>
+            <td><span class="badge plan-state">disabled — headroom</span></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Heimatar</td>
+            <td class="muted">trade hub</td>
+            <td class="muted">Rens · region 10000048</td>
+            <td><span class="badge plan-state">disabled — headroom</span></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Metropolis</td>
+            <td class="muted">trade hub</td>
+            <td class="muted">Hek · region 10000052</td>
+            <td><span class="badge plan-state">disabled — headroom</span></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Sinq Laison</td>
+            <td class="muted">trade hub</td>
+            <td class="muted">Dodixie · region 10000037</td>
+            <td><span class="badge plan-state">disabled — headroom</span></td>
+            <td></td>
+          </tr>
+          <tr class="group-row"><td colspan="5">Player markets — full edit/delete; the band's one character-scoped source</td></tr>
+          <tr>
+            <td><b>Amamake - 5 Times Nearly Winners</b></td>
+            <td class="muted">player market</td>
+            <td class="muted">Amamake · Keepstar structure market</td>
+            <td><span class="badge missing">scope needed</span></td>
+            <td style="text-align: right; white-space: nowrap;"><button class="icon-button" type="button" aria-label="Edit" title="Edit">✎</button> <button class="icon-button danger" type="button" aria-label="Delete" title="Delete">✕</button></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="sync-source" style="margin-top: 0.75rem;">
+        sync_hubs · user state · seeded The Forge alone · five-hub expansion target · public contracts and orders ride the enabled set
+      </div>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        The staged rollout (recorded 2026-11-19) makes the four
+        disabled hubs a <b>decision the numbers made</b>, not missing
+        configuration — the headroom card below is the same gate the
+        sync loop checks before expanding, rendered legibly.
+        <b>Scope needed</b> = <code>esi-markets.structure_markets.v1</code>
+        is not yet registered on the portal (live fact) — the row
+        shows the prerequisite state rather than an error, and the
+        structure's public contracts arrive via the Metropolis region
+        scan anyway once that hub enables. Edit/delete apply to
+        custom markets only; the five hubs toggle.
+      </div>
+    </div>
+  </section>
+
+  <!-- Add market -->
+  <section class="card overflow-visible">
+    <div class="card-body">
+      <h2>Add market</h2>
+      <p class="card-sub">A trade-hub region or a player-structure market. Regions resolve through the ESI universe type-ahead; player structures resolve from the asset sync's structure sightings — the same source as the structures page's import card.</p>
+
+      <div class="form-grid">
+        <div class="field">
+          <label class="field-label" for="add-type">Type</label>
+          <select class="form-select" id="add-type">
+            <option selected>Trade hub (region)</option>
+            <option>Player-structure market</option>
+          </select>
+          <span class="field-hint">player markets need the structures-market scope held by a rostered character</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Region</span>
+          <div class="search-wrap" style="max-width: none;">
+            <input class="form-input search-input" type="text" value="dom" aria-label="Search regions" style="font-size: 0.95rem;">
+            <div class="autocomplete">
+              <div class="autocomplete-row active">
+                <span class="type-icon-none" style="width: 32px; height: 32px; flex: none;"></span>
+                <div>
+                  <div class="ac-name">Domain</div>
+                  <div class="ac-sub">region 10000043 · Amarr VIII — hub orders, history, and public contracts sync when enabled</div>
+                </div>
+                <div class="ac-right">
+                  <span class="badge plan-state">disabled — headroom</span>
+                </div>
+              </div>
+              <div class="autocomplete-footer">1 match · regions via ESI /universe, cached like other universe data</div>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field-label">Player structure</span>
+          <input class="form-input" type="text" placeholder="search synced structure sightings — e.g. 5 Times Nearly Winners" aria-label="Search player structures">
+          <span class="field-hint">universe_locations sightings; a Keepstar market hub is a market here and never an industry facility</span>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
+        <button type="button">Add market</button>
+        <button type="button">Cancel</button>
+      </div>
+
+      <div class="anno" style="margin-top: 1rem;">
+        <span class="anno-label">wireframe</span>
+        Shown mid-type ("dom") with the region type-ahead open — the
+        planner's autocomplete repurposed a second time (structures
+        used it for systems). Adding a disabled hub is allowed: the
+        row lists immediately, syncing starts when headroom gates it
+        in. Adding an already-seeded hub is an idempotent no-op.
+      </div>
+    </div>
+  </section>
+
+  <!-- Sync families -->
+  <section class="card">
+    <div class="card-body">
+      <h2>Sync families</h2>
+      <p class="card-sub">One row per world-state family — cadence, last sync, freshness, and row counts. The families ride the background tick like the character/corp sync kinds; public endpoints, no scopes (player-structure markets are the one scoped exception).</p>
+
+      <table class="asset-table">
+        <thead>
+          <tr>
+            <th>Family</th>
+            <th class="num">Cadence</th>
+            <th>Last sync</th>
+            <th>Freshness</th>
+            <th class="num">Rows</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="sync-source" style="margin: 0 0.4rem 0 0;"></span><b>Cost indices</b> <span class="muted">· /industry/systems/ → cost_indices</span></td>
+            <td class="num">6 h</td>
+            <td class="muted">12 min ago</td>
+            <td><span class="badge owned">fresh</span></td>
+            <td class="num qty">5,431 systems</td>
+          </tr>
+          <tr>
+            <td><span class="sync-source" style="margin: 0 0.4rem 0 0;"></span><b>Public contracts</b> <span class="muted">· The Forge only — rides the staged rollout</span></td>
+            <td class="num">1 h</td>
+            <td class="muted">8 min ago</td>
+            <td><span class="badge owned">fresh</span></td>
+            <td class="num qty">1,204 listings</td>
+          </tr>
+          <tr>
+            <td><span class="sync-source" style="margin: 0 0.4rem 0 0;"></span><b>Market prices</b> <span class="muted">· global adjusted/average → market_prices</span></td>
+            <td class="num">1 d</td>
+            <td class="muted">3 h ago</td>
+            <td><span class="badge owned">fresh</span></td>
+            <td class="num qty">21,988 types</td>
+          </tr>
+          <tr>
+            <td><span class="sync-source" style="margin: 0 0.4rem 0 0;"></span><b>Orders</b> <span class="muted">· per enabled hub</span></td>
+            <td class="num">1 h</td>
+            <td class="muted">22 min ago</td>
+            <td><span class="badge owned">fresh</span></td>
+            <td class="num qty">88,412 orders</td>
+          </tr>
+          <tr>
+            <td><b>History</b> <span class="muted">· per enabled hub, append-only daily</span></td>
+            <td class="num">1 d</td>
+            <td class="muted">—</td>
+            <td><span class="badge missing">pending</span></td>
+            <td class="num muted">—</td>
+          </tr>
+          <tr>
+            <td><span class="sync-source" style="margin: 0 0.4rem 0 0;"></span><b>LP store offers</b> <span class="muted">· fuzzwork lpstore dataset — not ESI, no rate-limit budget</span></td>
+            <td class="num">1 w</td>
+            <td class="muted">2 d ago</td>
+            <td><span class="badge owned">fresh</span></td>
+            <td class="num qty">31,952 offers</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        The framework slice's admin-visible status view, scoped to
+        this page's families — the central <b>Admin &gt;
+        Observability</b> page holds every family (these plus the
+        character/corp sync kinds) with the same rows, and neither
+        page duplicates the checks: both read the one stored
+        <code>data_syncs</code>-shaped dataset, filtered per view.
+        History lands last per the recorded family order (heaviest);
+        the LP store offers row rides the fuzzwork lpstore dataset
+        (31,952 offers across 181 stores — real counts) outside the
+        ESI rate-limit budget entirely. Cadences and timestamps are
+        illustrative until the rate-limit budget math lands.
+      </div>
+    </div>
+  </section>
+
+  <!-- Rate-limit headroom -->
+  <section class="card">
+    <div class="card-body">
+      <h2>Rate-limit headroom — the staged-rollout gate</h2>
+      <p class="card-sub">Per-route-group window usage from the X-Ratelimit headers the ESI limiter already sees. This is the number the sync loop checks before expanding the hub set — rendered here so the disabled hubs above read as the gate's decision, not missing configuration.</p>
+
+      <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.75rem;">
+        <div class="meter-cell" style="min-width: 22rem; flex: 1;">
+          <div class="meter"><div class="meter-fill warn" style="width: 62%;"></div></div>
+          <span class="meter-pct">ESI markets group — 62% of window used (orders + history for The Forge)</span>
+        </div>
+        <div class="meter-cell" style="min-width: 22rem; flex: 1;">
+          <div class="meter"><div class="meter-fill" style="width: 18%;"></div></div>
+          <span class="meter-pct">ESI contracts group — 18% of window used</span>
+        </div>
+      </div>
+
+      <table class="asset-table" style="margin-top: 1rem;">
+        <thead>
+          <tr>
+            <th>Next expansion candidates</th>
+            <th class="num">Est. window cost</th>
+            <th>Group</th>
+            <th>Gate state</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Domain</td>
+            <td class="num qty">+14%</td>
+            <td class="muted">markets</td>
+            <td><span class="stage-state missing">blocked — headroom</span></td>
+          </tr>
+          <tr>
+            <td>Heimatar</td>
+            <td class="num qty">+11%</td>
+            <td class="muted">markets</td>
+            <td><span class="stage-state missing">blocked — headroom</span></td>
+          </tr>
+          <tr>
+            <td>Metropolis</td>
+            <td class="num qty">+9%</td>
+            <td class="muted">markets</td>
+            <td><span class="stage-state missing">blocked — headroom</span></td>
+          </tr>
+          <tr>
+            <td>Sinq Laison</td>
+            <td class="num qty">+8%</td>
+            <td class="muted">markets</td>
+            <td><span class="stage-state missing">blocked — headroom</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="meta-line" style="margin: 0.75rem 0 0;">
+        <span class="muted">est. = the seed hub's measured per-hub window cost, refined per region after first expansion · a hub enables when its group's window holds sustained headroom for the estimate · levers: usage drops between syncs, or a <a href="#">family cadence lengthens</a> · the standing requirement: <b>the app never rides its rate limits</b></span>
+      </p>
+
+      <div class="anno" style="margin-top: 0.75rem;">
+        <span class="anno-label">wireframe</span>
+        <b>No scenario-composed sentences</b> (2026-11-22 direction,
+        extending the no-editorial-prose decision to every surface):
+        the gate renders as candidate rows — estimate field + gate
+        state badge — with the levers and standing requirement as
+        static help text and the remediation as a link, so any
+        scenario is a badge and two fields, never a composed
+        sentence. Usage percentages and estimates are illustrative;
+        the estimates are <b>measured</b> values in production (the
+        seed hub's actual window cost per family), rendered as
+        estimates. The over-time view (window history, error budgets)
+        lives on the Observability page with the full per-group
+        breakdown. The LP store offers family is absent from these
+        meters by construction: it syncs from the fuzzwork dataset,
+        not ESI.
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <section class="card">
+    <div class="card-body">
+      <div class="meta-line">
+        1 of 5 hubs enabled · 5 sync families (1 pending) · markets group 62% · the staged rollout expands on headroom
+      </div>
+    </div>
+  </section>
+
+  <p class="meta-line" style="margin-top: 1rem;">
+    The planner's sell-side selector reads the enabled set → see any
+    set's planner, e.g.
+    <a href="../typhoon/planner.html">../typhoon/planner.html</a> ·
+    the structures registry is the sibling surface →
+    <a href="../structures/structures.html">../structures/structures.html</a>
+  </p>
+</main>
+
+</body>
+</html>

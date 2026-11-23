@@ -18,6 +18,7 @@ document it visualizes. Shared styles and components live in
 | `tfi/` | planner → build plan → active plan (faction set — LP acquisition) |
 | `ragnarok/` | planner → build plan → active plan (titan set — the absolute stress test) |
 | `structures/` | single surface page — the M3 facility-registry CRUD (registry table, form, sync import, multiplier reference) |
+| `markets/` | single surface page — the M15 sync panel: the market manager (hubs disableable, custom/player CRUD) + sync families + the rate-limit headroom gate |
 
 These are design artifacts for iteration, **not** app code: no build
 step, no JS, nothing wired to the FastAPI app. They are deliberately
@@ -71,6 +72,15 @@ set; once settled they apply to every set (decisions graduate to
 - **Currency displays as Ƶ** (2026-11-22): U+01B5 replaces "isk" as
   the currency symbol globally, and money totals read
   `<total> Ƶ (<per-item> Ƶ)` — total first, per-item in parens.
+- **No scenario-composed sentences** (2026-11-22, extending the
+  no-editorial-prose decision to every surface): UI text is static
+  scaffolding with computed values in slots — state badges,
+  structured fields, table rows; a sentence whose structure would
+  change per scenario decomposes into badge + fields + static help,
+  with remediations as links. Fixed-template sentences with value
+  slots are fine. Reference implementation: the markets page's
+  headroom gate; the 2026-11-22 sweep normalized the active market
+  readouts and settled lines across all sets.
 - **Job allocation pages through waves** (2026-11-22): a `‹ Wave ## ›`
   pager on the job-allocation section — the current wave is always
   the default view until it completes; paging left shows historical
@@ -98,8 +108,8 @@ completes first. Two kinds of sets: **chain sets** (the binding
 three-page convention above, only data changes) and **surface
 mockups** (single new page types, proposed once against the reference
 component set — the convention's new-component rule applies). The M3
-structure manager surface is landed (`structures/`); the M15 sync
-panel and M12 capability surface remain.
+structure manager (`structures/`) and M15 sync panel (`markets/`)
+surfaces are landed; the M12 capability surface remains.
 
 Order (chain sets by escalating complexity, then the surfaces — the
 three surface mockups are independent and can slot anywhere):

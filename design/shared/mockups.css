@@ -51,6 +51,13 @@
  *                   waves; the current wave is always the default
  *                   view until it completes (proposed by the
  *                   2026-11-22 wave-paging pass)
+ *   .var           variable-content marker — a soft cyan tint on
+ *                   spans the app supplies at render time (computed
+ *                   values, synced data). Static scaffolding —
+ *                   labels, help text, curated classifications —
+ *                   is unmarked. Two buckets, spans only
+ *                   (2026-11-22 direction; reference implementation:
+ *                   the Charon set)
  * ------------------------------------------------------------------------ */
 
 /* Molokai-derived tokens (tomasr/molokai) — verbatim from the app. */
@@ -381,6 +388,20 @@ button.primary {
 .badge.capability {
   border-color: var(--cyan);
   color: var(--cyan);
+}
+
+/* --- Variable-content marker (new): dynamic spans vs static scaffolding ---
+ * Soft cyan tint marks content the app supplies at render time —
+ * computed values (run counts, gate states, profit) and synced data
+ * (names, prices, SDE quantities). Unmarked text is static: labels,
+ * help text, curated pin-table classifications (acquisition paths,
+ * multipliers). Two buckets, spans only — the marking lives inside
+ * otherwise-static sentences, per the 2026-11-22 direction. */
+
+.var {
+  background: color-mix(in srgb, var(--cyan) 20%, transparent);
+  border-radius: 2px;
+  padding: 0 0.15em;
 }
 
 /* --- Wave pager (new): pages the job-allocation section through waves ---
