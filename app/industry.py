@@ -8,7 +8,7 @@ slot ceilings.
 from dataclasses import dataclass
 from datetime import datetime
 
-from sqlalchemy import String, and_, cast, func, literal, select
+from sqlalchemy import String, and_, cast, func, literal, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
@@ -518,3 +518,407 @@ async def character_sync_notes(
             )
     last = max((sync.synced_at for sync in syncs.values()), default=None)
     return notes, last
+
+
+# ---------------------------------------------------------------------------
+# Catalog query layer (M2) — commodity search and recipe reads over the SDE
+# mirror, plus the owned-blueprint overlay. The M4 planner consumes these;
+# the sde_* tables stay verbatim (no ORM models), so everything here is raw
+# SQL and every interpretation of the dump lives in this section.
+# ---------------------------------------------------------------------------
+
+# The buildable catalog: products of manufacturing (activity 1) and
+# reactions. ramActivities labels reactions 9, but the dump's recipe data
+# lives on activity 11 (reference/README.md) — labels here speak SDE.
+CATALOG_ACTIVITIES = (1, 11)
+SDE_ACTIVITY_LABELS = {1: "Manufacturing", 11: "Reaction"}
+
+# Name merge rule (decided here per MILESTONES.md M2): the SDE name is
+# authoritative wherever the mirror has the type — the catalog IS the
+# mirror, and universe_types is write-once so preferring it would pin
+# names at first-sync time (live evidence: one universe name carries a
+# trailing space the SDE lacks). universe_types only names ids the dump
+# lacks — orphan product rows and SDE release lag — so every coalesce
+# below reads SDE first. ESI-synced-id pages (blueprints, jobs, skills)
+# keep their existing universe-only resolution.
+
+# Producer selection: the reference model takes a product's first
+# industryActivityProducts row (rowid order); on the real mirror that
+# picks CCP test artifacts where they sit first (Tungsten Carbide's
+# "Test Reaction Blueprint", unpublished). This layer prefers the first
+# *published* producer, falling back to the first row when none is
+# published (210 products' only producers are unpublished). All ten chain
+# anchors have a single published producer, so the golden values are
+# unaffected; M5's resolver adopts the same rule.
+_PRODUCER_CTE = """
+    SELECT p.productTypeID AS product_id,
+           p.typeID AS bp_type_id,
+           p.activityID AS activity_id,
+           p.quantity AS products_per_run,
+           ROW_NUMBER() OVER (
+               PARTITION BY p.productTypeID
+               ORDER BY CASE WHEN bp.published = 1 THEN 0 ELSE 1 END, p.rowid
+           ) AS rn
+    FROM sde_industryActivityProducts p
+    LEFT JOIN sde_invTypes bp ON bp.typeID = p.typeID
+    WHERE p.activityID IN (1, 11)
+"""
+
+
+@dataclass
+class CatalogEntry:
+    """One buildable product in the catalog search (the planner's
+    commodity-first autocomplete row): the built commodity, its derived
+    producer blueprint, and pool-wide owned-blueprint counts."""
+
+    type_id: int
+    type_name: str
+    group_name: str | None
+    blueprint_type_id: int
+    blueprint_name: str
+    activity_id: int  # SDE activity (1 manufacturing, 11 reaction)
+    products_per_run: int
+    max_production_limit: int | None  # None: no industryBlueprints row
+    owned_originals: int  # BPOs across the whole pool (corp + characters)
+    owned_copies: int
+
+    @property
+    def activity_label(self) -> str:
+        return SDE_ACTIVITY_LABELS.get(self.activity_id, f"Activity {self.activity_id}")
+
+    @property
+    def owned_count(self) -> int:
+        return self.owned_originals + self.owned_copies
+
+
+@dataclass
+class RecipeMaterial:
+    """One build input per run, flagged for chain continuation (M5's
+    recursion signal: the material is itself a catalog product)."""
+
+    type_id: int
+    name: str
+    quantity_per_run: int
+    buildable: bool
+
+
+@dataclass
+class RecipeSkill:
+    """One required skill level for the activity. The dump carries exact
+    duplicate skill rows; the read dedups."""
+
+    skill_id: int
+    name: str
+    level: int
+
+
+@dataclass
+class CommodityRecipe:
+    """Everything the M4 calculator needs for one selected commodity:
+    the producing blueprint, its per-run inputs and skills, the activity
+    duration, and the owned-blueprint overlay (ME/TE/runs per copy)."""
+
+    type_id: int
+    type_name: str
+    group_name: str | None
+    blueprint_type_id: int
+    blueprint_name: str
+    activity_id: int
+    products_per_run: int
+    max_production_limit: int | None
+    duration_seconds: int | None  # None: no industryActivity row
+    materials: list[RecipeMaterial]
+    skills: list[RecipeSkill]
+    owned: list[BlueprintRow]
+
+    @property
+    def activity_label(self) -> str:
+        return SDE_ACTIVITY_LABELS.get(self.activity_id, f"Activity {self.activity_id}")
+
+
+async def search_catalog(
+    db: AsyncSession,
+    query: str,
+    *,
+    limit: int = 10,
+    owned_only: bool = False,
+) -> list[CatalogEntry]:
+    """Name-ordered catalog search over the buildable products
+    (products of activities 1 and 11, no published filter — the census
+    membership rule; the catalog's size is whatever the current SDE
+    release holds and is never referenced as a constant). Prefix
+    matches sort first. `owned_only` keeps products with any blueprint
+    in the inventory pool (the planner's Match From Inventory
+    toggle)."""
+    pattern = f"%{query.strip()}%"
+    prefix = f"{query.strip()}%"
+    owned_filter = (
+        "AND EXISTS (SELECT 1 FROM blueprints b WHERE b.type_id = prod.bp_type_id)"
+        if owned_only
+        else ""
+    )
+    rows = (
+        await db.execute(
+            text(
+                f"""
+                WITH prod AS ({_PRODUCER_CTE})
+                SELECT prod.product_id,
+                       coalesce(t.typeName, u.name,
+                                '#' || prod.product_id) AS type_name,
+                       g.groupName AS group_name,
+                       prod.bp_type_id,
+                       coalesce(bp.typeName, '#' || prod.bp_type_id)
+                           AS blueprint_name,
+                       prod.activity_id,
+                       prod.products_per_run,
+                       mpl.maxProductionLimit AS max_production_limit,
+                       (SELECT count(*) FROM blueprints b
+                         WHERE b.type_id = prod.bp_type_id
+                           AND (b.runs = -1 OR b.runs IS NULL)) AS owned_originals,
+                       (SELECT count(*) FROM blueprints b
+                         WHERE b.type_id = prod.bp_type_id AND b.runs >= 0)
+                           AS owned_copies
+                FROM prod
+                LEFT JOIN sde_invTypes t ON t.typeID = prod.product_id
+                LEFT JOIN universe_types u ON u.type_id = prod.product_id
+                LEFT JOIN sde_invGroups g ON g.groupID = t.groupID
+                LEFT JOIN sde_invTypes bp ON bp.typeID = prod.bp_type_id
+                LEFT JOIN sde_industryBlueprints mpl
+                       ON mpl.typeID = prod.bp_type_id
+                WHERE prod.rn = 1
+                  AND coalesce(t.typeName, u.name,
+                               '#' || prod.product_id) LIKE :pattern
+                  {owned_filter}
+                ORDER BY (coalesce(t.typeName, u.name,
+                                   '#' || prod.product_id) LIKE :prefix) DESC,
+                         coalesce(t.typeName, u.name,
+                                  '#' || prod.product_id),
+                         prod.product_id
+                LIMIT :limit
+                """
+            ),
+            {"pattern": pattern, "prefix": prefix, "limit": limit},
+        )
+    ).all()
+    return [
+        CatalogEntry(
+            type_id=product_id,
+            type_name=type_name,
+            group_name=group_name,
+            blueprint_type_id=bp_type_id,
+            blueprint_name=blueprint_name,
+            activity_id=activity_id,
+            products_per_run=products_per_run,
+            max_production_limit=max_production_limit,
+            owned_originals=owned_originals,
+            owned_copies=owned_copies,
+        )
+        for (
+            product_id,
+            type_name,
+            group_name,
+            bp_type_id,
+            blueprint_name,
+            activity_id,
+            products_per_run,
+            max_production_limit,
+            owned_originals,
+            owned_copies,
+        ) in rows
+    ]
+
+
+async def commodity_recipe(db: AsyncSession, type_id: int) -> CommodityRecipe | None:
+    """The full recipe read for one buildable commodity: producer
+    blueprint (prefer-published first row), per-run materials flagged for
+    chain continuation, deduped skills, duration, max production limit,
+    and the owned-blueprint overlay. None when the type is not a catalog
+    product (raw, or invention-sourced BPC)."""
+    header = (
+        await db.execute(
+            text(
+                f"""
+                WITH prod AS ({_PRODUCER_CTE})
+                SELECT prod.product_id,
+                       coalesce(t.typeName, u.name,
+                                '#' || prod.product_id) AS type_name,
+                       g.groupName AS group_name,
+                       prod.bp_type_id,
+                       coalesce(bp.typeName, '#' || prod.bp_type_id)
+                           AS blueprint_name,
+                       prod.activity_id,
+                       prod.products_per_run,
+                       mpl.maxProductionLimit AS max_production_limit
+                FROM prod
+                LEFT JOIN sde_invTypes t ON t.typeID = prod.product_id
+                LEFT JOIN universe_types u ON u.type_id = prod.product_id
+                LEFT JOIN sde_invGroups g ON g.groupID = t.groupID
+                LEFT JOIN sde_invTypes bp ON bp.typeID = prod.bp_type_id
+                LEFT JOIN sde_industryBlueprints mpl
+                       ON mpl.typeID = prod.bp_type_id
+                WHERE prod.rn = 1 AND prod.product_id = :type_id
+                """
+            ),
+            {"type_id": type_id},
+        )
+    ).first()
+    if header is None:
+        return None
+    (
+        product_id,
+        type_name,
+        group_name,
+        bp_type_id,
+        blueprint_name,
+        activity_id,
+        products_per_run,
+        max_production_limit,
+    ) = header
+
+    duration = (
+        await db.execute(
+            text(
+                "SELECT time FROM sde_industryActivity"
+                " WHERE typeID = :bp AND activityID = :activity"
+            ),
+            {"bp": bp_type_id, "activity": activity_id},
+        )
+    ).scalar_one_or_none()
+
+    materials = [
+        RecipeMaterial(
+            type_id=material_type_id,
+            name=name,
+            quantity_per_run=quantity,
+            buildable=bool(buildable),
+        )
+        for (material_type_id, name, quantity, buildable) in (
+            await db.execute(
+                text(
+                    """
+                    SELECT m.materialTypeID,
+                           coalesce(mt.typeName, um.name,
+                                    '#' || m.materialTypeID) AS name,
+                           m.quantity,
+                           EXISTS (
+                               SELECT 1 FROM sde_industryActivityProducts p
+                                WHERE p.productTypeID = m.materialTypeID
+                                  AND p.activityID IN (1, 11)
+                           ) AS buildable
+                    FROM sde_industryActivityMaterials m
+                    LEFT JOIN sde_invTypes mt ON mt.typeID = m.materialTypeID
+                    LEFT JOIN universe_types um ON um.type_id = m.materialTypeID
+                    WHERE m.typeID = :bp AND m.activityID = :activity
+                    ORDER BY m.quantity DESC, name, m.materialTypeID
+                    """
+                ),
+                {"bp": bp_type_id, "activity": activity_id},
+            )
+        ).all()
+    ]
+
+    skills = [
+        RecipeSkill(skill_id=skill_id, name=name, level=level)
+        for (skill_id, name, level) in (
+            await db.execute(
+                text(
+                    """
+                    SELECT DISTINCT s.skillID,
+                           coalesce(st.typeName, us.name,
+                                    '#' || s.skillID) AS name,
+                           s.level
+                    FROM sde_industryActivitySkills s
+                    LEFT JOIN sde_invTypes st ON st.typeID = s.skillID
+                    LEFT JOIN universe_types us ON us.type_id = s.skillID
+                    WHERE s.typeID = :bp AND s.activityID = :activity
+                    ORDER BY s.level DESC, name, s.skillID
+                    """
+                ),
+                {"bp": bp_type_id, "activity": activity_id},
+            )
+        ).all()
+    ]
+
+    owned = await owned_blueprints_for_type(db, bp_type_id)
+    return CommodityRecipe(
+        type_id=product_id,
+        type_name=type_name,
+        group_name=group_name,
+        blueprint_type_id=bp_type_id,
+        blueprint_name=blueprint_name,
+        activity_id=activity_id,
+        products_per_run=products_per_run,
+        max_production_limit=max_production_limit,
+        duration_seconds=duration,
+        materials=materials,
+        skills=skills,
+        owned=owned,
+    )
+
+
+async def owned_blueprints_for_type(
+    db: AsyncSession, blueprint_type_id: int
+) -> list[BlueprintRow]:
+    """Every owned copy of one blueprint type across the whole pool
+    (corporation + characters) — the M4 planner's ME/TE pre-fill source.
+    Owner names resolve through the tracked characters and the universe
+    corporation cache; locations follow the blueprints-page hop rule
+    (owner's asset snapshot: item id → top-level parent location)."""
+    rows_raw = (
+        await db.execute(
+            text(
+                """
+                SELECT b.item_id,
+                       b.type_id,
+                       coalesce(t.typeName, ut.name, '#' || b.type_id) AS name,
+                       b.material_efficiency,
+                       b.time_efficiency,
+                       b.runs,
+                       coalesce(loc.name, parent.name,
+                                '#' || b.location_id) AS location_name,
+                       b.location_flag,
+                       coalesce(ch.name, uc.name) AS owner_name
+                FROM blueprints b
+                LEFT JOIN sde_invTypes t ON t.typeID = b.type_id
+                LEFT JOIN universe_types ut ON ut.type_id = b.type_id
+                LEFT JOIN universe_locations loc
+                       ON loc.location_id = b.location_id
+                LEFT JOIN assets a
+                       ON a.owner_type = b.owner_type
+                      AND a.owner_id = b.owner_id
+                      AND a.item_id = b.location_id
+                LEFT JOIN universe_locations parent
+                       ON parent.location_id = a.parent_location_id
+                LEFT JOIN characters ch
+                       ON b.owner_type = :char_kind
+                      AND ch.character_id = b.owner_id
+                LEFT JOIN universe_corporations uc
+                       ON b.owner_type = :corp_kind
+                      AND uc.corporation_id = b.owner_id
+                WHERE b.type_id = :blueprint_type_id
+                ORDER BY owner_name, b.item_id
+                """
+            ),
+            {
+                "blueprint_type_id": blueprint_type_id,
+                "char_kind": OWNER_CHARACTER,
+                "corp_kind": OWNER_CORPORATION,
+            },
+        )
+    ).all()
+    return [
+        BlueprintRow(
+            item_id=item_id,
+            type_id=type_id,
+            type_name=name or f"Unknown type #{type_id}",
+            icon_kind="bp" if runs in (-1, None) else "bpc",
+            material_efficiency=me,
+            time_efficiency=te,
+            runs=runs,
+            location_name=location_name,
+            location_flag=flag,
+            owner_name=owner,
+        )
+        for (item_id, type_id, name, me, te, runs, location_name, flag, owner)
+        in rows_raw
+    ]

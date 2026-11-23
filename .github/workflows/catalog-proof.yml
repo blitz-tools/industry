@@ -1,0 +1,98 @@
+name: Catalog proof
+
+# Functional proof of the catalog query layer (M2) against the live
+# fuzzwork SDE dump: golden-source parity with reference/chain_expand.py
+# on the ten chain anchors plus the edge-case invariants recorded in
+# MILESTONES.md. Runs when the catalog layer or its golden source
+# change, on demand, and weekly on main so SDE-release quirks (new test
+# artifacts, orphan rows, duplicate rows) surface as failures instead
+# of silent behavior changes.
+#
+# The dump is cached, not fetched per run: each run reads only the
+# published .md5sum sidecar (~200 bytes) and downloads the 145 MiB
+# archive only when the release changed. PR runs restore the cache the
+# weekly main run keeps warm; when fuzzwork is unreachable the restore
+# keys fall back to the most recent cached dump (a stale-release proof
+# beats a failed run — the weekly run surfaces the outage). LFS and
+# release assets were considered and rejected: quota/history cost, and
+# the dump stays internal to Actions storage this way.
+
+# Least privilege for the GITHUB_TOKEN this workflow gets.
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly, Monday mornings UTC (offset from CodeQL's Thursday slot).
+    - cron: "32 7 * * 1"
+  pull_request:
+    paths:
+      - app/industry.py
+      - reference/chain_expand.py
+      - tests/functional/**
+      - .github/workflows/catalog-proof.yml
+
+jobs:
+  proof:
+    name: Catalog proof (live SDE)
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        # Exact version: setup-uv stopped publishing major/minor tags at v8
+        # (immutable releases only).
+        uses: astral-sh/setup-uv@v10.3.3
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Read published dump checksum
+        id: md5
+        # The sidecar is the only per-run fuzzwork traffic. An
+        # unreachable sidecar degrades to a cache-prefix restore.
+        run: |
+          md5=$(curl -sSfL --retry 3 \
+            "https://www.fuzzwork.co.uk/dump/latest-sqlite.db.gz.md5sum" \
+            | awk '{print $1}' || true)
+          echo "md5=${md5:-unreachable}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore cached SDE dump
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: dump.db
+          key: sde-dump-${{ steps.md5.outputs.md5 }}
+          # Exact hit = current release already cached. Prefix restore
+          # = fuzzwork unreachable (or release changed and the download
+          # below replaces the stale copy).
+          restore-keys: sde-dump-
+
+      - name: Download SDE dump
+        # Skipped when the exact key hit (current release cached) or the
+        # sidecar was unreachable (prefix restore supplied a stale dump;
+        # a stale-release proof beats a failed run).
+        if: steps.cache.outputs.cache-hit != 'true'
+          && steps.md5.outputs.md5 != 'unreachable'
+        run: |
+          curl -sSfL --retry 3 -o dump.db.gz \
+            "https://www.fuzzwork.co.uk/dump/latest-sqlite.db.gz"
+          gzip -d dump.db.gz
+
+      - name: Load SDE mirror
+        env:
+          # Settings requires these; values are unused by the import.
+          ESI_CLIENT_ID: ci-placeholder
+          ESI_CLIENT_SECRET: ci-placeholder
+          SECRET_KEY: ci-placeholder-secret-key
+        run: uv run python -m app.sde import --file dump.db
+
+      - name: Run catalog proof
+        env:
+          SDE_PROOF_DB: ${{ github.workspace }}/industry.db
+        run: uv run pytest tests/functional -q
