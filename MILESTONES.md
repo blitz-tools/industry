@@ -63,14 +63,16 @@ paid contracts), or **pick a better target**.
 | Milestone | State |
 |---|---|
 | M1 — main character & corporation pool | ✅ **Complete** (PRs #12–#14) |
-| M2 — SDE foundation & blueprint catalog | 🟡 **In progress** — foundation, admin self-update, and all character/corp syncs complete (PRs #15–#17); remaining: catalog surface |
+| M2 — SDE foundation & blueprint catalog | ✅ **Complete** (PRs #15–#17 + catalog query layer, 2026-11-22) |
 | Mockup program | ✅ **Complete — 13 of 13** (2026-11-22): ten chain sets (Typhoon → Ragnarok) + the refinement pass + three surfaces (structures M3, markets M15, capability M12); the 2026-11-22 conventions (facilities/markets selection, market panels, wave paging, Ƶ, static scaffolding, variable-content marking) cover every page |
 | M3+ | Not started (implementation) |
 
-**Pick up at**: **M2's catalog remainder** — the query layer the M4
-planner consumes (blueprint search, recipe joins, owned-blueprint
-overlay; the SDE-name vs `universe_types` merge rule gets decided
-there). The mockup program is complete; implementation begins.
+**Pick up at**: **M3 structure manager** — fully designed (revised
+schema sketch + landed surface mockup), independent of the catalog, and
+carries the nav change; it lands alongside the **M4 planner's** start
+(the calculator that consumes M2's catalog query layer). Per the order
+of operations below, M15's framework slice + The Forge seed start right
+after M3 so the sync band soaks while M4/M5/M6 build.
 
 **Order of operations** (refined 2026-11-22, final pre-implementation
 evaluation): the spine holds (M2 → M4 → M5 → M6 → M9) with three
@@ -137,7 +139,7 @@ the implementation track below is cleared to run.
 ```mermaid
 flowchart TD
     M1["M1 ✅ Corp pool<br/>main char, Director gate,<br/>owner-keyed syncs"]
-    M2["M2 🟡 SDE + catalog<br/>verbatim mirror, admin self-update,<br/>char/corp syncs — catalog surface remains"]
+    M2["M2 ✅ SDE + catalog<br/>verbatim mirror, admin self-update,<br/>char/corp syncs, catalog query layer"]
     M3["M3 Structure manager<br/>user-state facility registry:<br/>activity, type, rigs, security, tax"]
     M15["M15 World-state syncs<br/>cost indices, contracts, prices,<br/>orders/history, LP store offers"]
     M4["M4 Planner: single-BP calc<br/>materials, time, install cost,<br/>facility + skill multipliers"]
@@ -720,12 +722,12 @@ shows the explanatory role state instead of error spam.
 
 ---
 
-## M2 — SDE foundation & blueprint catalog — 🟡 IN PROGRESS
+## M2 — SDE foundation & blueprint catalog — ✅ COMPLETE (2026-11-22)
 
-*The foundation half is complete (PRs #15–#16) and landed **differently**
-than sketched — read the "landed as" notes; they supersede the original
-scope where they conflict. Remaining: the character-side syncs and the
-catalog surface.*
+*The foundation half landed **differently** than sketched (PRs #15–#16),
+the character-side syncs followed (PR #17), and the catalog query layer
+closed it out (2026-11-22) — read the "landed as" notes; they supersede
+the original scope where they conflict.*
 
 **Landed as (PRs #15–#16, 2026-11-16)**
 
@@ -803,19 +805,87 @@ catalog surface.*
   structures resolved across the roster, two parked restricted (no
   docking access anywhere).
 
-**Remaining scope**
+**Landed as (M2 catalog remainder, 2026-11-22/23)**
 
-- **Catalog surface**: the query layer the M4 planner consumes
-  (blueprint search, recipe joins, owned-blueprint overlay). The catalog
-  merge rule (SDE name vs `universe_types`) is decided here, at
-  consumption time.
-
-**Validation (remaining)**: the catalog query layer reads the Typhoon
-recipe through the mirror with owned-blueprint overlay joining live
-`blueprints` rows. (The character syncs validated live on the dev
-deployment: all characters synced the three kinds ok — 1,099 skills with
-game-accurate skillpoints, 754 blueprints with ME/TE, 44 jobs — and the
-dangling-structure location fix confirmed against real data.)
+- **The catalog query layer lives in `app/industry.py`** (per AGENTS.md
+  routing) as raw SQL over the verbatim mirror — still no ORM models
+  for `sde_*`; every dump interpretation sits in one section:
+  `search_catalog` (the planner's commodity-first autocomplete row:
+  built product, derived producer blueprint, group, products/run, max
+  production limit, pool-wide owned original/copy counts; prefix-first
+  ordering; `owned_only` for the planner's Match From Inventory),
+  `commodity_recipe` (producer, per-run materials flagged **buildable**
+  — the M5 chain-continuation signal, deduped skills, activity
+  duration, max production limit, owned overlay), and
+  `owned_blueprints_for_type` (every copy across the whole pool with
+  synced ME/TE/runs — M4's pre-fill source; owner names through the
+  tracked characters + universe corporation cache, locations through
+  the blueprints-page asset hop).
+- **Catalog membership = census parity**: distinct products of
+  activities 1 and 11, no published filter. **The catalog's size is
+  dynamic** — whatever the current SDE release holds
+  (`reference/CENSUS.md` pins per-release counts as evidence, never as
+  spec); the planner search sub-line renders the live count at query
+  time, never a constant.
+- **Name merge rule (decided at consumption, as recorded)**: the SDE
+  name is authoritative wherever the mirror holds the type;
+  `universe_types` only names ids the dump lacks (orphan product rows,
+  release lag). `universe_types` is write-once, so preferring it would
+  pin names at first-sync time — live evidence: its one differing name
+  carries a trailing space the SDE lacks. The ESI-synced-id pages
+  (blueprints, jobs, skills) keep their universe-only resolution.
+- **Producer choice prefers published blueprints** (first-by-rowid
+  within preference): the reference model's plain first-row rule picks
+  unpublished CCP test artifacts where they sit first (Tungsten
+  Carbide's "Test Reaction Blueprint" — five products on the current
+  release), and some products' only producers are unpublished (the
+  fallback keeps them). All ten chain anchors have a single published
+  producer, so the golden values are unaffected — **M5's resolver
+  adopts the same rule**.
+- Validation: `tests/test_catalog.py` (10 cases seeded with the mirror's
+  real quirks — the test artifact first-by-rowid, duplicate skill rows,
+  invention-only products excluded from the catalog, orphan product
+  naming) plus a live run against the dev mirror: all ten chain
+  anchors' producers match the golden values; the Typhoon recipe reads
+  end to end (10 materials with the 3 buildable components flagged,
+  Industry 1, 5.000 h, max 10 runs/job) with the owned overlay joining
+  the live 10-BPC pool at Amamake with synced ME/TE. (The earlier
+  character syncs had validated live already: all characters synced the
+  three kinds ok — 1,099 skills with game-accurate skillpoints, 754
+  blueprints with ME/TE, 44 jobs — and the dangling-structure location
+  fix confirmed against real data.)
+- **The proof is a CI workflow** (2026-11-23, per product direction):
+  `tests/functional/test_catalog_sde.py` runs the proof as a functional
+  test — golden-source parity on the ten anchors plus the edge-case
+  invariants (census membership parity with both counts computed at run
+  time, prefer-published on every multi-producer product,
+  invention-only and raw rejection, name-merge, search behavior, and a
+  duplicate-material-row canary) — gated on `SDE_PROOF_DB`, so plain
+  `pytest` stays hermetic.
+  `.github/workflows/catalog-proof.yml` runs it against the fuzzwork
+  dump (on demand, weekly on main so SDE-release quirks fail loudly
+  instead of silently changing behavior, and on PRs touching the
+  catalog layer or its golden source). **The dump is cached, not
+  fetched per run** (2026-11-23, per product direction — don't lean on
+  fuzzwork): each run reads only the ~200-byte `.md5sum` sidecar and
+  downloads the archive only when the release changed;
+  `actions/cache` keyed on that checksum holds the gunzipped dump
+  (PRs restore the cache the weekly main run keeps warm, and a
+  fuzzwork outage degrades to the most recent cached dump — a
+  stale-release proof beats a failed run; LFS, release assets, and a
+  ghcr.io fixture image were evaluated and rejected — quota/history
+  cost, a second publisher workflow, and the dump stays internal to
+  Actions storage, avoiding the CCP-redistribution question; ghcr
+  remains the escalation path if digest-pinned fixture releases are
+  ever wanted). Pointing `SDE_PROOF_DB` at the dev deployment's database
+  runs the identical proof against live data. Validated both ways
+  (fresh-mirror import
+  through the real CLI, and the live deployment — 28 checks each). The
+  proof caught one real defect before landing: nameless orphan
+  products (no `sde_invTypes` row, no `universe_types` row) were
+  silently dropped by SQL's NULL-LIKE semantics — the catalog now
+  falls back to `#<id>` naming like every other read, keeping search
+  enumeration exactly at the census membership.
 
 ---
 

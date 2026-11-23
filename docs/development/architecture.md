@@ -31,6 +31,17 @@ no alembic migration, no ORM models, drop-and-recreate per release.
 Interpreting the data (joins, dedup, labels) belongs to the consuming
 query layer, never the import. See [SDE data](../admin/sde-data.md).
 
+That query layer is the catalog section of `app/industry.py` (M2):
+commodity search and recipe reads as raw SQL over the mirror, plus the
+owned-blueprint overlay joining the live `blueprints` rows. Its
+recorded interpretation rules: catalog membership is the products of
+manufacturing and reactions (activity ids 1 and 11 — the dump files
+reaction recipes under 11 even though `ramActivities` labels reactions
+9); the SDE name is authoritative, with `universe_types` naming only
+ids the dump lacks; and a product's producer is its first
+`industryActivityProducts` row preferring published blueprints (the
+dump carries unpublished CCP test artifacts that can sit first).
+
 ## Sync machinery
 
 - **Owner-keyed tables**: `assets`, `blueprints`, `industry_jobs`, and
