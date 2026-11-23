@@ -65,14 +65,13 @@ paid contracts), or **pick a better target**.
 | M1 — main character & corporation pool | ✅ **Complete** (PRs #12–#14) |
 | M2 — SDE foundation & blueprint catalog | ✅ **Complete** (PRs #15–#17 + #85, 2026-11-22/23) |
 | Mockup program | ✅ **Complete — 13 of 13** (2026-11-22): ten chain sets (Typhoon → Ragnarok) + the refinement pass + three surfaces (structures M3, markets M15, capability M12); the 2026-11-22 conventions (facilities/markets selection, market panels, wave paging, Ƶ, static scaffolding, variable-content marking) cover every page |
-| M3+ | Not started (implementation) |
+| M3 — structure manager | ✅ **Complete** (PR #86) — registry, multipliers pinned from live dogma, Build Planner nav (2026-11-23) |
+| M4+ | Not started |
 
-**Pick up at**: **M3 structure manager** — fully designed (revised
-schema sketch + landed surface mockup), independent of the catalog, and
-carries the nav change; it lands alongside the **M4 planner's** start
-(the calculator that consumes M2's catalog query layer). Per the order
-of operations below, M15's framework slice + The Forge seed start right
-after M3 so the sync band soaks while M4/M5/M6 build.
+**Pick up at**: **M4 — the planner** (single-blueprint calculation),
+consuming M2's catalog query layer and M3's facility defaults; per the
+order of operations below, **M15's framework slice + The Forge seed
+start now** so the sync band soaks while M4/M5/M6 build.
 
 **Order of operations** (refined 2026-11-22, final pre-implementation
 evaluation): the spine holds (M2 → M4 → M5 → M6 → M9) with three
@@ -140,7 +139,7 @@ the implementation track below is cleared to run.
 flowchart TD
     M1["M1 ✅ Corp pool<br/>main char, Director gate,<br/>owner-keyed syncs"]
     M2["M2 ✅ SDE + catalog<br/>verbatim mirror, admin self-update,<br/>char/corp syncs, catalog query layer"]
-    M3["M3 Structure manager<br/>user-state facility registry:<br/>activity, type, rigs, security, tax"]
+    M3["M3 ✅ Structure manager<br/>user-state facility registry:<br/>activity, type, rigs, security, tax"]
     M15["M15 World-state syncs<br/>cost indices, contracts, prices,<br/>orders/history, LP store offers"]
     M4["M4 Planner: single-BP calc<br/>materials, time, install cost,<br/>facility + skill multipliers"]
     M5["M5 Chain resolution<br/>recursive BOM explosion → phases,<br/>test-first against ten chain anchors"]
@@ -889,7 +888,7 @@ the original scope where they conflict.*
 
 ---
 
-## M3 — Structure manager
+## M3 — Structure manager — ✅ COMPLETE (PR #86, 2026-11-23)
 
 *Where industry happens changes materials, time, and cost — this is the
 user-state facility registry the planner multiplies against. Scope note
@@ -966,10 +965,75 @@ only in git history):
   one join and nothing else. Rigs and tax stay per-registration for
   the reasons above.
 
+**Landed as (2026-11-23)**
+
+- **Migration 0009 + `app/facilities.py` + `app/routes/structures.py` +
+  the page** (`templates/structures.html` + `static/structures.js`,
+  under a new **Build Planner** nav group — the M4 planner's future
+  home). The form is the mockup's single-form design in three states:
+  creating a structure, editing a registration, and registering a
+  further activity on an existing structure are one POST. Page renders
+  stay DB-pure; the system lookup (ESI
+  `/universe/systems/{id}/`, public and ETag-cached) happens at save
+  time, with a `universe_locations` fallback naming the system when
+  ESI is unreachable (the security class then takes the hand-set
+  value).
+- **Multiplier values pinned with provenance** (`app/facilities.py`,
+  2026-11-23): hulls from live ESI dogma — Raitaru ×0.85 time / ×0.99
+  material / ×0.97 cost, Azbel ×0.80/×0.99/×0.96, Sotiyo
+  ×0.70/×0.99/×0.95, and a discovered **Tatara reaction-time ×0.75**
+  (Athanor: none); rigs from live ESI dogma — ME T1 2.0% / T2 2.4%, TE
+  T1 20% / T2 24% (identical base values on the refinery and Invention
+  Accelerator rigs); **rig security scaling from live ESI dogma
+  attributes 2355/2356/2357** (hiSecModifier/lowSecModifier/
+  nullSecModifier — cross-confirmed by everef's database and fuzzwork's
+  calculator): **engineering-complex rigs ×1.0/×1.9/×2.1, refinery
+  reactor rigs ×1.0 low / ×1.1 null with no highsec modifier**
+  (reactions cannot run in highsec — the family split was caught on
+  re-verification; a first pass applying the EC factors to reactor
+  rigs was wrong). **Both mockup sketch values were wrong**: hulls are
+  15/20/30% (not 15/30/50%) and the EC security scaling is 1.0/1.9/2.1
+  (not 0.9/1.0/1.1).
+- **Copying joined the activity enum** (the open question, decided at
+  implementation): the planner's Plan-facilities section gives copying
+  its own selector defaulting to the invention default, so a distinct
+  registration lets copy jobs point elsewhere without touching
+  invention. Rig relevance: manufacturing and reactions use both rig
+  fields, invention's time field is the Invention Accelerator, copying
+  has no rig effect in the data.
+- **Two structural discoveries recorded for M4**: structure rigs are
+  **per material category** ("Basic Large Ship", "Equipment",
+  "Advanced Component", …, each with Material/Time variants) — the
+  registry's single-tier rig fields are a deliberate simplification
+  the planner's per-job resolution will need to qualify; and
+  **supercapital construction requires sovereignty plus the
+  "Supercapital Construction Facilities" infrastructure-hub upgrade**
+  (two independent sources) — the flag stays structure-level, curated,
+  and validated (nullsec ECs only at save; a high/low system or no
+  system rejects it).
+- The system type-ahead is **local-only**: ESI's `/search/` route is
+  gone (404), so suggestions come from `universe_locations` — systems
+  outside the synced footprint can't be picked until a sync observes
+  them (recorded limitation; M15 or a universe sync can extend it).
+  The import card lists seen-but-unregistered structures (restricted
+  sightings stay listed, disabled); market hubs are not
+  distinguishable in the data and stay importable — the owner decides
+  what registers. The biochemical-reactions facility-class pin stays
+  open.
+- Validation: `tests/test_structures.py` (15 cases — the recorded
+  scenario end to end, default demotion, the partial-unique
+  enforcement at the storage layer, supercap validation, refinery
+  gating, the ESI-failure fallback, the local type-ahead, the import
+  card and prefill, registration-vs-structure deletes); migration
+  0009 applied to the dev deployment; full suite 171 passed.
+
 **Validation**: create an Azbel with T1 ME/T1 TE rigs in a known null
 system; register the same Azbel for invention (second registration,
 rigs not relevant); exactly one default per activity is enforced, and
-setting a new default demotes the previous one.
+setting a new default demotes the previous one. ✅ (covered as tests —
+`test_create_structure_with_registration`,
+`test_second_registration_same_structure`, `test_default_demotion`,
+`test_partial_unique_enforces_one_default`)
 
 ---
 

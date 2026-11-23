@@ -19,6 +19,16 @@
     <a class="brand" href="/">soliton</a>
     <nav aria-label="Sections">
       <a href="/dashboard"{% if active == 'dashboard' %} class="active" aria-current="page"{% endif %}>Dashboard</a>
+      {% set planner_active = active is defined and active.startswith('planner') or active == 'structures' %}
+      <div class="nav-group" id="nav-planner-group">
+        <button class="nav-group-toggle" type="button" aria-controls="nav-planner"
+                aria-expanded="{{ 'true' if planner_active else 'false' }}">
+          Build Planner
+        </button>
+        <div class="nav-group-items" id="nav-planner"{% if not planner_active %} hidden{% endif %}>
+          <a href="/structures"{% if active == 'structures' %} class="active" aria-current="page"{% endif %}>Structures</a>
+        </div>
+      </div>
       {% set char_active = active is defined and active in ('characters', 'assets', 'blueprints', 'skills', 'jobs') %}
       <div class="nav-group" id="nav-character-group">
         <button class="nav-group-toggle" type="button" aria-controls="nav-character"
@@ -67,6 +77,7 @@
     {% block content %}{% endblock %}
   </main>
   <script src="/static/app.js?v={{ static_version }}"></script>
+  {% block page_scripts %}{% endblock %}
   {% if request.app.state.settings.dev_auto_reload %}
   <script src="/static/dev-reload.js?v={{ static_version }}"></script>
   {% endif %}
