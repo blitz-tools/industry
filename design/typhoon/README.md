@@ -19,9 +19,9 @@ everything else is self-contained.
 
 | File | Shows |
 |---|---|
-| `planner.html` | Search + autocomplete (with icons, Owned badges), target count stepper, inputs overview, Match From Inventory, owned-copies overlay (BPO/BPC · location · ME/TE), Calculate |
-| `build-plan.html` | Freshly calculated plan: wave-progress bar, reverse chain (phase strip + expandable tree, Purchase ⇄ Build chips, stage states), required blueprints, copy plan, raw-material meters, wave-1 job allocation |
-| `build-plan-active.html` | The same plan mid-flight (day 1.6 of 9.5): wave-progress bar at 17%, stage states advanced, running jobs with time-to-delivery, next-up queues, ready-to-deliver slots, copy progress |
+| `planner.html` | Search + autocomplete (with icons, Owned badges), target count stepper, inputs overview, Match From Inventory, Plan participants, Plan facilities + sell-side market (2026-11-22), owned-copies overlay (BPO/BPC · location · ME/TE), Calculate |
+| `build-plan.html` | Freshly calculated plan: wave-progress bar, reverse chain (phase strip + expandable tree, Purchase ⇄ Build chips, stage states), required blueprints, copy plan, raw-material meters, Market panel (build-vs-buy verdicts + estimated profit), wave-paged job allocation (Wave 1 current) |
+| `build-plan-active.html` | The same plan mid-flight (day 1.6 of 9.5): wave-progress bar at 17%, stage states advanced, running jobs with time-to-delivery, next-up queues, ready-to-deliver slots, copy progress, running Market readout with open verdicts, wave-paged job allocation (Wave 2 current + the paged Wave-3 future view with early-start states) |
 
 `mockups.css` holds the shared styles — design tokens and component shapes
 copied from `app/static/style.css` (the styling source of truth), plus the

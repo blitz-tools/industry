@@ -753,14 +753,28 @@
   </div>
 
   <!-- Job allocation -->
-  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — wave 1</h2>
+  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.75rem 0 0.5rem;">
+    <h2 style="margin: 0; font-size: 1.05rem; color: var(--cyan);">Job allocation</h2>
+    <div class="wave-pager">
+      <button class="icon-button" type="button" aria-label="Previous wave" title="No earlier wave" disabled>‹</button>
+      <span class="wave-pager-label">Wave 1</span>
+      <button class="icon-button" type="button" aria-label="Next wave" title="Wave 2 — R4 reactions · day 0.15–2.7">›</button>
+    </div>
+    <span class="meta-line">current — installs now; paging right is view-only foresight until inputs arrive</span>
+  </div>
   <p class="meta-line" style="margin: 0 0 0.75rem;">Recommended installs per character, from synced skills and live slot occupancy. Reaction formulas can't be copied — one job per BPO — so reaction waves queue behind phase 2 inputs. Each queued job is assigned to exactly one character; queues show the next job plus at most one "then", with a count for anything deeper.</p>
 
   <div class="anno">
     <span class="anno-label">wireframe</span>
-    Fresh plan: every slot shows its recommended job or what it's waiting on.
-    For the in-progress variant (running jobs, time-to-delivery, next-up
-    queues) see <a href="build-plan-active.html">build-plan-active.html</a>.
+    The pager pages the allocation section through the plan's waves —
+    the current wave is always the default view and stays so until it
+    completes. On a fresh plan every slot shows its recommended job
+    or what it's waiting on, and every future wave reads "waiting on
+    inputs"; the interesting states (a future wave partially ready
+    through early delivery, an early-started job) belong to the
+    mid-flight view — see the paged-view demo on
+    <a href="build-plan-active.html">build-plan-active.html</a>.
+    Paging never changes the schedule, only the view.
   </div>
 
   <!-- schlepzrage -->
