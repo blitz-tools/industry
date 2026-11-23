@@ -635,8 +635,16 @@
   </div>
 
   <!-- Job allocation -->
-  <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Job allocation — in flight</h2>
-  <p class="meta-line" style="margin: 0 0 0.75rem;">Running jobs show status and time-to-delivery; busy slots queue their next job. Jobs correlate from synced ESI industry jobs.</p>
+  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.75rem 0 0.5rem;">
+    <h2 style="margin: 0; font-size: 1.05rem; color: var(--cyan);">Job allocation</h2>
+    <div class="wave-pager">
+      <button class="icon-button" type="button" aria-label="Previous wave" title="Wave 1 — fuel blocks + copy installs · delivered day 0.15">‹</button>
+      <span class="wave-pager-label">Wave 2</span>
+      <button class="icon-button" type="button" aria-label="Next wave" title="Wave 3 — advanced reactions · day 3.1–4.8">›</button>
+    </div>
+    <span class="meta-line">current — 12 jobs running; the section shows the current wave until it completes</span>
+  </div>
+  <p class="meta-line" style="margin: 0 0 0.75rem;">Running jobs show status and time-to-delivery; busy slots queue their next job. Jobs correlate from synced ESI industry jobs. Paging left shows a historical wave (what installed, how it went); paging right shows a future wave's readiness.</p>
 
   <!-- schlepzrage -->
   <section class="char-card-jobs">
@@ -908,9 +916,76 @@
     </div>
   </section>
 
+  <!-- Paged-view demo: a future wave, partially ready -->
+  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 1.75rem 0 0.5rem;">
+    <h2 style="margin: 0; font-size: 1.05rem; color: var(--cyan);">Paged view — Wave 3</h2>
+    <div class="wave-pager">
+      <button class="icon-button" type="button" aria-label="Previous wave" title="Wave 2 — current">‹</button>
+      <span class="wave-pager-label">Wave 3</span>
+      <button class="icon-button" type="button" aria-label="Next wave" title="Wave 4 — components · day 8.3–9.0">›</button>
+    </div>
+    <span class="meta-line" style="color: var(--yellow);">future — view reached by paging right; not the plan's current wave</span>
+  </div>
+
+  <div class="anno">
+    <span class="anno-label">wireframe</span>
+    The stacked state shows what paging right reveals: a <b>future
+    wave rendered at its current readiness</b> — the pipelining
+    preview without pipelining the scheduler. A job whose inputs
+    arrived early shows <b>eligible for early start</b> with an
+    owner-taken action; an early start already taken shows as
+    <b>pre-started</b>, running inside the future wave and counted in
+    the plan. The wave's official start doesn't move — W3 still opens
+    at day 3.1 for everything not started early. Paging is view-only:
+    it never reassigns, reschedules, or changes the current-wave
+    default (that flips only when the current wave completes).
+    Readiness here is illustrative wave data.
+  </div>
+
+  <!-- schlepzrage, wave 3 view -->
+  <section class="char-card-jobs" style="margin-top: 1rem;">
+    <div class="char-head">
+      <img src="https://images.evetech.net/characters/2124139810/portrait?size=64" alt="">
+      <div>
+        <div class="char-name">schlepzrage <span class="badge bpo" style="margin-left: 0.4rem;">Main</span></div>
+        <div class="char-slots">Wave 3 view — 2 of this wave's jobs eligible early · 4 of 10 reaction slots busy with current-wave (W2) jobs, hidden in this view</div>
+      </div>
+    </div>
+
+    <div class="slot-group-label">Reaction slots — advanced reactions (PO / RCF)</div>
+    <div class="slot-grid">
+      <div class="slot ready">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/57456/icon?size=32" alt="">
+          <span class="slot-name">Pressurized Oxidizers ×9</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">inputs ready — Carbon Polymers early-delivered (W2's first job finished ahead of schedule, day 1.4)</span>
+        <span class="slot-meta" style="color: var(--green);">Eligible for early start</span>
+        <button type="button" style="margin-top: 0.35rem; font-size: 0.85rem; padding: 0.3rem 0.8rem;">Early start</button>
+      </div>
+      <div class="slot running">
+        <div class="slot-head">
+          <img src="https://images.evetech.net/types/57457/icon?size=32" alt="">
+          <span class="slot-name">Reinforced Carbon Fiber ×21</span>
+          <span class="activity-tag rxn">reaction</span>
+        </div>
+        <span class="slot-meta">pre-started day 1.4 — early start taken · Amamake - Reactions &amp; Reprocessing</span>
+        <span class="slot-countdown">2 d 3 h to delivery</span>
+        <div class="meter"><div class="meter-fill" style="width: 12%"></div></div>
+      </div>
+      <div class="slot idle">
+        <div class="next-up"><span class="next-label">waiting</span>W3 remainder installs at wave start (day 3.1) — or earlier, as inputs arrive</div>
+      </div>
+      <div class="slot idle">+ 7 idle</div>
+    </div>
+  </section>
+
   <p class="meta-line" style="margin-top: 1.25rem;">
     Slot states: running (cyan, countdown + progress), ready to deliver
-    (yellow), delivered (dimmed), idle with next-up queue.
+    (yellow), delivered (dimmed), idle with next-up queue. Future-wave
+    views add: eligible-for-early-start (green) and pre-started
+    (running inside a future wave).
     <a href="planner.html">← planner</a> ·
     <a href="build-plan.html">fresh build plan</a>
   </p>

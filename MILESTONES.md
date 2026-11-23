@@ -1673,6 +1673,18 @@ tagged expense; a recorded sale shows the realized return.
   hand-built pipelined edge. The `reference/chains/TYPHOON-CHAIN.md`
   proof-outs are deliberately serial. Decide at M9 pickup whether v1
   ships serial-only. See `reference/GLOSSARY.md`'s pipelining entry.
+  **Wave paging — pipelining's UI preview** (2026-11-22, landed on the
+  Typhoon reference set): the job-allocation section pages through
+  waves (`‹ Wave ## ›`) — historical, current, future — with the
+  current wave always the default view until it completes. Future
+  waves render per-job readiness: a job whose inputs arrived early
+  shows eligible with an **Early start** control (a per-job owner
+  choice, never automatic — the owner views a future wave and starts
+  what's available), and early-started jobs appear in that future
+  wave as pre-started, counted in the plan. This delivers
+  pipelining's owner-facing mechanics without pipelining the
+  scheduler: the serial wave model stands until the M9 decision,
+  while early starts accumulate against the plan regardless.
 - Recurring commodities across phases (surfaced by
   `reference/chains/CHARON-CHAIN.md`, 2026-11-18): the same type can
   appear in multiple phases when its consumers sit at different

@@ -46,6 +46,11 @@
  *   .badge.hisec / .lowsec / .nullsec — system-security markers
  *   .badge.capability structure capability marker (supercapital
  *                   assembly — the Hel/Ragnarok facility-class pin)
+ *   .wave-pager    ‹ Wave ## › control on the job-allocation section —
+ *                   pages through historical, current, and future
+ *                   waves; the current wave is always the default
+ *                   view until it completes (proposed by the
+ *                   2026-11-22 wave-paging pass)
  * ------------------------------------------------------------------------ */
 
 /* Molokai-derived tokens (tomasr/molokai) — verbatim from the app. */
@@ -376,6 +381,32 @@ button.primary {
 .badge.capability {
   border-color: var(--cyan);
   color: var(--cyan);
+}
+
+/* --- Wave pager (new): pages the job-allocation section through waves ---
+ * Left/right arrows with the wave label between. The current wave is
+ * always the default view until it completes; future waves render
+ * per-job readiness (the pipelining preview), historical waves show
+ * what installed and how it went. */
+
+.wave-pager {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.wave-pager .wave-pager-label {
+  min-width: 5.5rem;
+  text-align: center;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.wave-pager .icon-button:disabled {
+  border-color: var(--faint);
+  color: var(--faint);
+  cursor: not-allowed;
 }
 
 /* --- CRUD form fields (new, proposed by the M3 structures surface) ----- */
