@@ -2,9 +2,11 @@
 
 The patterns and rules settled on the structures page (M3, twelve
 review rounds, 2026-11-23). New pages follow these so the app stays
-consistent as the planner surfaces land — the same way the mockup sets
-[bind every chain set to the Typhoon reference](../../design/README.md),
-this page binds every app surface to the structures page.
+consistent as the planner surfaces land — the same way the mockups'
+binding convention holds every chain set to the Typhoon reference,
+this page binds every app surface to the structures page. (The mockup
+convention itself lives in `design/README.md`, deliberately outside
+this site — it contains live character and corporation names.)
 
 ## Styling: the mockups are the source of truth
 
