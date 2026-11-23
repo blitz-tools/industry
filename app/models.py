@@ -7,9 +7,12 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     Float,
+    ForeignKey,
     Index,
     String,
     Text,
+    UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -266,4 +269,76 @@ class UniverseRegion(Base, TimestampMixin):
 
     region_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
+
+
+class Structure(Base, TimestampMixin):
+    """One physical facility in the M3 registry (user state). Split from
+    its registrations so structure-level facts — name, type, system,
+    the supercapital capability — never duplicate across a
+    multi-registration structure's rows. Security derives from the
+    system (ESI security_status, classified at save time) and is stored
+    denormalized so planner queries stay join-free; hand-set only when
+    no system is chosen. `location_id` ties an imported row back to the
+    asset-sync sighting (partial-unique: one registry row per physical
+    structure)."""
+
+    __tablename__ = "structures"
+    __table_args__ = (
+        Index(
+            "uq_structures_location",
+            "location_id",
+            unique=True,
+            sqlite_where=text("location_id IS NOT NULL"),
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    # Key into app.facilities.STRUCTURE_TYPES.
+    structure_type: Mapped[str] = mapped_column(String(16), nullable=False)
+    system_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    # Denormalized display copy (ESI names systems at save time).
+    system_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    # "high" | "low" | "null" — derived from the system, hand-set only
+    # without one; None = unknown.
+    security_class: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    # Capability flag, structure-level (the Hel/Ragnarok pin): gates the
+    # final hull job only. Validated on save — nullsec systems only.
+    supercapital_assembly: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    # The asset-sync sighting this row imported from, when it did.
+    location_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+
+
+class StructureRegistration(Base, TimestampMixin):
+    """One structure × activity registration (M3): the rigs, tax, and
+    default flag are per-activity dials, so they live here rather than
+    on the structure. Exactly one default per activity is enforced by a
+    partial unique index; setting a new default demotes the previous
+    one in the save path (app/routes/structures.py)."""
+
+    __tablename__ = "structure_registrations"
+    __table_args__ = (
+        UniqueConstraint("structure_id", "activity", name="uq_structure_activity"),
+        Index(
+            "uq_registration_default",
+            "activity",
+            unique=True,
+            sqlite_where=text("is_default = 1"),
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    structure_id: Mapped[int] = mapped_column(
+        ForeignKey("structures.id", ondelete="CASCADE"), nullable=False
+    )
+    # Key into app.facilities.ACTIVITIES.
+    activity: Mapped[str] = mapped_column(String(16), nullable=False)
+    # Rig tiers: "none" | "t1" | "t2" (keys into facilities.RIG_TIERS).
+    me_rig: Mapped[str] = mapped_column(String(4), nullable=False, default="none")
+    te_rig: Mapped[str] = mapped_column(String(4), nullable=False, default="none")
+    # Industry tax as a fraction (0.005 = 0.5%); None = NPC-set.
+    tax_rate: Mapped[float | None] = mapped_column(Float, nullable=True)
+    is_default: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 

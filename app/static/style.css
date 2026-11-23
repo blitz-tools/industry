@@ -1093,3 +1093,201 @@ button.danger:hover {
   color: var(--muted);
   font-size: 0.85rem;
 }
+
+/* --- Structures registry (M3) ------------------------------------------ */
+
+/* Two-column responsive field grid for registry CRUD forms. */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: 1rem 1.5rem;
+  align-items: start;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.field-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.field-hint {
+  font-size: 0.75rem;
+  color: var(--faint);
+}
+
+.form-input,
+.form-select {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--cyan);
+}
+
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+/* Activity chips: real radios labeled as pills (keyboard-navigable). */
+.chip-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.chip-row .chip-button {
+  position: relative;
+}
+
+.chip-row .chip-button input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.chip-row .chip-button.selected,
+.chip-row .chip-button:has(input:checked) {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.chip-row .chip-button:focus-within {
+  border-color: var(--cyan);
+}
+
+/* Text link styled as a small chip (the import card's Import action). */
+.chip-link {
+  padding: 0.05rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-decoration: none;
+}
+
+.chip-link:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.button-link {
+  color: var(--muted);
+  text-decoration: none;
+  align-self: center;
+}
+
+.button-link:hover {
+  color: var(--cyan);
+}
+
+/* A form that renders as one inline control (row icon buttons). */
+.inline-form {
+  display: inline;
+}
+
+/* Registry group headers inside the asset table. */
+.asset-table .group-row td {
+  padding: 0.5rem 0.6rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.8rem;
+  background: rgba(102, 217, 239, 0.04);
+}
+
+/* Activity tags (registry group headers). */
+.activity-tag {
+  display: inline-block;
+  padding: 0.05rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.activity-tag.mfg { color: var(--green); border: 1px solid var(--green); }
+.activity-tag.copy { color: var(--cyan); border: 1px solid var(--cyan); }
+.activity-tag.inv { color: var(--purple); border: 1px solid var(--purple); }
+.activity-tag.rxn { color: var(--yellow); border: 1px solid var(--yellow); }
+
+/* Security badges (registry rows, form state). */
+.badge.hisec { color: var(--green); border: 1px solid var(--green); border-radius: 4px; padding: 0.05rem 0.3rem; font-size: 0.7rem; }
+.badge.lowsec { color: var(--yellow); border: 1px solid var(--yellow); border-radius: 4px; padding: 0.05rem 0.3rem; font-size: 0.7rem; }
+.badge.nullsec { color: var(--pink); border: 1px solid var(--pink); border-radius: 4px; padding: 0.05rem 0.3rem; font-size: 0.7rem; }
+.badge.capability { color: var(--purple); border: 1px solid var(--purple); border-radius: 4px; padding: 0.05rem 0.3rem; font-size: 0.7rem; }
+.badge.missing { color: var(--muted); border: 1px solid var(--muted); border-radius: 4px; padding: 0.05rem 0.3rem; font-size: 0.7rem; }
+
+/* System type-ahead (the planner's commodity search reuses this shape
+   at M4). */
+.search-wrap {
+  position: relative;
+}
+
+.autocomplete {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  min-width: 100%;
+  z-index: 20;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  max-height: 18rem;
+  overflow-y: auto;
+}
+
+.autocomplete-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+}
+
+.autocomplete-row:hover,
+.autocomplete-row.active {
+  background: var(--hover);
+}
+
+.ac-name {
+  font-size: 0.9rem;
+}
+
+.ac-sub {
+  font-size: 0.75rem;
+  color: var(--faint);
+}
+
+.autocomplete-footer {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.7rem;
+  color: var(--faint);
+  border-top: 1px solid var(--line);
+}

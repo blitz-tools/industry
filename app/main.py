@@ -14,7 +14,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from .config import Settings, get_settings
 from .db import make_engine, make_session_factory
 from .esi.assets import asset_sync_loop
-from .routes import admin, assets, auth, character, corp, web
+from .routes import admin, assets, auth, character, corp, structures, web
 from .sde import sde_check_loop
 from .templates import dev_site_version
 
@@ -71,6 +71,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(character.router)
     app.include_router(corp.router)
     app.include_router(admin.router)
+    app.include_router(structures.router)
     if settings.dev_auto_reload:
         # Dev-only change token that open browsers poll to auto-refresh.
         # Registered only when enabled, so production never serves it.
