@@ -64,14 +64,13 @@ paid contracts), or **pick a better target**.
 |---|---|
 | M1 — main character & corporation pool | ✅ **Complete** (PRs #12–#14) |
 | M2 — SDE foundation & blueprint catalog | 🟡 **In progress** — foundation, admin self-update, and all character/corp syncs complete (PRs #15–#17); remaining: catalog surface |
-| Mockup program | 🟡 **11 of 13 sets complete** — ten chain sets (Typhoon → Ragnarok) + the refinement pass + the M3 structures surface landed; two surface mockups remain (M15, M12); **gates milestone implementation** per the 2026-11-19 convention |
+| Mockup program | ✅ **Complete — 13 of 13** (2026-11-22): ten chain sets (Typhoon → Ragnarok) + the refinement pass + three surfaces (structures M3, markets M15, capability M12); the 2026-11-22 conventions (facilities/markets selection, market panels, wave paging, Ƶ, static scaffolding, variable-content marking) cover every page |
 | M3+ | Not started (implementation) |
 
-**Pick up at**: the two remaining surface mockups (M15 sync panel →
-M12 capability surface), then M2's catalog
-remainder — the query layer the M4 planner consumes (blueprint search,
-recipe joins, owned-blueprint overlay; the SDE-name vs
-`universe_types` merge rule gets decided there).
+**Pick up at**: **M2's catalog remainder** — the query layer the M4
+planner consumes (blueprint search, recipe joins, owned-blueprint
+overlay; the SDE-name vs `universe_types` merge rule gets decided
+there). The mockup program is complete; implementation begins.
 
 **The mockup program's output** (2026-11-19 → 2026-11-21): ten chain
 reference documents (`reference/chains/`, Typhoon through Ragnarok)
@@ -1498,6 +1497,23 @@ positioned to build, and what it's missing.*
 a known gap (e.g. freighter-capable character without the
 intermediate-component skills or blueprints) reports exactly the
 blocked intermediates and the reason.
+
+**Surface mockup landed** (`design/capability/`, 2026-11-22 — the
+mockup program's final piece, 13 of 13): ranked end products with a
+**fixed buildability grouping** (producible / partial / blocked) and
+the **composed sort selector** — Fewest gaps active, Est. margin
+staged-disabled until M15 (the same not-yet-present treatment as the
+cost index). Gap counts render as fields per gap type (skills /
+blueprints / LP / facility); every gap type carries its remediation
+link (acquire / train / farm — the fork made clickable); skill rows
+hold the no-holder and underleveled-holder states; the LP portfolio
+is an input with wrong-currency wealth as its own gap type. The BPO
+obtainment ladder and per-target gap report complete the fork
+substrate. **Acquire opens an acquisition-detail panel, never a
+transaction** — path-specific matched listings from the synced
+tables, alternatives, and one action (Open in planner), keeping the
+2026-11-18 no-pre-calculation-purchase-intent rule intact. Demo
+data: the ten chain targets' real positions.
 
 ## M13 — Fork branch: skill gap analysis & training recommendations
 

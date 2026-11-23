@@ -19,6 +19,7 @@ document it visualizes. Shared styles and components live in
 | `ragnarok/` | planner → build plan → active plan (titan set — the absolute stress test) |
 | `structures/` | single surface page — the M3 facility-registry CRUD (registry table, form, sync import, multiplier reference) |
 | `markets/` | single surface page — the M15 sync panel: the market manager (hubs disableable, custom/player CRUD) + sync families + the rate-limit headroom gate |
+| `capability/` | single surface page — the M12 capability analysis: ranked end products (fixed buildability grouping + within-group sort), per-target gap report (the fork substrate), BPO obtainment ladder, LP portfolio input |
 
 These are design artifacts for iteration, **not** app code: no build
 step, no JS, nothing wired to the FastAPI app. They are deliberately
@@ -118,8 +119,10 @@ completes first. Two kinds of sets: **chain sets** (the binding
 three-page convention above, only data changes) and **surface
 mockups** (single new page types, proposed once against the reference
 component set — the convention's new-component rule applies). The M3
-structure manager (`structures/`) and M15 sync panel (`markets/`)
-surfaces are landed; the M12 capability surface remains.
+structure manager (`structures/`), M15 sync panel (`markets/`), and
+M12 capability (`capability/`) surfaces are landed — **the mockup
+program is complete at 13 of 13**; implementation begins at M2's
+catalog remainder.
 
 Order (chain sets by escalating complexity, then the surfaces — the
 three surface mockups are independent and can slot anywhere):
