@@ -63,7 +63,7 @@ paid contracts), or **pick a better target**.
 | Milestone | State |
 |---|---|
 | M1 — main character & corporation pool | ✅ **Complete** (PRs #12–#14) |
-| M2 — SDE foundation & blueprint catalog | ✅ **Complete** (PRs #15–#17 + catalog query layer, 2026-11-22) |
+| M2 — SDE foundation & blueprint catalog | ✅ **Complete** (PRs #15–#17 + #85, 2026-11-22/23) |
 | Mockup program | ✅ **Complete — 13 of 13** (2026-11-22): ten chain sets (Typhoon → Ragnarok) + the refinement pass + three surfaces (structures M3, markets M15, capability M12); the 2026-11-22 conventions (facilities/markets selection, market panels, wave paging, Ƶ, static scaffolding, variable-content marking) cover every page |
 | M3+ | Not started (implementation) |
 
@@ -722,7 +722,7 @@ shows the explanatory role state instead of error spam.
 
 ---
 
-## M2 — SDE foundation & blueprint catalog — ✅ COMPLETE (2026-11-22)
+## M2 — SDE foundation & blueprint catalog — ✅ COMPLETE (PR #85, 2026-11-22/23)
 
 *The foundation half landed **differently** than sketched (PRs #15–#16),
 the character-side syncs followed (PR #17), and the catalog query layer
