@@ -457,6 +457,27 @@ section, 2026-11-20)
 
 ## Platform / administration
 
+### Observability — central page, storage, tracing
+
+(direction 2026-11-22, from the M15 sync-panel design)
+
+- **Admin > Observability** is the central page: all available
+  observability data in one place — sync status per family, ESI
+  rate-limit and error budgets per route group, sync/job durations,
+  staleness per table. Specific pages show a **subset** (the Markets
+  sync panel shows its families and rate-limit headroom; the
+  structures page its sync-source lines) but the checks are **never
+  duplicated** — one stored dataset, page-filtered views, the
+  central page authoritative.
+- **Storage**: telemetry stored locally by default; exportable to
+  third-party storage domains — **Prometheus, Loki, Thanos**, or
+  other open-source observability applications.
+- **Code tracing for future debugging** (future work): implement
+  via **OpenTelemetry (OTEL)** where possible — request/job spans
+  extending the metrics conventions M15 already records (zero-code
+  Python instrumentation; the uv bootstrap caveat is documented in
+  MILESTONES.md's M15 note).
+
 ### Navbar refinement — item inventory
 
 (surfaced by the M3 structures mockup, 2026-11-22)

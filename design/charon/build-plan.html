@@ -119,6 +119,18 @@
     </div>
   </div>
 
+  <div class="anno">
+    <span class="anno-label">variable content</span>
+    The <span class="var">soft cyan tint</span> marks spans the app
+    supplies at render time — computed values (counts, comparisons,
+    states) and synced data (names, quantities, prices). Unmarked
+    text is static scaffolding: labels, help text, and curated
+    classifications (acquisition paths, multiplier tables) shipped
+    as app config. Two buckets, spans only — 2026-11-22 direction;
+    this set is the reference implementation, fanning out to every
+    set.
+  </div>
+
   <!-- Reverse product chain -->
   <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse product chain</h2>
   <p class="meta-line" style="margin: 0 0 0.75rem;">Raw materials on the left, target on the right. Each node chip toggles Purchase ⇄ Build — purchased nodes drop out of the job allocation, count toward acquisition instead of the phase state and percent, and their inputs leave the raw-material math (the commodity itself is acquired instead). Phase rows carry a bulk toggle that sets every node at once.</p>
@@ -888,7 +900,7 @@
         <td class="num qty">5M</td>
       </tr>
       <tr>
-        <td colspan="5" class="muted">+ 8 more missing reaction formulas — R-O Stabilizer · Nonlinear Metamaterials · Caesarium Cadmide · Dysporite · Ferrofluid · Fluxed Condensates · Titanium Chromide · Prometium (BPOs, cheap originals off market)</td>
+        <td colspan="5" class="muted"><span class="var">+ 8 more</span> missing reaction formulas — <span class="var">R-O Stabilizer · Nonlinear Metamaterials · Caesarium Cadmide · Dysporite · Ferrofluid · Fluxed Condensates · Titanium Chromide · Prometium</span> (BPOs, cheap originals off market)</td>
       </tr>
     </tbody>
   </table>
@@ -952,7 +964,13 @@
     </tbody>
   </table>
 
-  <p class="meta-line" style="margin: 0.5rem 0 0;">No copy needed: fuel blocks build direct from owned BPOs and 200-run BPCs; the Charon and the capital components draw from contract BPCs (the ship itself is a single-run BPC — copying provides no parallelism, which is why the BPC-contract plan beats pure-copy by 4 days).</p>
+  <p class="meta-line" style="margin: 0.5rem 0 0;">
+    Copy plan — <span class="var">none required</span>:
+    fuel blocks — direct: <span class="var">owned BPO · BPCs ×6 (200 runs each)</span> ·
+    Charon + capital components — <span class="var">18 types</span>: contract BPCs (acquisition path) ·
+    Charon hull — <span class="var">single-run BPC (maxPL 1)</span>, copy parallelism: <span class="var">none</span> ·
+    hybrid vs pure-copy — chain end <span class="var">−4.0 d</span>
+  </p>
 
   <!-- Raw materials -->
   <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Raw materials — acquisition</h2>
