@@ -49,6 +49,7 @@ nav:
       - Testing and linting: development/testing.md
       - Workflow: development/workflow.md
       - Architecture: development/architecture.md
+      - UI conventions: development/ui-conventions.md
   - User guide:
       - Characters and the roster: user-guide/characters.md
       - Assets: user-guide/assets.md

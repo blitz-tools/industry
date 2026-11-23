@@ -3,8 +3,11 @@
 {% block content %}
 <div class="page-header">
   <h1>Structures</h1>
+  <div class="actions">
+    <a class="button primary" href="/structures?form=add#structure-form">Add structure</a>
+  </div>
 </div>
-<p class="stat-note">
+<p class="meta-line" style="margin: -0.5rem 0 1.25rem;">
   The facility registry the planner multiplies against — where industry
   happens changes materials, time, and cost, so every calculation is
   per-facility. One <b>default per activity</b>: the planner pre-selects it
@@ -49,18 +52,27 @@
           <td class="type-name"><b>{{ row.structure_name }}</b>
             <span class="muted">· {{ structure_types[row.structure_type] }}</span>
             {% if row.supercapital_assembly %}<span class="badge capability">supercapital assembly</span>{% endif %}
+            <div class="row-activity-links">
+              {%- for other in structure_activities[row.structure_id] if other != row.activity %}
+              <a class="chip-button mini" href="/structures?structure={{ row.structure_id }}&amp;activity={{ other }}#structure-form"
+                 title="Edit the {{ other }} registration">{{ activity_labels[other] | lower }}</a>
+              {%- endfor %}
+              <a class="chip-button mini add" href="/structures?structure={{ row.structure_id }}&amp;form=add#structure-form"
+                 title="Register this structure for another activity">+ activity</a>
+            </div>
           </td>
           <td>{% if row.system_name %}{{ row.system_name }}
             <span class="badge {{ 'hisec' if row.security_class == 'high' else ('lowsec' if row.security_class == 'low' else 'nullsec') }}">{{ {'high': 'high', 'low': 'low', 'null': 'null'}[row.security_class] }}</span>
             {% elif row.security_class %}<span class="badge {{ 'hisec' if row.security_class == 'high' else ('lowsec' if row.security_class == 'low' else 'nullsec') }}">{{ row.security_class }} · no system</span>
             {% else %}<span class="muted">—</span>{% endif %}</td>
           <td class="muted">{% if row.me_rig == 'none' and row.te_rig == 'none' %}none{% else %}{{ 'ME ' + row.me_rig.upper() if row.me_rig != 'none' }}{{ ' · ' if row.me_rig != 'none' and row.te_rig != 'none' }}{{ 'TE ' + row.te_rig.upper() if row.te_rig != 'none' }}{% endif %}</td>
-          <td class="num">{% if row.tax_rate is none %}<span class="muted">NPC-set</span>{% else %}{{ '{:.3g}%'.format(row.tax_rate * 100) }}{% endif %}</td>
+          <td class="num">{% if row.tax_rate is none %}<span class="muted">NPC-set</span>{% else %}{{ '{:.2f}'.format(row.tax_rate * 100).rstrip('0').rstrip('.') }}%{% endif %}</td>
           <td>{% if row.is_default %}<span class="badge bpo">default</span>{% else %}<span class="muted">—</span>{% endif %}</td>
           <td style="text-align: right; white-space: nowrap;">
-            <a class="icon-button" href="/structures?structure={{ row.structure_id }}&amp;activity={{ row.activity }}" aria-label="Edit" title="Edit">✎</a>
-            <form method="post" action="/structures/{{ row.structure_id }}/{{ row.registration_id }}/delete" class="inline-form"
-                  onsubmit="return confirm('Remove the {{ activity_label | lower }} registration for {{ row.structure_name }}?')">
+            <a class="icon-button" href="/structures?structure={{ row.structure_id }}&amp;activity={{ row.activity }}#structure-form" aria-label="Edit" title="Edit">✎</a>
+            <form method="post" action="/structures/{{ row.structure_id }}/{{ row.registration_id }}/delete" class="inline-form delete-form"
+                  data-structure-name="{{ row.structure_name }}"
+                  data-activity="{{ activity_label | lower }}">
               <button class="icon-button danger" type="submit" aria-label="Delete" title="Delete">✕</button>
             </form>
           </td>
@@ -80,8 +92,9 @@
   </div>
 </div>
 
-<!-- Add / edit form -->
-<div class="card" id="structure-form">
+<!-- Add / edit form: hidden until the Add structure button, a row's
+     Edit link, or an import asks for it. -->
+<div class="card overflow-visible" id="structure-form"{% if not show_form %} hidden{% endif %}>
   <div class="card-body">
     <h2>{{ ('Edit — ' + form_structure.name) if form_structure else 'Add structure' }}</h2>
     <p class="card-sub">{% if form_structure and form_registration %}
@@ -97,7 +110,7 @@
       {% endif %}</p>
 
     <form method="post" action="/structures" class="structure-form"
-          data-activity-labels="{{ activity_labels | tojson }}">
+          data-activity-labels='{{ activity_labels | tojson }}'>
       {% if form_structure %}<input type="hidden" name="structure_id" value="{{ form_structure.id }}">{% endif %}
       {% if imported %}<input type="hidden" name="location_id" value="{{ imported.location_id }}">{% endif %}
 
@@ -110,11 +123,11 @@
               <input type="radio" name="activity" value="{{ activity_key }}"
                      data-activity="{{ activity_key }}"
                      {{ 'checked' if (form_values.activity if form_values else form_activity) == activity_key }}>
-              {{ activity_labels[activity_key] }}
+              {{ activity_labels[activity_key] }}{{ ' ✓' if form_structure and activity_key in registered_activities }}
             </label>
             {% endfor %}
           </div>
-          <span class="field-hint">drives the structure-type list: engineering complexes for manufacturing / copying / invention, refineries for reactions</span>
+          <span class="field-hint">drives the structure-type list: engineering complexes for manufacturing / copying / invention, refineries for reactions{% if form_structure %} — ✓ marks this structure's registered activities: picking one edits it, another registers it{% endif %}</span>
         </div>
 
         <div class="field">
@@ -127,7 +140,7 @@
         <div class="field">
           <label class="field-label" for="struct-type">Structure type</label>
           <select class="form-select" id="struct-type" name="structure_type"
-                  data-activity-types="{{ activity_types | tojson }}">
+                  data-activity-types='{{ activity_types | tojson }}'>
             {% for type_key, type_label in structure_types.items() %}
             <option value="{{ type_key }}"
                     {{ 'selected' if (form_values.structure_type if form_values else (form_structure.structure_type if form_structure else '')) == type_key }}>
@@ -135,35 +148,6 @@
             {% endfor %}
           </select>
           <span class="field-hint">filtered to what the selected activity can host</span>
-        </div>
-
-        <div class="field">
-          <span class="field-label">Solar system</span>
-          <div class="search-wrap">
-            <input class="form-input search-input" id="system-query" type="text" autocomplete="off"
-                   aria-label="Search systems"
-                   value="{{ form_values.system_name if form_values else (form_structure.system_name if form_structure and form_structure.system_name else imported_system_name | default('')) }}"
-                   placeholder="type to search resolved systems">
-            <div class="autocomplete" id="system-autocomplete" hidden></div>
-          </div>
-          <input type="hidden" name="system_id" id="system-id"
-                 value="{{ form_values.system_id if form_values else (form_structure.system_id if form_structure and form_structure.system_id else (imported.system_id if imported else '')) }}">
-          <span class="field-hint">systems the syncs have resolved; the security class derives from it at save (ESI)</span>
-        </div>
-
-        <div class="field field-security">
-          <span class="field-label">System security</span>
-          <div><span class="badge {{ 'hisec' if (form_values.security_class if form_values else form_structure.security_class if form_structure else '') == 'high' else ('lowsec' if (form_values.security_class if form_values else form_structure.security_class if form_structure else '') == 'low' else 'nullsec') }}">
-            {{ (form_values.security_class if form_values else form_structure.security_class if form_structure else '') or '—' }}
-          </span></div>
-          <select class="form-select" id="security-select" name="security_class"
-                  {{ 'hidden' if (form_values.system_id if form_values else (form_structure.system_id if form_structure and form_structure.system_id else (imported.system_id if imported else ''))) }}>
-            <option value="">unknown</option>
-            <option value="high" {{ 'selected' if (form_values.security_class if form_values else '') == 'high' }}>highsec</option>
-            <option value="low" {{ 'selected' if (form_values.security_class if form_values else '') == 'low' }}>lowsec</option>
-            <option value="null" {{ 'selected' if (form_values.security_class if form_values else '') == 'null' }}>nullsec</option>
-          </select>
-          <span class="field-hint">hand-set only when no system is chosen</span>
         </div>
 
         <div class="field field-me-rig">
@@ -175,6 +159,43 @@
           </select>
         </div>
 
+        <div class="field">
+          <span class="field-label">Solar system</span>
+          <div class="search-wrap">
+            <input class="form-input search-input" id="system-query" type="text" autocomplete="off"
+                   aria-label="Search systems"
+                   value="{{ form_system_name if form_system_name is defined else '' }}"
+                   placeholder="type to search resolved systems">
+            <div class="autocomplete" id="system-autocomplete" hidden></div>
+          </div>
+          <input type="hidden" name="system_id" id="system-id"
+                 value="{{ form_values.system_id if form_values else (form_structure.system_id if form_structure and form_structure.system_id else (imported.system_id if imported else '')) }}">
+          <span class="field-hint">systems the syncs have resolved; the security class derives from it at save (ESI)</span>
+        </div>
+
+        <div class="field field-security">
+          <span class="field-label">System security</span>
+          <div class="chip-row" role="radiogroup" aria-label="System security" id="security-chips">
+            {% for class_key, class_label in [('high', 'high'), ('low', 'low'), ('null', 'null')] %}
+            <label class="chip-button security-chip {{ 'hisec' if class_key == 'high' else ('lowsec' if class_key == 'low' else 'nullsec') }}{{ ' selected' if (form_values.security_class if form_values else form_security_class or '') == class_key }}">
+              <input type="radio" name="security_class" value="{{ class_key }}"
+                     {{ 'checked' if (form_values.security_class if form_values else form_security_class or '') == class_key }}>
+              {{ class_label }}
+            </label>
+            {% endfor %}
+          </div>
+          <span class="field-hint">derives from the selected system (the chip lights on pick); hand-set only when no system is chosen</span>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="tax">Tax rate (%)</label>
+          <input class="form-input" id="tax" type="number" name="tax_rate" inputmode="decimal"
+                 min="0" max="100" step="0.01"
+                 value="{{ form_values.tax_rate if form_values else ('{:.2f}'.format(form_registration.tax_rate * 100).rstrip('0').rstrip('.') if form_registration and form_registration.tax_rate is not none else '') }}"
+                 placeholder="NPC-set">
+          <span class="field-hint">multiplier on the install-cost base, alongside the system cost index; empty = NPC-set</span>
+        </div>
+
         <div class="field field-te-rig">
           <label class="field-label" for="rig-te">Time-efficiency rig</label>
           <select class="form-select" id="rig-te" name="te_rig">
@@ -183,14 +204,6 @@
             {% endfor %}
           </select>
           <span class="field-hint">reactions use reaction rigs; invention uses the Invention Accelerator</span>
-        </div>
-
-        <div class="field">
-          <label class="field-label" for="tax">Tax rate</label>
-          <input class="form-input" id="tax" type="text" name="tax_rate" inputmode="decimal"
-                 value="{{ form_values.tax_rate if form_values else ('{:.3g}%'.format(form_registration.tax_rate * 100) if form_registration and form_registration.tax_rate is not none else '') }}"
-                 placeholder="NPC-set">
-          <span class="field-hint">multiplier on the install-cost base, alongside the system cost index</span>
         </div>
 
         <div class="field">
@@ -239,7 +252,7 @@
           </td>
           <td style="text-align: right;">
             {% if candidate.restricted %}<span class="muted">—</span>
-            {% else %}<a class="chip-link" href="/structures?import={{ candidate.location_id }}">Import</a>{% endif %}
+            {% else %}<a class="chip-button" href="/structures?import={{ candidate.location_id }}#structure-form">Import</a>{% endif %}
           </td>
         </tr>
         {% else %}
@@ -276,6 +289,19 @@
     <p class="sync-source">values pinned 2026-11-23 from live ESI dogma (hulls, rigs) and fuzzwork's industry calculator (security scaling) — see app/facilities.py for provenance</p>
   </div>
 </div>
+
+<!-- Delete confirmation (an in-app dialog, not the browser popup) -->
+<dialog id="delete-dialog" aria-labelledby="delete-dialog-title">
+  <h3 id="delete-dialog-title">Remove registration</h3>
+  <p>Remove the <b data-role="activity"></b> registration for
+    <b data-role="structure"></b>?</p>
+  <p class="field-hint">Removing a structure's last registration removes the structure itself.</p>
+  <div class="form-actions">
+    <button type="button" id="delete-cancel">Cancel</button>
+    <button type="button" class="danger" id="delete-confirm">Remove</button>
+  </div>
+</dialog>
+
 {% endblock %}
 {% block page_scripts %}
 <script src="/static/structures.js?v={{ static_version }}"></script>

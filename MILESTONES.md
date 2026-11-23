@@ -1020,12 +1020,47 @@ only in git history):
   distinguishable in the data and stay importable — the owner decides
   what registers. The biochemical-reactions facility-class pin stays
   open.
-- Validation: `tests/test_structures.py` (15 cases — the recorded
-  scenario end to end, default demotion, the partial-unique
-  enforcement at the storage layer, supercap validation, refinery
-  gating, the ESI-failure fallback, the local type-ahead, the import
-  card and prefill, registration-vs-structure deletes); migration
-  0009 applied to the dev deployment; full suite 171 passed.
+- **Review-series refinements (2026-11-23, twelve product-owner
+  rounds on the live page)**: the form matches the mockup's measured
+  layout (field order, 84rem content width — the app was 72rem,
+  which collapsed the mockup's 4-column grid to 3; the shared
+  component library ported from mockups.css with `.muted`, card
+  stacking, `.card-sub`, `.sync-source`, `.page-header .actions` +
+  `button.primary` — several used classes had no styles at all); the
+  activity/security chips are toggleable radios with style syncing
+  (the server-rendered `selected` class must move with the checked
+  radio); the type-ahead suggestions carry each system's security
+  (ESI per candidate) and picking locks the security chips to the
+  derived class; the add/edit panel hides until Add/Edit/Import asks
+  for it; **all navigation and saves swap `<main>` in place** (the
+  assets-page pattern — `initStructuresPage` re-binds after every
+  swap; the browser `confirm()` popup replaced by a native
+  `<dialog>`); multi-activity structures are discoverable (registry
+  rows cross-link a structure's other registrations + a "+ activity"
+  control; the form's chips mark registered activities with ✓). **Two
+  real bugs the rounds caught**: the Edit links' `?structure=` param
+  never bound (the route read `structure_id` — Edit silently
+  reloaded a blank form), and **default promotion crashed when the
+  promoted registration's primary key sorted before the demoted
+  one's** — SQLAlchemy batches same-table updates into one
+  executemany ordered by id, so the promotion could land first and
+  momentarily create two defaults (partial-unique violation); the fix
+  is a flush barrier between demotion and promotion, pinned by a
+  lower-id-promotion regression test. Jinja gotcha recorded: content
+  between blocks in a child template is silently dropped (the dialog
+  vanished until moved inside the content block).
+- Validation: `tests/test_structures.py` (22 cases — the recorded
+  scenario end to end, default demotion including the lower-id
+  promotion crash, the partial-unique enforcement at the storage
+  layer, supercap validation, refinery gating, the ESI-failure
+  fallback, the local type-ahead with security enrichment, the import
+  card and prefill, registration-vs-structure deletes, the panel
+  visibility and param binding, two-decimal tax); every interaction
+  flow additionally verified end-to-end in headless Chrome (the
+  text-based visual validation pattern — layout measurements against
+  the mockup, chip toggling, type-ahead, in-place swaps, the delete
+  dialog); migration 0009 applied to the dev deployment; full suite
+  178 passed.
 
 **Validation**: create an Azbel with T1 ME/T1 TE rigs in a known null
 system; register the same Azbel for invention (second registration,
