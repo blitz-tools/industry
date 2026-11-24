@@ -143,6 +143,19 @@ def _parse_participants(request: Request) -> list[int] | None:
     ]
 
 
+def _parse_personal_stock(request: Request) -> list[int]:
+    """`ps` semantics: the participants whose personal hangars count in
+    the coverage measurement, on top of the corp office hangars (the
+    default measures offices only). Absent and empty are the same state
+    — none — so no absent/empty sentinel is needed (unlike `p`, the
+    default never changes)."""
+    return [
+        int(value)
+        for value in request.query_params.getlist("ps")
+        if value.strip().isdigit()
+    ]
+
+
 async def _planner_state(
     request: Request, db: DbDep
 ) -> tuple[list[int] | None, dict[str, list], dict[str, object | None], dict]:
@@ -340,11 +353,13 @@ def _state_qs(
     me: int | None = None,
     te: int | None = None,
     owned: bool = False,
+    personal_stock: list[int] | None = None,
 ) -> str:
     """The URL state both pages share, serialized once: target, count,
-    an explicit participant pool, facility overrides (only when they
-    differ from the registry default — absence-means-default keeps
-    links honest when the default changes), and ME/TE overrides."""
+    an explicit participant pool, the personal-stock character set,
+    facility overrides (only when they differ from the registry
+    default — absence-means-default keeps links honest when the
+    default changes), and ME/TE overrides."""
     from urllib.parse import urlencode
 
     params: list[tuple[str, str]] = []
@@ -354,6 +369,8 @@ def _state_qs(
         params.append(("qty", str(qty)))
     if owned:
         params.append(("owned", "1"))
+    if personal_stock:
+        params.extend(("ps", str(pid)) for pid in personal_stock)
     if participants is not None:
         params.extend(("p", str(pid)) for pid in participants)
     for activity in ACTIVITIES:
@@ -412,6 +429,7 @@ async def planner_page(
     others = [c for c in characters if c.corporation_id != corp_id]
 
     participants, registrations, chosen, defaults = await _planner_state(request, db)
+    personal_stock = _parse_personal_stock(request)
 
     # The target: an invalid id bounces to the bare planner (search
     # only offers catalog products, so this is a stale or hand-built
@@ -426,12 +444,13 @@ async def planner_page(
             facilities=chosen,
             me_override=me,
             te_override=te,
+            personal_stock_ids=personal_stock,
         )
         if plan is None:
             return RedirectResponse("/planner", status_code=302)
 
     state_qs = _state_qs(
-        target, qty, participants, chosen, defaults, me, te, owned
+        target, qty, participants, chosen, defaults, me, te, owned, personal_stock
     )
     return templates.TemplateResponse(
         request,
@@ -523,6 +542,7 @@ async def planner_plan_page(
         return RedirectResponse("/planner", status_code=302)
     qty = max(1, qty or 1)
     participants, _registrations, chosen, defaults = await _planner_state(request, db)
+    personal_stock = _parse_personal_stock(request)
 
     plan = await chain_plan(
         db,
@@ -532,11 +552,15 @@ async def planner_plan_page(
         facilities=chosen,
         me_override=me,
         te_override=te,
+        personal_stock_ids=personal_stock,
     )
     if plan is None:
         return RedirectResponse("/planner", status_code=302)
 
-    state_qs = _state_qs(target, qty, participants, chosen, defaults, me, te)
+    state_qs = _state_qs(
+        target, qty, participants, chosen, defaults, me, te,
+        personal_stock=personal_stock,
+    )
     base_href = "/planner/plan" + state_qs
     # The toggle flips `all`; dropping the param returns to the
     # gaps-only default (absence-means-default).

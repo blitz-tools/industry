@@ -249,3 +249,36 @@ async def test_planner_renders_deepened_tiers(client, chain_db):  # noqa: F811
     # Tier 3: full-chain terminators by category.
     assert "Minerals" in response.text and "Ice products" in response.text
     assert "68,582,789" in response.text
+
+
+@respx.mock
+async def test_personal_stock_param_threads_into_coverage(client, chain_db):  # noqa: F811
+    """The `ps` URL param (personal-stock characters, backend plumbing
+    for the upcoming Material sources selector — no UI ships yet)
+    threads through both pages into the coverage measurement: the
+    Tritanium gap shrinks by exactly the listed characters' personal
+    stock, and ids outside the participant pool are ignored."""
+    await _login(client)
+    default = await client.get("/planner/plan", params={"target": 644, "qty": 10})
+    assert default.status_code == 200
+    assert "short 66,582,789" in default.text
+
+    main_counted = await client.get(
+        "/planner/plan", params=[("target", 644), ("qty", 10), ("ps", 1234)]
+    )
+    assert main_counted.status_code == 200
+    assert "short 65,582,789" in main_counted.text
+
+    both = await client.get(
+        "/planner/plan",
+        params=[("target", 644), ("qty", 10), ("ps", 1234), ("ps", 5678)],
+    )
+    assert both.status_code == 200
+    assert "short 65,082,789" in both.text
+
+    # Outside the pool: no effect even in a hand-built URL.
+    outside = await client.get(
+        "/planner/plan", params=[("target", 644), ("qty", 10), ("ps", 9999)]
+    )
+    assert outside.status_code == 200
+    assert "short 66,582,789" in outside.text

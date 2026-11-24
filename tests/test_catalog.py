@@ -464,24 +464,32 @@ async def test_pool_on_hand_measures_corp_offices_by_default(catalog_db):
     # 5,000, not the excluded pilot's 777, not the non-office corp 999.
     on_hand = await pool_on_hand(
         catalog_db, [34, 20410, 16672],
-        participant_ids=[1234], corporation_id=98000001,
+        corporation_id=98000001,
     )
     assert on_hand[34] == 300
     assert on_hand[20410] == 0
     assert on_hand[16672] == 0  # unheld types key zero, not absence
 
-    # Opting in adds the participants' personal hangars.
+    # Opting in per character adds exactly that character's hangar —
+    # the read counts the ids it is handed (the participant-pool
+    # intersect is chain_plan's guard, not this read's).
     personal = await pool_on_hand(
         catalog_db, [34, 20410],
-        participant_ids=[1234], corporation_id=98000001,
-        include_personal=True,
+        corporation_id=98000001,
+        personal_character_ids=[1234],
     )
     assert personal[34] == 5300  # 5,000 personal + 300 office
     assert personal[20410] == 10
+    other = await pool_on_hand(
+        catalog_db, [34],
+        corporation_id=98000001,
+        personal_character_ids=[2222],
+    )
+    assert other[34] == 1077  # 777 + 300 — the read is id-literal
 
     # Without a corporation, the opt-in pool is personal-only.
     solo = await pool_on_hand(
-        catalog_db, [34], participant_ids=[1234], corporation_id=None,
-        include_personal=True,
+        catalog_db, [34], corporation_id=None,
+        personal_character_ids=[1234],
     )
     assert solo[34] == 5000

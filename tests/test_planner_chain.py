@@ -30,7 +30,12 @@ from app.planner import (
     phase_state,
     resolve_chain,
 )
-from tests.test_planner_plan import MAIN, planner_db  # noqa: F401 (fixture)
+from tests.test_planner_plan import (  # noqa: F401  (fixture)
+    CORP_MEMBER,
+    MAIN,
+    OUT_OF_CORP,
+    planner_db,
+)
 
 
 def header(type_id, bp, activity, per_run, mpl=None, duration=None):
@@ -523,6 +528,15 @@ async def chain_db(planner_db):  # noqa: F811 (layered fixture: the module-level
                 parent_location_id=60003743, is_blueprint_copy=False,
                 is_singleton=False,
             ),
+            # The corp mate's personal Tritanium — per-character opt-in
+            # means this counts only when their chip is on.
+            Asset(
+                owner_type=OWNER_CHARACTER, owner_id=CORP_MEMBER, item_id=9105,
+                type_id=34, quantity=500_000, location_id=60003743,
+                location_flag="Hangar", location_type="station",
+                parent_location_id=60003743, is_blueprint_copy=False,
+                is_singleton=False,
+            ),
         ]
     )
     await planner_db.commit()
@@ -684,18 +698,32 @@ async def test_chain_plan_stage_states_and_coverage(chain_db):
     assert by_type[TRITANIUM].on_hand == 2_000_000  # office stock only
 
 
-async def test_chain_plan_personal_stock_is_opt_in(chain_db):
+async def test_chain_plan_personal_stock_is_per_character(chain_db):
     """The coverage measurement defaults to the corp office hangars;
-    `include_personal_stock` widens it to the participants' own
-    hangars (the false-positive guard for out-of-corp participants)."""
+    `personal_stock_ids` opts in specific participants' own hangars —
+    a per-character choice (the false-positive guard for out-of-corp
+    participants), and ids outside the participant pool are ignored."""
     facilities = await _facilities(chain_db)
-    plan = await chain_plan(
-        chain_db, target_type_id=TYPHOON, units=10, facilities=facilities,
-        include_personal_stock=True,
-    )
-    by_type = {row.type_id: row for row in plan.chain.raw_totals}
-    # The office's 2M plus the main's personal 1M.
-    assert by_type[TRITANIUM].on_hand == 3_000_000
+
+    async def on_hand(**kwargs):
+        plan = await chain_plan(
+            chain_db, target_type_id=TYPHOON, units=10, facilities=facilities,
+            **kwargs,
+        )
+        by_type = {row.type_id: row for row in plan.chain.raw_totals}
+        return by_type[TRITANIUM].on_hand
+
+    # Default: the office's 2M only.
+    assert await on_hand() == 2_000_000
+    # The main's chip: office 2M + their personal 1M.
+    assert await on_hand(personal_stock_ids=[MAIN]) == 3_000_000
+    # The corp mate's chip: office 2M + their personal 500k.
+    assert await on_hand(personal_stock_ids=[CORP_MEMBER]) == 2_500_000
+    # Both chips.
+    assert await on_hand(personal_stock_ids=[MAIN, CORP_MEMBER]) == 3_500_000
+    # An id outside the participant pool never counts (the caller owns
+    # honest links; the intersect is the authoritative guard).
+    assert await on_hand(personal_stock_ids=[OUT_OF_CORP]) == 2_000_000
 
 
 async def test_chain_plan_participants_and_copy_time(chain_db):

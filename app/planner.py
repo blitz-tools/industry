@@ -907,7 +907,7 @@ async def chain_plan(
     facilities: dict[str, RegistrationRow | None] | None = None,
     me_override: int | None = None,
     te_override: int | None = None,
-    include_personal_stock: bool = False,
+    personal_stock_ids: list[int] | None = None,
 ) -> ChainPlan | None:
     """Resolve and calculate the full chain for one commodity: the pure
     walk over the bulk-read catalog, then per-node enrichment (selection
@@ -917,10 +917,11 @@ async def chain_plan(
     cost against the synced world data; pool-stock coverage). None when
     the type is not a catalog product. `facilities` maps registry
     activity keys to chosen registrations; each node resolves its own
-    entry, copying reads the "copying" entry. `include_personal_stock`
-    widens the coverage measurement from the corp office hangars (the
-    default — participants may be job-allocation positions, not
-    material sources) to the participants' personal assets."""
+    entry, copying reads the "copying" entry. `personal_stock_ids` opts
+    specific participants' personal hangars into the coverage
+    measurement (the corp office hangars are always measured); ids
+    outside the participant pool are ignored — an excluded character is
+    never a stock source."""
     catalog = await build_chain_catalog(db, [target_type_id])
     if catalog is None or target_type_id not in catalog.headers:
         return None
@@ -953,6 +954,7 @@ async def chain_plan(
             else []
         )
     pool_ids = [character.character_id for character in roster]
+    pool_id_set = set(pool_ids)
     corporation_id = main.corporation_id if main is not None else None
     levels = await active_skill_levels(db, pool_ids) if pool_ids else {}
     roster_names = {character.character_id: character.name for character in roster}
@@ -1045,9 +1047,12 @@ async def chain_plan(
     on_hand = await pool_on_hand(
         db,
         measured_ids,
-        participant_ids=pool_ids,
         corporation_id=corporation_id,
-        include_personal=include_personal_stock,
+        personal_character_ids=[
+            character_id
+            for character_id in (personal_stock_ids or [])
+            if character_id in pool_id_set
+        ],
     )
     for row in result.raw_totals:
         row.on_hand = on_hand.get(row.type_id, 0)

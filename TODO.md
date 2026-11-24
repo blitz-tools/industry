@@ -47,15 +47,6 @@ Groundwork that already exists and applies broadly:
 
 ## In queue
 
-- **Personal-stock coverage toggle** (owner note, M5 review 2026-11-24):
-  the planner's coverage measurement defaults to the corp office
-  hangars (`chain_plan(include_personal_stock=...)` opts into
-  participants' personal hangars — the false-positive guard for
-  out-of-corp job-allocation participants). No planner-input control
-  exists for it yet: mock up where the toggle lives (the Plan
-  participants section is the natural home, next to the pool it
-  measures) and implement it as a URL-state param following the
-  absence-means-default convention.
 - **Ancient Relics acquisition sources** (owner note, M5 review
   2026-11-24): the acquisition table's "Acquire via" column pins each
   terminator category to its in-game mechanic; the relic category
