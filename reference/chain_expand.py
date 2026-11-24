@@ -50,6 +50,7 @@ Pinned by the 2026-11 proof-outs:
   M5's resolver must add it defensively per the milestone scope.
 """
 
+import json
 import math
 import sqlite3
 import sys
@@ -282,6 +283,298 @@ def raw_totals(phases):
     return totals
 
 
+# --- M5 validation tooling -----------------------------------------------------
+#
+# The structured-output mode (--json) is the diff harness's golden
+# source: the same walk the app resolver implements (reference/
+# README.md's rules), emitted as data with type ids for stable
+# matching. The whole-catalog census (--all) is reference/CENSUS.md's
+# regeneration tool: a memoized walk with path-tracking, back-edges
+# treated as terminal and recorded — CENSUS.md's recorded method.
+
+
+def producer(db, type_id):
+    """The prefer-published producer row (bp, activity, per_run) — the
+    app catalog's rule (MILESTONES.md M2 landed-as), which the --json
+    walk adopts so the diff against the app resolver is meaningful.
+    None when the type is a terminator."""
+    return db.execute(
+        "SELECT p.typeID, p.activityID, p.quantity"
+        " FROM sde_industryActivityProducts p"
+        " LEFT JOIN sde_invTypes bp ON bp.typeID = p.typeID"
+        " WHERE p.productTypeID = ? AND p.activityID IN (1, 11)"
+        " ORDER BY CASE WHEN bp.published = 1 THEN 0 ELSE 1 END, p.rowid"
+        " LIMIT 1",
+        (type_id,),
+    ).fetchone()
+
+
+def _material_graph(db, seeds):
+    """The producer/material closure from seed types: headers mapping
+    product -> (bp, activity, per_run), and the demand graph product ->
+    [material ids]. One BFS, each type read once (the visited set also
+    terminates cycles)."""
+    headers = {}
+    frontier = []
+    for seed in seeds:
+        row = producer(db, seed)
+        if row is not None and seed not in headers:
+            headers[seed] = row
+            frontier.append(seed)
+    if not frontier:
+        return headers, {}
+    graph = {}
+    while frontier:
+        next_frontier = []
+        for t in frontier:
+            bp, act, _per = headers[t]
+            materials = [m for m, _q in inputs(db, bp, act)]
+            graph[t] = materials
+            for m in materials:
+                if m not in headers:
+                    row = producer(db, m)
+                    if row is not None:
+                        headers[m] = row
+                        next_frontier.append(m)
+        frontier = next_frontier
+    return headers, graph
+
+
+def _cyclic_members(graph):
+    """Types on a producer-graph cycle: non-trivial SCC members plus
+    self-loops (iterative Tarjan — same classification the app resolver
+    applies)."""
+    index, low = {}, {}
+    on_stack, stack = set(), []
+    counter = 0
+    cyclic = set()
+    for root in graph:
+        if root in index:
+            continue
+        index[root] = low[root] = counter
+        counter += 1
+        stack.append(root)
+        on_stack.add(root)
+        work = [(root, iter(graph[root]))]
+        while work:
+            node, children = work[-1]
+            advanced = False
+            for child in children:
+                if child not in index:
+                    index[child] = low[child] = counter
+                    counter += 1
+                    stack.append(child)
+                    on_stack.add(child)
+                    work.append((child, iter(graph.get(child, []))))
+                    advanced = True
+                    break
+                if child in on_stack:
+                    low[node] = min(low[node], index[child])
+            if advanced:
+                continue
+            work.pop()
+            if work:
+                parent = work[-1][0]
+                low[parent] = min(low[parent], low[node])
+            if low[node] == index[node]:
+                component = []
+                while True:
+                    member = stack.pop()
+                    on_stack.discard(member)
+                    component.append(member)
+                    if member == node:
+                        break
+                if len(component) > 1:
+                    cyclic.update(component)
+                elif component[0] in graph.get(component[0], []):
+                    cyclic.add(component[0])
+    return cyclic
+
+
+def resolved_chain(db, type_id, quantity):
+    """The M5 walk as structured data: level-by-level from the target,
+    same-type demands merging per level, runs rounding once per merged
+    occurrence, back-edges cut (a cyclic material already expanded at or
+    above the current level is terminal and recorded). Returns
+    (levels, cuts): levels target-first, each a list of rows
+    (type_id, qty, runs|None, activity|None, cycle_flag); cuts a list of
+    (consumer, material, qty). Quantities are the UN-adjusted base —
+    the app's ME/facility enrichment is pinned hermetically instead."""
+    headers, graph = _material_graph(db, [type_id])
+    cyclic = _cyclic_members(graph)
+    reqs = {type_id: quantity}
+    levels = []
+    cuts = []
+    expanded_at = {}
+    level_idx = 0
+    while reqs:
+        rows = []
+        buildable = {}
+        for t in sorted(reqs):
+            if t in headers:
+                buildable[t] = reqs[t]
+            else:
+                rows.append((t, reqs[t], None, None, False))
+        for t in sorted(buildable):
+            bp, act, per_run = headers[t]
+            runs = runs_for(buildable[t], per_run)
+            rows.append((t, buildable[t], runs, act, False))
+            expanded_at[t] = level_idx
+        levels.append(rows)
+        nxt = {}
+        for t in sorted(buildable):
+            bp, act, per_run = headers[t]
+            runs = runs_for(buildable[t], per_run)
+            for m, q in inputs(db, bp, act):
+                demand = q * runs
+                if m in cyclic and expanded_at.get(m, level_idx + 1) <= level_idx:
+                    cuts.append((t, m, demand))
+                else:
+                    nxt[m] = nxt.get(m, 0) + demand
+        reqs = nxt
+        level_idx += 1
+    return levels, cuts
+
+
+def chain_json(db, type_id, quantity):
+    """The --json payload: phases ASCENDING in build order (matching
+    the app resolver directly), nodes carrying type ids for stable
+    matching, raw totals summed chain-wide, and the cycle cuts
+    surfaced."""
+    levels, cuts = resolved_chain(db, type_id, quantity)
+    depth = len(levels)
+    phases = []
+    raw = {}
+    for i, rows in enumerate(levels):
+        phase = depth - 1 - i
+        nodes = []
+        for t, qty, runs, act, cycle in rows:
+            nodes.append(
+                {
+                    "type_id": t,
+                    "name": type_name(db, t),
+                    "qty": qty,
+                    "runs": runs,
+                    "activity": act,
+                    "cycle": cycle,
+                }
+            )
+            if runs is None and not cycle:
+                raw[t] = raw.get(t, 0) + qty
+        phases.append({"phase": phase, "nodes": nodes})
+    phases.reverse()
+    return {
+        "target": type_id,
+        "quantity": quantity,
+        "phases": phases,
+        "raw_totals": [
+            {"type_id": t, "name": type_name(db, t), "qty": qty}
+            for t, qty in sorted(raw.items(), key=lambda kv: (-kv[1], kv[0]))
+        ],
+        "cycles": [
+            {"consumer": consumer, "material": material, "qty": qty}
+            for consumer, material, qty in cuts
+        ],
+    }
+
+
+def census(db):
+    """The whole-catalog census (reference/CENSUS.md's method): every
+    product of activities 1 and 11, depth via a memoized walk with
+    path-tracking — back-edges (a material on the current path) are
+    treated as terminal and recorded. Returns (depths, back_edges):
+    per-type phase depth (terminators 0, a buildable 1 + its deepest
+    input) and the (consumer, material) back-edge set."""
+    sys.setrecursionlimit(100_000)
+    products = [
+        row[0]
+        for row in db.execute(
+            "SELECT DISTINCT productTypeID FROM sde_industryActivityProducts"
+            " WHERE activityID IN (1, 11)"
+        ).fetchall()
+    ]
+    depth: dict[int, int] = {}
+    on_path: set[int] = set()
+    back_edges: set[tuple[int, int]] = set()
+    producer_cache: dict[int, tuple | None] = {}
+    inputs_cache: dict[tuple[int, int], list] = {}
+
+    def prod_of(t):
+        if t not in producer_cache:
+            producer_cache[t] = producer(db, t)
+        return producer_cache[t]
+
+    def inputs_of(bp, act):
+        if (bp, act) not in inputs_cache:
+            inputs_cache[(bp, act)] = inputs(db, bp, act)
+        return inputs_cache[(bp, act)]
+
+    def visit(t):
+        if t in depth:
+            return depth[t]
+        if t in on_path:
+            return 0  # back-edge: terminal
+        row = prod_of(t)
+        if row is None:
+            depth[t] = 0
+            return 0
+        bp, act, _per = row
+        on_path.add(t)
+        best = 0  # terminals and back-edges contribute 0
+        for m, _q in inputs_of(bp, act):
+            if m in on_path:
+                back_edges.add((t, m))
+                continue
+            best = max(best, visit(m))
+        on_path.discard(t)
+        depth[t] = best + 1
+        return best + 1
+
+    for product in products:
+        visit(product)
+    return depth, back_edges
+
+
+def census_report(db):
+    """The --all output: the depth histogram over every buildable
+    product, the deepest products, and the cycle census (back-edges and
+    the types on cycles)."""
+    depth, back_edges = census(db)
+    products = {
+        row[0]: row[1]
+        for row in db.execute(
+            "SELECT productTypeID, MAX(quantity) FROM"
+            " sde_industryActivityProducts WHERE activityID IN (1, 11)"
+            " GROUP BY productTypeID"
+        ).fetchall()
+    }
+    histogram: dict[int, int] = {}
+    for type_id, d in depth.items():
+        if type_id in products:
+            histogram[d] = histogram.get(d, 0) + 1
+    lines = ["=== whole-catalog census (M5 --all) ==="]
+    lines.append(
+        f"buildable products: {sum(histogram.values()):,}"
+        f" (activities 1 and 11, prefer-published producer)"
+    )
+    for d in sorted(histogram, reverse=True):
+        lines.append(f"  phase depth {d}: {histogram[d]:,} products")
+    deepest = max(histogram) if histogram else 0
+    lines.append(
+        f"deepest products (depth {deepest}): "
+        + ", ".join(
+            type_name(db, t)
+            for t, d in sorted(depth.items(), key=lambda kv: -kv[1])
+            if d == deepest and t in products
+        )
+    )
+    cyclic = {m for _c, m in back_edges} | {c for c, _m in back_edges}
+    lines.append(f"back-edges (cycles broken): {len(back_edges)}")
+    lines.append("types on cycles: " + ", ".join(sorted(
+        type_name(db, t) for t in cyclic)))
+    return lines
+
+
 def invention_sources(db, product_bp_id):
     """All invention recipes producing a blueprint:
     [(source_type_id, probability, runs_per_success)].
@@ -475,9 +768,20 @@ def relic_invention_section(db, product_bp_id, srcs, bpcs_needed=1):
 
 
 def main():
-    type_id = int(sys.argv[1]) if len(sys.argv) > 1 else 644
-    quantity = int(sys.argv[2]) if len(sys.argv) > 2 else 1
+    args = sys.argv[1:]
+    as_json = "--json" in args
+    run_all = "--all" in args
+    positional = [a for a in args if not a.startswith("--")]
+    type_id = int(positional[0]) if positional else 644
+    quantity = int(positional[1]) if len(positional) > 1 else 1
     db = connect()
+
+    if run_all:
+        print("\n".join(census_report(db)))
+        return
+    if as_json:
+        print(json.dumps(chain_json(db, type_id, quantity), indent=2))
+        return
 
     print(f"=== per-branch tree: {type_name(db, type_id)} x{quantity:,} ===")
     print("\n".join(per_branch_tree(db, type_id, quantity)))

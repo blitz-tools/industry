@@ -1,9 +1,10 @@
 name: Catalog proof
 
-# Functional proof of the catalog query layer (M2) against the live
-# fuzzwork SDE dump: golden-source parity with reference/chain_expand.py
-# on the ten chain anchors plus the edge-case invariants recorded in
-# MILESTONES.md. Runs when the catalog layer or its golden source
+# Functional proof of the catalog query layer (M2) and the chain
+# resolver (M5) against the live fuzzwork SDE dump: golden-source parity
+# with reference/chain_expand.py on the ten chain anchors (recipes and
+# full resolved chains), the edge-case invariants recorded in
+# MILESTONES.md, and the whole-catalog census parity. Runs when the catalog layer or its golden source
 # change, on demand, and weekly on main so SDE-release quirks (new test
 # artifacts, orphan rows, duplicate rows) surface as failures instead
 # of silent behavior changes.
@@ -29,6 +30,7 @@ on:
   pull_request:
     paths:
       - app/industry.py
+      - app/planner.py
       - reference/chain_expand.py
       - tests/functional/**
       - .github/workflows/catalog-proof.yml

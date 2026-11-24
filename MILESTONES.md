@@ -67,12 +67,14 @@ paid contracts), or **pick a better target**.
 | Mockup program | ✅ **Complete — 13 of 13** (2026-11-22): ten chain sets (Typhoon → Ragnarok) + the refinement pass + three surfaces (structures M3, markets M15, capability M12); the 2026-11-22 conventions (facilities/markets selection, market panels, wave paging, Ƶ, static scaffolding, variable-content marking) cover every page |
 | M3 — structure manager | ✅ **Complete** (PR #86) — registry, multipliers pinned from live dogma, Build Planner nav (2026-11-23) |
 | M4 — planner: single-BP calc | ✅ **Complete** (PR #88) — depth-1 planner + build plan, M15 sync slice soaking |
-| M5+ | Not started |
+| M5 — chain resolution | ✅ **Complete** (2026-11-24) — recursive resolver + phase view, ten-anchor diff proof + census parity |
+| M6+ | Not started |
 
-**Pick up at**: **M5 — chain resolution** (deepens the planner's
-depth-1 requirement tiers to the full recursive chain, test-first
-against the ten chain anchors); the M15 framework slice + light
-families are soaking (cost indices + market prices, hourly).
+**Pick up at**: **M6 — build plans** (persist the resolved chain as a
+living document: export, track vs. inventory, job correlation,
+progress — the purchase⇄Build marking and active-plan stage states
+deferred from M5 land here); the M15 framework slice + light families
+keep soaking (cost indices + market prices, hourly).
 
 **Order of operations** (refined 2026-11-22, final pre-implementation
 evaluation): the spine holds (M2 → M4 → M5 → M6 → M9) with three
@@ -1492,6 +1494,126 @@ fuel blocks → minerals, moon materials, and PI commodities — user
 confirms phase structure and quantities), blueprint availability
 matches what's actually owned, and a corp-pool measurement sees office
 inventory.
+
+**Landed as (2026-11-24)**
+
+- **Scope calls settled at pickup** (owner decisions): the
+  Purchase⇄Build chips and purchase math → **M6** (marking lives on
+  the persisted plan); the chain timeline (Gantt) view → **M9** (it
+  needs the scheduling model; the chain-flow strip covers at-a-glance
+  ordering); **fresh-plan stage states are computed at M5** (pure
+  functions of ownership, skills, dependencies, and stock — the
+  running/deliver/complete active states stay M6); **blueprint
+  selection settles as best-single + shortfall** (M4's rule per node,
+  BPC-only run-coverage surfaced; pool-aware splitting is M9's) —
+  resolving the open question parked here; **recurring commodities
+  stay per-phase** (golden parity; merged campaigns are M9's);
+  **skill-gate marking is in** (the distinct "no skilled character"
+  gating reason, per the M4/M5 decision of record). The first review
+  round (2026-11-24) added three more calls: **phase display names are
+  the modal invGroups name** among the phase's buildables (not a
+  commodity from the list); the acquisition **view toggle keeps the
+  viewport** (`data-keep-scroll` on the link — swapping must not bounce
+  a reader deep in the page back to the top); and **the coverage
+  measurement defaults to the corp office hangars only** —
+  `pool_on_hand(include_personal=...)` opts into participants' personal
+  hangars, the false-positive guard for out-of-corp participants who
+  are job-allocation positions rather than material sources (no UI
+  control yet; it awaits a mockup).
+- **The resolver is pure and lives in `app/planner.py`**:
+  `resolve_chain(target, units, catalog, adjustments, cyclic)` —
+  level-by-level BFS from the target (the executable spec's
+  `aggregated_phases`, generalized): same-type demands merge within a
+  level, runs round once per merged occurrence, **never across
+  levels** (the node unit is (type, phase) — Charon's PO at phases 3
+  and 4 rounds 1 + 88, not a merged 89). Phases ascend in build order
+  (the final all-terminal level is phase 0, target in `phases[-1]`);
+  terminators can sit above phase 0 (the Typhoon's direct minerals,
+  phase 4). **Cycle cutting is mandatory and implemented**: a material
+  on a producer-graph cycle (Tarjan SCC over the catalog closure)
+  already expanded at or above the consumer's level is a back-edge —
+  a flagged terminal row recorded in `ChainResult.cycles`, never
+  recursed, never counted as a raw to acquire; non-cyclic recurrence
+  is never cut (cyclic status tells them apart). `ChainAdjustments`
+  carries per-type ME and per-activity facility factors so the walk's
+  quantities are the real (adjusted) plan — empty adjustments is
+  exactly the golden unadjusted walk the diff harness runs. The SDE
+  bounds depth at 7 for published targets; nothing assumes a ceiling.
+- **Bulk reads in `app/industry.py`** (one new section:
+  `recipe_headers`, `activity_materials`, `activity_skills`,
+  `type_names`, `owned_blueprints_for_types`, `pool_on_hand`): the
+  single-commodity reads' ~5-queries-per-type shape was unacceptable
+  for an 82-buildable Ragnarok chain — the whole chain now resolves in
+  ~25 queries (a Ragnarok render is sub-second, DB-pure). Producer
+  choice is the same prefer-published `_PRODUCER_CTE` rule everywhere.
+  `pool_on_hand` measures the selected participants' personal assets
+  plus the main corporation's **office hangars** (the office-marker
+  parent join, `corporation_offices`' pattern — corp assets outside
+  offices never count; the fallback-pool question stays parked at M6).
+- **`chain_plan` replaces `depth1_plan` outright** (both pages consume
+  it; the M4 tests migrated onto the target node's calc): catalog →
+  walk → per-node enrichment — selection and ME/TE per node (overrides
+  on the target only), materials at each node's OWN activity facility
+  (mfg rig ≠ reaction rig), time at the best gate-holding participant,
+  install cost per node, pool-stock coverage — plus chain-level
+  participant rows (multipliers per activity, nodes gated, solo serial
+  time) and the target's copy-time readout.
+- **Two M4 corrections found by the migration** (both pinned by
+  updated tests): copy time now uses the **copying** skill map
+  (Advanced Industry only, 0.85 at level 5) — M4's depth-1 readout
+  applied the manufacturing multiplier (0.68) against its own
+  docstring; and `install_cost` on a recipe with no materials bills
+  **zero**, not missing-price-data.
+- **Surfaces** (mockup CSS ported verbatim — `.meter` family,
+  `.chain-flow`, `.node-gating`; no `.var`, no `.phase-bulk`/`.stage-chip`
+  — those are M6's): `/planner`'s three tiers deepen to the full chain
+  (every buildable node's blueprint, intermediates grouped by phase,
+  full-chain terminators by category); `/planner/plan` gains the
+  chain-flow strip, the flat phase tree (buildable nodes only — the
+  raw story is the acquisition table) with computed stage states and
+  static-slot gating text ("waiting on phase N", "no skilled character
+  in the pool", "blueprint not owned"), chain-wide required
+  blueprints (summary + exceptions-only table with BPC shortfalls),
+  and the raw-material acquisition table — category group-rows,
+  Required/Available/Coverage meter/Acquire via (a curated pin table
+  per category; prices stay out until M15), **gaps-only default** with
+  the "Show all N types" toggle (`all` param, absence-means-default;
+  the toggle is a plain link riding the existing swapMain wiring).
+- **Validation tooling, built test-first** (the M5 build note's
+  promoted scope): `reference/chain_expand.py --json` (structured
+  chain output — phases ascending, type ids, raw totals, cycle cuts —
+  the diff harness's golden source) and `--all` (the whole-catalog
+  census, CENSUS.md's regeneration tool). `tests/functional/
+  test_chain_sde.py` (SDE_PROOF_DB-gated, riding catalog-proof.yml,
+  which now triggers on `app/planner.py` too): **ten-anchor chain
+  diff** at ×1 and ×10 — the app resolver's unadjusted walk vs
+  chain_expand's JSON, phase by phase, row by row, plus raw totals and
+  cycle cuts — and **whole-catalog census parity**: every one of the
+  5,014 products resolves over one shared catalog, cyclic-type
+  membership matches the reference census exactly, and every cut-free
+  chain's depth matches the memoized reference walk (>90% of the
+  catalog; chains touching cycles compare membership only — the two
+  implementations order cycle entry differently, and the anchors pin
+  the cut semantics hermetically). Validated against the dev
+  deployment's live mirror: 49 functional checks green (28 catalog +
+  21 chain).
+- **CENSUS.md regenerated via `--all`** with a correction: the
+  committed tool (walking with the M5 rule — prefer-published
+  producers, activities 1/11 only) puts the bulk of the catalog at
+  depth 1 (2,612 products — independently confirmed by SQL), where the
+  original uncommitted session script's histogram had ~800; the
+  headline findings are unchanged (ceiling 7, the same 29 ship-on-ship
+  nesters, 51 cycles).
+- Validation: `tests/test_planner_chain.py` (16 pure-resolver cases —
+  ascending phases, the Typhoon doc's merge-within-phase golden
+  arithmetic, recurring-commodity level split, mixed activities,
+  self-loop and two-node cycles, adjusted walk) + 7 orchestrator cases
+  over a miniature golden chain fixture (per-node facilities, gates,
+  install, coverage, stage states, participants, copy time);
+  `tests/test_catalog.py` +6 bulk-read cases (incl. the office-hangar
+  pool measurement); `tests/test_planner_plan.py` migrated (7 cases);
+  `tests/test_planner_routes.py` +3 (chain surfaces, acquisition
+  toggle, deepened tiers); full suite **249 passed** hermetic.
 
 ---
 

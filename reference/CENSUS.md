@@ -47,20 +47,26 @@ carrier)
 Every depth-7 path runs through that same component spine — the
 extra level is always a capital ship consumed as a build input.
 
-**Depth histogram** (5,014 buildable products):
+**Depth histogram** (5,014 buildable products; the 2026-11-24
+regeneration via `chain_expand.py --all`):
 
 | Depth | Products | What lives there |
 |---:|---:|---|
 | 7 | 29 | the ship-on-ship nesters above |
-| 6 | ~250 | capitals · supercapitals · titans · T2 battleships · navy capitals · control towers · the deep module world |
-| 5 | ~700 | battleships · cruisers · T2 cruisers · faction towers · most ships |
-| 4 | ~1,000 | frigates · destroyers · T2/T3 frigates · drones · modules |
-| 3 | ~1,200 | components · charges · the T1 module world |
-| 2 | ~1,300 | reactions · fuel blocks · intermediates |
-| 1 | ~800 | direct-from-raw builds |
+| 6 | 240 | capitals · supercapitals · titans · T2 battleships · navy capitals · control towers · the deep module world |
+| 5 | 778 | battleships · cruisers · T2 cruisers · faction towers · most ships |
+| 4 | 398 | frigates · destroyers · T2/T3 frigates · drones · deeper modules |
+| 3 | 156 | components with component inputs · charges with intermediates |
+| 2 | 801 | reactions · fuel blocks · intermediates |
+| 1 | 2,612 | direct-from-raw builds — most of the module/charge/drone world |
 | 0 | — | (raw terminators are not counted as products) |
 
-(Counts rounded from the census run; the shape is the finding.)
+(2026-11-24 correction: the original run's mid-depth buckets came from
+an uncommitted session script; the committed `--all` tool — walking
+with the M5 rule, producers restricted to activities 1 and 11 — puts
+the bulk of the catalog at depth 1, which an independent SQL check
+confirms. The headline findings are unchanged: the ceiling, the 29
+nesters, the cycle count.)
 
 **Consequences**:
 
@@ -111,9 +117,14 @@ starbase-structure family, plus a handful of orbital munitions.
 ## Method
 
 Both findings come from a single-pass memoized walk over the
-5,014 products of activities 1 and 11, using the reference model's
-producer choice (first `industryActivityProducts` row), with
-path-tracking to detect cycles (back-edges treated as terminal
-and recorded). Regenerate with the census script when the M5
-`--all` mode lands; the numbers here are pinned to the 2026-11-20
-SDE release.
+5,014 products of activities 1 and 11, with path-tracking to detect
+cycles (back-edges treated as terminal and recorded). The walk is now
+committed as `chain_expand.py --all` (landed with M5, 2026-11-24): it
+uses the prefer-published producer rule the app catalog resolves with,
+restricted to the walk activities (1 and 11). Regenerate with
+`podman exec industry_dev_1 python reference/chain_expand.py --all`;
+the numbers here are pinned to the 2026-11-20 SDE release as
+re-generated 2026-11-24. The app-side counterpart
+(`tests/functional/test_chain_sde.py`) proves the resolver against
+this census every catalog-proof run: every product resolves, cyclic
+membership matches, and cut-free chains match the memoized depth.

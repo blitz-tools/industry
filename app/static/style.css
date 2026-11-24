@@ -1688,3 +1688,106 @@ button.primary,
   border-top: 1px solid var(--line);
   margin: 1rem 0;
 }
+
+/* --- Meters (M5: acquisition coverage + per-node gating) -------------------- */
+
+.meter-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 7rem;
+}
+
+.meter {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--green);
+}
+
+.meter-fill.warn {
+  background: var(--yellow);
+}
+
+.meter-fill.low {
+  background: var(--pink);
+}
+
+.meter-pct {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Node gating (M5: the gating reason beside a state chip) ---------------- */
+
+.node-gating {
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  white-space: normal;
+}
+
+.node-gating .meter {
+  width: 4rem;
+}
+
+/* --- Chain flow (M5: the phase strip) --------------------------------------- */
+
+.chain-flow {
+  display: flex;
+  align-items: stretch;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.chain-phase {
+  flex: 1 1 10rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.chain-phase .phase-label {
+  color: var(--muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.chain-phase .phase-name {
+  font-weight: 650;
+  font-size: 0.9rem;
+}
+
+.chain-phase .phase-meta {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.chain-phase .phase-tags {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.chain-arrow {
+  align-self: center;
+  color: var(--faint);
+  font-size: 1.1rem;
+}

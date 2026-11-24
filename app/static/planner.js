@@ -197,7 +197,8 @@ window.initPlanPage = () => {
 
 // --- In-place page swaps (no full refreshes) ----------------------------------
 
-function swapMain(url, push = true) {
+function swapMain(url, push = true, keepScroll = false) {
+  const scrollY = window.scrollY;
   fetch(url, { headers: { "X-Requested-With": "fetch" } })
     .then((response) => {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -213,8 +214,11 @@ function swapMain(url, push = true) {
       window.initPlannerPage();
       window.initPlanPage();
       // A swapped page should land in view (the mocked Calculate
-      // navigation arrives at the top of a new page).
-      window.scrollTo({ top: 0 });
+      // navigation arrives at the top of a new page) — unless the link
+      // asked to keep the viewport (a view toggle deep in the page:
+      // flipping it must not bounce the reader back to the top).
+      if (keepScroll) window.scrollTo({ top: scrollY });
+      else window.scrollTo({ top: 0 });
     })
     .catch(() => {
       window.location.assign(url);
@@ -236,13 +240,15 @@ if (!window.initPlannerPageWired) {
   });
 
   // In-main planner links (Calculate, back to planner) swap in place;
-  // modified clicks keep their native behavior.
+  // modified clicks keep their native behavior. A link carrying
+  // data-keep-scroll (the acquisition table's view toggle) keeps the
+  // viewport where it was.
   document.addEventListener("click", (event) => {
     const link = event.target.closest("main a[href^='/planner']");
     if (!link) return;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
-    swapMain(link.href);
+    swapMain(link.href, true, link.hasAttribute("data-keep-scroll"));
   });
 
   window.addEventListener("popstate", () => {
