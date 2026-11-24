@@ -12,7 +12,13 @@ from sqlalchemy import String, and_, bindparam, cast, func, literal, select, tex
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
-from .esi.assets import KIND_CHAR_SKILLS, OWNER_CHARACTER, OWNER_CORPORATION
+from .esi.assets import (
+    KIND_CHAR_SKILLS,
+    OFFICE_FLAGS,
+    OFFICE_TYPE_ID,
+    OWNER_CHARACTER,
+    OWNER_CORPORATION,
+)
 from .models import (
     Asset,
     Blueprint,
@@ -615,6 +621,35 @@ class RecipeSkill:
 
 
 @dataclass
+class RecipeHeader:
+    """One buildable product's producer facts, bulk-read for the chain
+    resolver (M5): the prefer-published producer (the same _PRODUCER_CTE
+    rule the single-commodity reads use), products per run, max
+    production limit, and the activity + copy durations. A type with no
+    header row is a chain terminator — absence is the walk's stop
+    signal, never an error."""
+
+    type_id: int
+    blueprint_type_id: int
+    blueprint_name: str
+    activity_id: int  # 1 manufacturing, 11 reactions
+    products_per_run: int
+    max_production_limit: int | None
+    duration_seconds: int | None  # None: no industryActivity row
+    copy_duration_seconds: int | None  # activity 5; None: not copyable
+
+
+@dataclass
+class ChainMaterial:
+    """One per-run build input of a product's producing blueprint, as
+    the chain resolver consumes it (bulk-read by product type id — the
+    producer choice is already applied by the read)."""
+
+    type_id: int
+    quantity_per_run: int
+
+
+@dataclass
 class CommodityRecipe:
     """Everything the M4 calculator needs for one selected commodity:
     the producing blueprint, its per-run inputs and skills, the activity
@@ -899,6 +934,18 @@ async def owned_blueprints_for_type(
     Owner names resolve through the tracked characters and the universe
     corporation cache; locations follow the blueprints-page hop rule
     (owner's asset snapshot: item id → top-level parent location)."""
+    bulk = await owned_blueprints_for_types(db, [blueprint_type_id])
+    return bulk.get(blueprint_type_id, [])
+
+
+async def owned_blueprints_for_types(
+    db: AsyncSession, blueprint_type_ids: list[int]
+) -> dict[int, list[BlueprintRow]]:
+    """The owned-blueprint overlay for a set of blueprint types, keyed by
+    type — the chain-wide availability read (M5) the single-type read
+    above delegates to. Same joins and ordering per type."""
+    if not blueprint_type_ids:
+        return {}
     rows_raw = (
         await db.execute(
             text(
@@ -930,33 +977,36 @@ async def owned_blueprints_for_type(
                 LEFT JOIN universe_corporations uc
                        ON b.owner_type = :corp_kind
                       AND uc.corporation_id = b.owner_id
-                WHERE b.type_id = :blueprint_type_id
-                ORDER BY owner_name, b.item_id
+                WHERE b.type_id IN :blueprint_type_ids
+                ORDER BY b.type_id, owner_name, b.item_id
                 """
-            ),
+            ).bindparams(bindparam("blueprint_type_ids", expanding=True)),
             {
-                "blueprint_type_id": blueprint_type_id,
+                "blueprint_type_ids": list(blueprint_type_ids),
                 "char_kind": OWNER_CHARACTER,
                 "corp_kind": OWNER_CORPORATION,
             },
         )
     ).all()
-    return [
-        BlueprintRow(
-            item_id=item_id,
-            type_id=type_id,
-            type_name=name or f"Unknown type #{type_id}",
-            icon_kind="bp" if runs in (-1, None) else "bpc",
-            material_efficiency=me,
-            time_efficiency=te,
-            runs=runs,
-            location_name=location_name,
-            location_flag=flag,
-            owner_name=owner,
+    grouped: dict[int, list[BlueprintRow]] = {
+        type_id: [] for type_id in blueprint_type_ids
+    }
+    for (item_id, type_id, name, me, te, runs, location_name, flag, owner) in rows_raw:
+        grouped.setdefault(type_id, []).append(
+            BlueprintRow(
+                item_id=item_id,
+                type_id=type_id,
+                type_name=name or f"Unknown type #{type_id}",
+                icon_kind="bp" if runs in (-1, None) else "bpc",
+                material_efficiency=me,
+                time_efficiency=te,
+                runs=runs,
+                location_name=location_name,
+                location_flag=flag,
+                owner_name=owner,
+            )
         )
-        for (item_id, type_id, name, me, te, runs, location_name, flag, owner)
-        in rows_raw
-    ]
+    return grouped
 
 
 # ---------------------------------------------------------------------------
@@ -1073,3 +1123,262 @@ async def material_categories(
     for type_id, category_name, group_name in rows:
         categories[type_id] = (category_name, group_name)
     return categories
+
+
+# ---------------------------------------------------------------------------
+# Chain read helpers (M5) — set-at-a-time reads for the recursive resolver.
+# The single-commodity reads above run several queries per type, fine for
+# one blueprint and unacceptable for an eighty-buildable chain; these batch
+# the same data (same producer rule, same name merge) so a whole chain
+# resolves in a handful of queries. app/planner.py's resolver and
+# orchestrators consume them; interpretation stays there.
+# ---------------------------------------------------------------------------
+
+
+async def recipe_headers(
+    db: AsyncSession, type_ids: list[int]
+) -> dict[int, RecipeHeader]:
+    """Producer facts for a set of product types in one read: the
+    prefer-published producer (the rule every catalog read uses),
+    products per run, max production limit, and the producing + copy
+    durations. Types with no producing activity-1/11 row key nothing —
+    absence is the chain walk's terminator signal, never an error."""
+    if not type_ids:
+        return {}
+    rows = (
+        await db.execute(
+            text(
+                f"""
+                WITH prod AS (
+                    {_PRODUCER_CTE} AND p.productTypeID IN :type_ids
+                )
+                SELECT prod.product_id,
+                       prod.bp_type_id,
+                       coalesce(bpName.typeName, bpUni.name,
+                                '#' || prod.bp_type_id) AS blueprint_name,
+                       prod.activity_id,
+                       prod.products_per_run,
+                       ib.maxProductionLimit,
+                       act.time AS duration,
+                       cpy.time AS copy_duration
+                FROM prod
+                LEFT JOIN sde_invTypes bpName ON bpName.typeID = prod.bp_type_id
+                LEFT JOIN universe_types bpUni ON bpUni.type_id = prod.bp_type_id
+                LEFT JOIN sde_industryBlueprints ib
+                       ON ib.typeID = prod.bp_type_id
+                LEFT JOIN sde_industryActivity act
+                       ON act.typeID = prod.bp_type_id
+                      AND act.activityID = prod.activity_id
+                LEFT JOIN sde_industryActivity cpy
+                       ON cpy.typeID = prod.bp_type_id
+                      AND cpy.activityID = 5
+                WHERE prod.rn = 1
+                """
+            ).bindparams(bindparam("type_ids", expanding=True)),
+            {"type_ids": list(type_ids)},
+        )
+    ).all()
+    return {
+        product_id: RecipeHeader(
+            type_id=product_id,
+            blueprint_type_id=bp_type_id,
+            blueprint_name=blueprint_name,
+            activity_id=activity_id,
+            products_per_run=products_per_run,
+            max_production_limit=max_limit,
+            duration_seconds=duration,
+            copy_duration_seconds=copy_duration,
+        )
+        for (product_id, bp_type_id, blueprint_name, activity_id,
+             products_per_run, max_limit, duration, copy_duration) in rows
+    }
+
+
+async def activity_materials(
+    db: AsyncSession, bp_type_ids: list[int]
+) -> dict[tuple[int, int], list[ChainMaterial]]:
+    """Per-run material lists for a set of blueprints' walk activities
+    (1 and 11), keyed (blueprint_type_id, activity_id) — the resolver
+    re-keys by product through the header. Ordered quantity-first like
+    the single-commodity read."""
+    if not bp_type_ids:
+        return {}
+    rows = (
+        await db.execute(
+            text(
+                """
+                SELECT m.typeID, m.activityID, m.materialTypeID, m.quantity
+                FROM sde_industryActivityMaterials m
+                WHERE m.typeID IN :bp_type_ids AND m.activityID IN (1, 11)
+                ORDER BY m.typeID, m.activityID,
+                         m.quantity DESC, m.materialTypeID
+                """
+            ).bindparams(bindparam("bp_type_ids", expanding=True)),
+            {"bp_type_ids": list(bp_type_ids)},
+        )
+    ).all()
+    materials: dict[tuple[int, int], list[ChainMaterial]] = {}
+    for bp_type_id, activity_id, material_type_id, quantity in rows:
+        materials.setdefault((bp_type_id, activity_id), []).append(
+            ChainMaterial(type_id=material_type_id, quantity_per_run=quantity)
+        )
+    return materials
+
+
+async def activity_skills(
+    db: AsyncSession, bp_type_ids: list[int]
+) -> dict[tuple[int, int], list[RecipeSkill]]:
+    """DISTINCT-deduped required skills per (blueprint, activity) for the
+    walk activities — the chain's per-node skill gates. Names follow the
+    merge rule (SDE first, universe fallback)."""
+    if not bp_type_ids:
+        return {}
+    rows = (
+        await db.execute(
+            text(
+                """
+                SELECT DISTINCT s.typeID, s.activityID, s.skillID,
+                       coalesce(st.typeName, us.name,
+                                '#' || s.skillID) AS name,
+                       s.level
+                FROM sde_industryActivitySkills s
+                LEFT JOIN sde_invTypes st ON st.typeID = s.skillID
+                LEFT JOIN universe_types us ON us.type_id = s.skillID
+                WHERE s.typeID IN :bp_type_ids AND s.activityID IN (1, 11)
+                ORDER BY s.typeID, s.activityID, s.level DESC, name, s.skillID
+                """
+            ).bindparams(bindparam("bp_type_ids", expanding=True)),
+            {"bp_type_ids": list(bp_type_ids)},
+        )
+    ).all()
+    skills: dict[tuple[int, int], list[RecipeSkill]] = {}
+    for bp_type_id, activity_id, skill_id, name, level in rows:
+        skills.setdefault((bp_type_id, activity_id), []).append(
+            RecipeSkill(skill_id=skill_id, name=name, level=level)
+        )
+    return skills
+
+
+async def type_names(db: AsyncSession, type_ids: list[int]) -> dict[int, str]:
+    """Names for an arbitrary id set (terminators included) under the
+    merge rule: the SDE name authoritative, universe_types only for ids
+    the dump lacks, '#<id>' when neither holds."""
+    if not type_ids:
+        return {}
+    sde = dict(
+        (
+            await db.execute(
+                text(
+                    "SELECT typeID, typeName FROM sde_invTypes"
+                    " WHERE typeID IN :type_ids"
+                ).bindparams(bindparam("type_ids", expanding=True)),
+                {"type_ids": list(type_ids)},
+            )
+        ).all()
+    )
+    universe: dict[int, str] = {}
+    missing = [type_id for type_id in type_ids if sde.get(type_id) is None]
+    if missing:
+        universe = dict(
+            (
+                await db.execute(
+                    text(
+                        "SELECT type_id, name FROM universe_types"
+                        " WHERE type_id IN :type_ids"
+                    ).bindparams(bindparam("type_ids", expanding=True)),
+                    {"type_ids": missing},
+                )
+            ).all()
+        )
+    names: dict[int, str] = {}
+    for type_id in type_ids:
+        name = sde.get(type_id)
+        if name is None:
+            name = universe.get(type_id)
+        names[type_id] = name if name is not None else f"#{type_id}"
+    return names
+
+
+async def pool_on_hand(
+    db: AsyncSession,
+    type_ids: list[int],
+    *,
+    participant_ids: list[int],
+    corporation_id: int | None,
+    include_personal: bool = False,
+) -> dict[int, int]:
+    """On-hand quantities per type over the plan's inventory pool. The
+    default measures the main corporation's office hangars ONLY — the
+    shared pool corporate plans draw from; personal hangars opt in via
+    `include_personal`, because participants (out-of-corp ones
+    especially) may be job-allocation positions rather than material
+    sources, and counting their stock would over-report coverage (the
+    owner's false-positive call, 2026-11-24). Corporation assets
+    outside offices and characters outside the pool never count.
+    Unheld types key zero, not absence."""
+    if not type_ids:
+        return {}
+    on_hand = {type_id: 0 for type_id in type_ids}
+    if include_personal and participant_ids:
+        rows = (
+            await db.execute(
+                text(
+                    """
+                    SELECT a.type_id, sum(a.quantity)
+                    FROM assets a
+                    WHERE a.owner_type = :char_kind
+                      AND a.owner_id IN :participant_ids
+                      AND a.type_id IN :type_ids
+                    GROUP BY a.type_id
+                    """
+                ).bindparams(
+                    bindparam("participant_ids", expanding=True),
+                    bindparam("type_ids", expanding=True),
+                ),
+                {
+                    "char_kind": OWNER_CHARACTER,
+                    "participant_ids": list(participant_ids),
+                    "type_ids": list(type_ids),
+                },
+            )
+        ).all()
+        for type_id, quantity in rows:
+            on_hand[type_id] += quantity
+    if corporation_id is not None:
+        # Office hangars only: contents share the office marker's parent
+        # (the corporation_offices pattern); the marker itself is not
+        # inventory and never counts.
+        rows = (
+            await db.execute(
+                text(
+                    """
+                    SELECT a.type_id, sum(a.quantity)
+                    FROM assets a
+                    WHERE a.owner_type = :corp_kind
+                      AND a.owner_id = :corporation_id
+                      AND a.type_id IN :type_ids
+                      AND a.type_id != :office_type
+                      AND a.parent_location_id IN (
+                          SELECT parent_location_id FROM assets
+                           WHERE owner_type = :corp_kind
+                             AND owner_id = :corporation_id
+                             AND location_flag IN :office_flags
+                      )
+                    GROUP BY a.type_id
+                    """
+                ).bindparams(
+                    bindparam("type_ids", expanding=True),
+                    bindparam("office_flags", expanding=True),
+                ),
+                {
+                    "corp_kind": OWNER_CORPORATION,
+                    "corporation_id": corporation_id,
+                    "type_ids": list(type_ids),
+                    "office_type": OFFICE_TYPE_ID,
+                    "office_flags": list(OFFICE_FLAGS),
+                },
+            )
+        ).all()
+        for type_id, quantity in rows:
+            on_hand[type_id] += quantity
+    return on_hand

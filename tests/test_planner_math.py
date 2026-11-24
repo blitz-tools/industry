@@ -297,6 +297,12 @@ def test_install_cost_degrades_on_missing_inputs():
     )
     assert cost.total == pytest.approx(2.0)
 
+    # A recipe with no materials bills zero, not missing data (the chain
+    # walk can hit empty material lists on SDE quirks).
+    cost = install_cost({}, {}, system_index=0.01, structure_type="station",
+                        tax_rate=None)
+    assert cost.total == 0.0 and cost.missing_types == 0
+
 
 # --- Blueprint selection ---------------------------------------------------------
 

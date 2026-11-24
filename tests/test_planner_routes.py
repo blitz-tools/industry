@@ -10,6 +10,7 @@ from urllib.parse import parse_qs, urlparse
 import respx
 
 from tests.conftest import token_response
+from tests.test_planner_chain import chain_db  # noqa: F401  (fixture)
 from tests.test_planner_plan import MAIN, planner_db  # noqa: F401  (fixture)
 
 SSO_TOKEN_URL = "https://sso.test/v2/oauth/token"
@@ -176,3 +177,75 @@ async def test_planner_facility_override_and_default(client, planner_db):  # noq
         "/planner", params={"target": 644, "manufacturing": registration_id}
     )
     assert overridden.status_code == 200
+
+
+@respx.mock
+async def test_plan_page_renders_chain_surfaces(client, chain_db):  # noqa: F811
+    """The M5 chain surfaces: the flow strip, the phase tree with
+    computed stage states, the chain-wide blueprint overlay with its
+    exceptions, and the acquisition table's gaps-only default."""
+    await _login(client)
+    response = await client.get("/planner/plan", params={"target": 644, "qty": 10})
+    assert response.status_code == 200
+
+    # The flow strip: one card per buildable phase, target at Phase 4.
+    assert "Phase 1" in response.text and "Phase 4" in response.text
+    # The phase tree: computed stage states and gating reasons.
+    assert "Ready to build" in response.text and "Missing inputs" in response.text
+    assert "waiting on phase 3" in response.text
+    assert "no skilled character in the pool" in response.text
+    # The chain-wide blueprint overlay: all four types owned, the
+    # BPC-only CPG as the exception with its run-coverage shortfall.
+    assert "4 / 4 blueprints owned" in response.text
+    assert "Owned · BPC only" in response.text
+    assert "short of the 157-run need by 146" in response.text
+    # The acquisition table: Tritanium's gap shows by default (the
+    # office's 2M covered, the main's personal stock not measured).
+    assert "Raw materials — acquisition" in response.text
+    assert "Tritanium" in response.text
+    assert "short 66,582,789" in response.text
+
+
+@respx.mock
+async def test_plan_page_acquisition_toggle(client, chain_db):  # noqa: F811
+    """The gaps-only default hides covered terminators; `all=1` shows
+    them, and the toggle link flips the param (absence-means-default)."""
+    await _login(client)
+    gaps = await client.get("/planner/plan", params={"target": 644, "qty": 10})
+    assert gaps.status_code == 200
+    # The covered ice product hides; the footer counts it.
+    assert "Test Ice Product" not in gaps.text
+    assert "1 type fully covered — hidden in this view" in gaps.text
+    assert "Show all 2 types" in gaps.text
+
+    everything = await client.get(
+        "/planner/plan", params={"target": 644, "qty": 10, "all": "1"}
+    )
+    assert everything.status_code == 200
+    assert "Test Ice Product" in everything.text
+    assert "100%" in everything.text
+    assert "Gaps only" in everything.text
+    # The toggle link back drops the param entirely.
+    assert "all=1" not in everything.text.split("Gaps only")[0][-600:]
+
+
+@respx.mock
+async def test_planner_renders_deepened_tiers(client, chain_db):  # noqa: F811
+    """The requirement overview deepened to the full chain: every
+    buildable node's blueprint, intermediates grouped by phase, and the
+    full-chain terminators by category."""
+    await _login(client)
+    response = await client.get("/planner", params={"target": 644, "qty": 10})
+    assert response.status_code == 200
+    # Tier 1: chain-wide blueprints (4 buildable nodes).
+    assert "4 types" in response.text
+    assert "4 / 4 owned" in response.text
+    assert "Test Fuel Block Blueprint" in response.text
+    # Tier 2: intermediates grouped by phase, titled by the modal
+    # invGroups name (the owner's call over commodity names).
+    assert "phase 1 — Fuel Block" in response.text
+    assert "phase 4 — Battleship" in response.text
+    assert "phase 3 — Capital Component" in response.text
+    # Tier 3: full-chain terminators by category.
+    assert "Minerals" in response.text and "Ice products" in response.text
+    assert "68,582,789" in response.text

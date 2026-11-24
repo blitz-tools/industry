@@ -13,7 +13,7 @@
       <div class="search-wrap">
         <input class="search-input" type="text" id="target-search" autocomplete="off"
                aria-label="Search targets"
-               value="{{ plan.recipe.type_name if plan else '' }}"
+               value="{{ chain.target_node.name if plan else '' }}"
                placeholder="type to search the catalog"
                data-owned="{{ '1' if owned else '' }}"
                {% if plan %}data-target="{{ target }}"{% endif %}>
@@ -28,20 +28,21 @@
 </section>
 
 {% if plan %}
+{% set target = chain.target_node %}
 <!-- 2 · Target build -->
 <section class="card">
   <div class="card-body">
     <h2>2 · Target build</h2>
 
     <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-      <img class="type-icon-lg" src="{{ type_icon_url(plan.recipe.type_id, 64) }}" alt="">
+      <img class="type-icon-lg" src="{{ type_icon_url(target.type_id, 64) }}" alt="">
       <div>
-        <div><b>{{ plan.recipe.type_name }}</b>
-          {% if plan.recipe.owned %}
-          <span class="badge bpc">Blueprint pool: {{ 'BPO' if plan.has_original else 'BPC ×' + (plan.recipe.owned | length | string) }}</span>
+        <div><b>{{ target.name }}</b>
+          {% if plan.target_owned %}
+          <span class="badge bpc">Blueprint pool: {{ 'BPO' if target.calc.has_original else 'BPC ×' + (plan.target_owned | length | string) }}</span>
           {% else %}<span class="badge missing">Blueprint not owned</span>{% endif %}
         </div>
-        <div class="meta-line">Built from <img class="type-icon" src="{{ type_icon_url(plan.recipe.blueprint_type_id, 32, 'bpc') }}" alt=""> {{ plan.recipe.blueprint_name }} — {{ plan.runs }} run{{ 's' if plan.runs != 1 }} at {{ plan.recipe.products_per_run }} per run · max {{ plan.max_production_limit or '—' }} runs per job</div>
+        <div class="meta-line">Built from <img class="type-icon" src="{{ type_icon_url(target.blueprint_type_id, 32, 'bpc') }}" alt=""> {{ target.blueprint_name }} — {{ '{:,}'.format(target.runs) }} run{{ 's' if target.runs != 1 }} at {{ target.products_per_run }} per run · max {{ target.max_production_limit or '—' }} runs per job</div>
       </div>
       <div style="margin-left: auto; display: flex; gap: 0.75rem; align-items: center;">
         <span class="meta-line">Target count</span>
@@ -67,13 +68,13 @@
         <tr class="group-row"><td colspan="3">Corp members — {{ corp_name or 'the main' }} · all included by default</td></tr>
         {% for member in corp_members %}
         {% set included = participants is none or member.character_id in participants %}
-        {% set gate = plan.participant_times | selectattr('character_id', 'equalto', member.character_id) | list %}
+        {% set gate = plan.participants | selectattr('character_id', 'equalto', member.character_id) | list %}
         <tr>
           <td><img class="type-icon" src="{{ portrait_url(member.character_id, 32) }}" alt="">{{ member.name }}
             {% if member.is_main %}<span class="badge owned" style="margin-left: 0.4rem;">main · Director</span>{% endif %}
           </td>
-          <td class="muted">{% if included and gate and gate[0].holds_gate %}holds the build gate
-            {% elif included and gate %}missing: {{ gate[0].missing_skills | join(', ') }}
+          <td class="muted">{% if included and gate and gate[0].holds_target_gate %}holds the build gate
+            {% elif included and gate %}missing: {{ gate[0].missing_target_skills | join(', ') }}
             {% elif plan %}— excluded from the pool
             {% else %}—{% endif %}</td>
           <td><button class="chip-button participant-toggle{{ ' selected' if included }}" type="button"
@@ -121,55 +122,45 @@
     </div>
 
     <p class="meta-line" style="margin-top: 0.75rem;">
-      This plan multiplies: materials × ME rig (−{{ '{:.1f}'.format(multiplies.rig_me) }}% at the {{ multiplies.facility.structure_name if multiplies.facility else 'station baseline' }}{% if multiplies.security %}, {{ multiplies.security }}sec{% endif %}) · job time × hull {% if multiplies.hull_time < 1 %}−{{ '{:.0f}'.format((1 - multiplies.hull_time) * 100) }}%{% else %}—{% endif %} and TE rig (−{{ '{:.1f}'.format(multiplies.rig_te) }}%) · install cost = base × system index {% if multiplies.index is not none %}{{ '{:.2f}'.format(multiplies.index * 100).rstrip('0').rstrip('.') }}%{% else %}<span class="badge missing">not synced</span>{% endif %} × tax {% if multiplies.facility and multiplies.facility.tax_rate is not none %}{{ '{:.2f}'.format(multiplies.facility.tax_rate * 100).rstrip('0').rstrip('.') }}%{% else %}NPC-set{% endif %}
+      {% for line in multiplies %}{{ line.activity_label }}: materials × ME rig (−{{ '{:.1f}'.format(line.rig_me) }}% at the {{ line.facility.structure_name }}{% if line.security %}, {{ line.security }}sec{% endif %}) · job time × hull {% if line.hull_time < 1 %}−{{ '{:.0f}'.format((1 - line.hull_time) * 100) }}%{% else %}—{% endif %} and TE rig (−{{ '{:.1f}'.format(line.rig_te) }}%){% if not loop.last %} · {% endif %}{% endfor %}
     </p>
 
     <hr class="divider">
 
     <h2 style="font-size: 0.95rem;">Requirements at target ×{{ '{:,}'.format(qty) }}</h2>
-    <p class="card-sub">The direct inputs for this build{% if plan.runs != qty %} ({{ plan.runs }} runs){% endif %} — resolved at selection, tracking the target stepper live. Calculate runs the single-blueprint plan; the full chain resolves at M5.</p>
+    <p class="card-sub">The full chain for this build — resolved at selection, tracking the target stepper live, quantities aggregated per phase. Calculate schedules the plan.</p>
 
     <!-- Tier 1: blueprints -->
-    {% set owned_count = (1 if plan.recipe.owned else 0) + (plan.intermediates | selectattr('owned') | list | length) %}
-    {% set bp_total = 1 + plan.intermediates | length %}
     <details class="phase-row" open>
       <summary>
         <span class="phase-title">Blueprints</span>
-        <span class="phase-count">{{ bp_total }} types</span>
+        <span class="phase-count">{{ blueprints.total }} types</span>
         <span class="summary-right">
-          <span class="stage-state {{ 'ready' if owned_count == bp_total else 'missing' }}">{{ owned_count }} / {{ bp_total }} owned</span>
+          <span class="stage-state {{ 'ready' if blueprints.owned == blueprints.total else 'missing' }}">{{ blueprints.owned }} / {{ blueprints.total }} owned</span>
         </span>
       </summary>
       <div class="phase-body">
         <table class="asset-table">
           <tbody>
-            <tr class="group-row"><td colspan="3">Target</td></tr>
+            <tr class="group-row"><td colspan="3">Chain — every buildable node</td></tr>
+            {% for node in chain.buildable_nodes | sort(attribute='name') %}
             <tr>
-              <td><img class="type-icon" src="{{ type_icon_url(plan.recipe.blueprint_type_id, 32, 'bpc') }}" alt="">{{ plan.recipe.blueprint_name }}</td>
-              <td class="muted">{% if plan.has_original %}BPO owned — copying available{% elif plan.recipe.owned %}BPC-only: usable, nothing to copy from · {{ plan.recipe.owned | length }} BPCs / {{ plan.bpc_pool_runs }} runs{% else %}not owned — the plan calculates at ME 0 / TE 0 until acquired{% endif %}</td>
-              <td>{% if plan.recipe.owned %}<span class="badge owned">Owned · {{ 'BPO' if plan.has_original else 'BPC ×' + (plan.recipe.owned | length | string) }}</span>{% else %}<span class="badge missing">Missing</span>{% endif %}</td>
-            </tr>
-            {% if plan.intermediates %}
-            <tr class="group-row"><td colspan="3">Inputs — {{ plan.intermediates | length }} blueprints</td></tr>
-            {% for intermediate in plan.intermediates %}
-            <tr>
-              <td><img class="type-icon" src="{{ type_icon_url(intermediate.blueprint_type_id, 32, 'bpc') }}" alt="">{{ intermediate.blueprint_name }}</td>
-              <td class="muted">{% if intermediate.best_owned %}best owned {{ 'BPO' if intermediate.best_owned.is_original else 'BPC · ME ' + intermediate.best_owned.material_efficiency | string + ' / TE ' + intermediate.best_owned.time_efficiency | string }}{% if not intermediate.best_owned.is_original %} · pool {{ intermediate.bpc_runs }} runs{% endif %}{% else %}not owned{% endif %}</td>
-              <td>{% if intermediate.owned %}<span class="badge owned">Owned</span>{% else %}<span class="badge missing">Missing</span>{% endif %}</td>
+              <td><img class="type-icon" src="{{ type_icon_url(node.blueprint_type_id, 32, 'bpc') }}" alt="">{{ node.blueprint_name }}</td>
+              <td class="muted">{% if node.calc.has_original %}BPO owned — copying available{% elif node.calc.selected %}BPC-only: usable, nothing to copy from · pool {{ '{:,}'.format(node.calc.bpc_pool_runs) }} runs{% else %}not owned — the node calculates at ME 0 / TE 0 until acquired{% endif %}</td>
+              <td>{% if node.calc.selected %}<span class="badge owned">Owned · {{ 'BPO' if node.calc.has_original else 'BPC' }}</span>{% else %}<span class="badge missing">Missing</span>{% endif %}</td>
             </tr>
             {% endfor %}
-            {% endif %}
           </tbody>
         </table>
       </div>
     </details>
 
     <!-- Tier 2: intermediates -->
-    {% if plan.intermediates %}
+    {% if phase_views %}
     <details class="phase-row" open>
       <summary>
         <span class="phase-title">Intermediates</span>
-        <span class="phase-count">{{ plan.intermediates | length }} types · 1 level</span>
+        <span class="phase-count">{{ chain.buildable_nodes | length }} nodes · {{ phase_views | length }} phases</span>
         <span class="summary-right">
           <span class="stage-state ready">All buildable</span>
         </span>
@@ -180,17 +171,17 @@
             <tr>
               <th>Phase</th>
               <th>Intermediates</th>
-              <th class="num">Required</th>
-              <th>Runs</th>
+              <th class="num">Runs</th>
             </tr>
           </thead>
           <tbody>
+            {% for view in phase_views %}
             <tr>
-              <td class="muted">inputs — direct</td>
-              <td>{% for intermediate in plan.intermediates %}{{ intermediate.name }}{% if not loop.last %} · {% endif %}{% endfor %}</td>
-              <td class="num qty">{% for intermediate in plan.intermediates %}{{ '{:,}'.format(intermediate.required_qty) }}{% if not loop.last %} · {% endif %}{% endfor %}</td>
-              <td class="num">{% for intermediate in plan.intermediates %}{{ '{:,}'.format(intermediate.runs) }}{% if not loop.last %} · {% endif %}{% endfor %}</td>
+              <td class="muted">phase {{ view.phase.phase }} — {{ view.name }}</td>
+              <td>{% for entry in view.nodes %}{{ entry.node.name }} ×{{ '{:,}'.format(entry.node.qty) }}{% if not loop.last %} · {% endif %}{% endfor %}</td>
+              <td class="num">{% for entry in view.nodes %}{{ '{:,}'.format(entry.node.runs) }}{% if not loop.last %} · {% endif %}{% endfor %}</td>
             </tr>
+            {% endfor %}
           </tbody>
         </table>
       </div>
@@ -198,11 +189,11 @@
     {% endif %}
 
     <!-- Tier 3: raw materials -->
-    {% if plan.raw %}
+    {% if raw_groups %}
     <details class="phase-row">
       <summary>
         <span class="phase-title">Raw materials</span>
-        <span class="phase-count">{{ plan.raw | length }} types</span>
+        <span class="phase-count">{{ chain.raw_totals | length }} types</span>
       </summary>
       <div class="phase-body">
         <table class="asset-table">
@@ -214,12 +205,12 @@
             </tr>
           </thead>
           <tbody>
-            {% for label, materials in raw_groups %}
-            {% set largest = materials | sort(attribute='required_qty') | list %}
+            {% for label, rows in raw_groups %}
+            {% set largest = rows | sort(attribute='row.qty') | list %}
             <tr>
               <td>{{ label }}</td>
-              <td class="num">{{ materials | length }}</td>
-              <td class="muted">{{ largest[-1].name }} {{ '{:,}'.format(largest[-1].required_qty) }}</td>
+              <td class="num">{{ rows | length }}</td>
+              <td class="muted">{{ largest[-1].row.name }} {{ '{:,}'.format(largest[-1].row.qty) }}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -233,7 +224,7 @@
 <!-- 3 · Owned copies overlay -->
 <section class="card">
   <div class="card-body">
-    <h2>3 · Owned copies of {{ plan.recipe.blueprint_name }}</h2>
+    <h2>3 · Owned copies of {{ target.blueprint_name }}</h2>
     <p class="card-sub">Every usable blueprint in the pool for this type — same blueprint can appear many times, each with its own location and ME/TE.</p>
 
     <table class="asset-table">
@@ -247,7 +238,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for row in plan.recipe.owned %}
+        {% for row in plan.target_owned %}
         <tr>
           <td><span class="badge {{ 'bpo' if row.is_original else 'bpc' }}">{{ 'BPO' if row.is_original else 'BPC' }}</span></td>
           <td class="num qty">{{ '∞' if row.is_original else '{:,}'.format(row.runs) }}</td>
@@ -258,7 +249,7 @@
         {% else %}
         <tr><td colspan="5" class="muted">No copies of this blueprint in the pool.</td></tr>
         {% endfor %}
-        {% if plan.recipe.owned and not plan.has_original %}
+        {% if plan.target_owned and not target.calc.has_original %}
         <tr>
           <td colspan="5"><span class="badge missing">No original owned</span> <span class="muted">copying unavailable for this type — the plan draws from owned BPCs</span></td>
         </tr>
@@ -272,7 +263,7 @@
 <section class="card">
   <div class="card-body" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
     <div class="meta-line">
-      {{ plan.recipe.type_name }} ×{{ '{:,}'.format(qty) }} · {{ bp_total }} blueprint{{ 's' if bp_total != 1 }} · {{ plan.intermediates | length }} intermediates · {{ plan.raw | length }} raw types · requirements resolved — Calculate runs the plan
+      {{ target.name }} ×{{ '{:,}'.format(qty) }} · {{ blueprints.total }} blueprint{{ 's' if blueprints.total != 1 }} · {{ chain.buildable_nodes | length }} intermediates · {{ chain.raw_totals | length }} raw types · chain resolved — Calculate runs the plan
     </div>
     <a class="button primary" id="calculate-link" href="{{ calculate_href }}">Calculate</a>
   </div>
@@ -280,7 +271,7 @@
 {% else %}
 <p class="meta-line" style="margin-top: 1rem;">
   Select a target to set participants, facilities, and the requirement
-  tiers — Calculate then runs the single-blueprint plan.
+  tiers — Calculate then runs the chain plan.
 </p>
 {% endif %}
 {% endblock %}

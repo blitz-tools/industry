@@ -320,3 +320,168 @@ async def test_owned_blueprints_for_type_names_across_pool(catalog_db):
     assert len(rows) == 2
     assert {r.owner_name for r in rows} == {"Test Pilot", "Federal Freight"}
     assert all(r.type_name == "Typhoon Blueprint" for r in rows)
+
+
+# --- Chain read helpers (M5): set-at-a-time reads for the resolver ------------
+
+
+async def test_recipe_headers_bulk_reads_producer_facts(catalog_db):
+    """Producer facts for a set of products in one read: prefer-published
+    applies (the test artifact loses), and a raw type keys nothing —
+    absence is the walk's terminator signal."""
+    from app.industry import recipe_headers
+
+    headers = await recipe_headers(catalog_db, [644, 16672, 20410, 34, 22441])
+    typhoon = headers[644]
+    assert (typhoon.blueprint_type_id, typhoon.activity_id,
+            typhoon.products_per_run, typhoon.max_production_limit,
+            typhoon.duration_seconds) == (998, 1, 1, 10, 18000)
+    assert typhoon.copy_duration_seconds is None  # no activity-5 row here
+    # The published formula wins the producer slot over the artifact.
+    carbide = headers[16672]
+    assert (carbide.blueprint_type_id, carbide.activity_id,
+            carbide.products_per_run, carbide.max_production_limit) == (
+        46207, 11, 10000, 1000)
+    assert headers[20410].blueprint_type_id == 20411
+    # Tritanium (raw) and the Panther Blueprint (invention-only) are not
+    # catalog products.
+    assert 34 not in headers and 22441 not in headers
+
+
+async def test_activity_materials_grouped_by_blueprint_activity(catalog_db):
+    from app.industry import activity_materials
+
+    materials = await activity_materials(catalog_db, [998, 46207, 20411])
+    assert [(m.type_id, m.quantity_per_run) for m in materials[(998, 1)]] == [
+        (34, 8000000), (20410, 55)
+    ]
+    # A blueprint with no walk-activity materials keys nothing.
+    assert (46207, 11) not in materials
+    assert (20411, 1) not in materials
+
+
+async def test_activity_skills_dedup_per_blueprint_activity(catalog_db):
+    from app.industry import activity_skills
+
+    skills = await activity_skills(catalog_db, [998])
+    assert [(s.name, s.level) for s in skills[(998, 1)]] == [
+        ("Advanced Industry", 3), ("Industry", 1)
+    ]
+
+
+async def test_type_names_merge_rule_over_id_set(catalog_db):
+    from app.industry import type_names
+
+    names = await type_names(catalog_db, [644, 99999, 77777, 34])
+    assert names[644] == "Typhoon"  # SDE wins over the trailing-space row
+    assert names[99999] == "Universe-Only Product"
+    assert names[77777] == "#77777"
+    assert names[34] == "Tritanium"
+
+
+async def test_owned_blueprints_for_types_matches_single_read(catalog_db):
+    from app.industry import owned_blueprints_for_type, owned_blueprints_for_types
+
+    bulk = await owned_blueprints_for_types(catalog_db, [998, 46207])
+    single = await owned_blueprints_for_type(catalog_db, 998)
+    assert [row.item_id for row in bulk[998]] == [row.item_id for row in single]
+    assert {row.owner_name for row in bulk[998]} == {
+        "Test Pilot", "Federal Freight"}
+    assert bulk[46207] == []
+
+
+async def test_pool_on_hand_measures_corp_offices_by_default(catalog_db):
+    """The M5 pool measurement: the main corporation's office hangars by
+    default — participants may be job-allocation positions, not
+    material sources, so their personal hangars opt in explicitly.
+    Corp assets outside offices and characters outside the pool never
+    count either way."""
+    from app.industry import pool_on_hand
+
+    catalog_db.add_all(
+        [
+            # A second character whose stock stays out of the pool.
+            Character(
+                character_id=2222,
+                name="Excluded Pilot",
+                owner_hash="owner-2",
+                scopes="publicData",
+                access_token="tok",
+                access_token_expires_at=utc_now() + timedelta(minutes=30),
+                refresh_token="R",
+            ),
+            # Personal stock: participant 1234 holds Tritanium and CPGs.
+            Asset(
+                owner_type=OWNER_CHARACTER, owner_id=1234, item_id=6001,
+                type_id=34, quantity=5000, location_id=60003743,
+                location_flag="Hangar", location_type="station",
+                parent_location_id=60003743, is_blueprint_copy=False,
+                is_singleton=False,
+            ),
+            Asset(
+                owner_type=OWNER_CHARACTER, owner_id=1234, item_id=6002,
+                type_id=20410, quantity=10, location_id=60003743,
+                location_flag="Hangar", location_type="station",
+                parent_location_id=60003743, is_blueprint_copy=False,
+                is_singleton=False,
+            ),
+            Asset(
+                owner_type=OWNER_CHARACTER, owner_id=2222, item_id=6003,
+                type_id=34, quantity=777, location_id=60003743,
+                location_flag="Hangar", location_type="station",
+                parent_location_id=60003743, is_blueprint_copy=False,
+                is_singleton=False,
+            ),
+            # The corporation's office: a type-27 marker (flag
+            # OfficeFolder) whose hangar divisions share its parent.
+            Asset(
+                owner_type=OWNER_CORPORATION, owner_id=98000001, item_id=9000,
+                type_id=27, quantity=1, location_id=8000,
+                location_flag="OfficeFolder", location_type="item",
+                parent_location_id=8000, is_blueprint_copy=False,
+                is_singleton=True,
+            ),
+            Asset(
+                owner_type=OWNER_CORPORATION, owner_id=98000001, item_id=9001,
+                type_id=34, quantity=300, location_id=8000,
+                location_flag="CorpSAG1", location_type="item",
+                parent_location_id=8000, is_blueprint_copy=False,
+                is_singleton=False,
+            ),
+            # Corp stock outside any office never counts.
+            Asset(
+                owner_type=OWNER_CORPORATION, owner_id=98000001, item_id=9002,
+                type_id=34, quantity=999, location_id=60003743,
+                location_flag="Hangar", location_type="station",
+                parent_location_id=60003743, is_blueprint_copy=False,
+                is_singleton=False,
+            ),
+        ]
+    )
+    await catalog_db.commit()
+
+    # Default: the office hangars only — not the participant's personal
+    # 5,000, not the excluded pilot's 777, not the non-office corp 999.
+    on_hand = await pool_on_hand(
+        catalog_db, [34, 20410, 16672],
+        participant_ids=[1234], corporation_id=98000001,
+    )
+    assert on_hand[34] == 300
+    assert on_hand[20410] == 0
+    assert on_hand[16672] == 0  # unheld types key zero, not absence
+
+    # Opting in adds the participants' personal hangars.
+    personal = await pool_on_hand(
+        catalog_db, [34, 20410],
+        participant_ids=[1234], corporation_id=98000001,
+        include_personal=True,
+    )
+    assert personal[34] == 5300  # 5,000 personal + 300 office
+    assert personal[20410] == 10
+
+    # Without a corporation, the opt-in pool is personal-only.
+    solo = await pool_on_hand(
+        catalog_db, [34], participant_ids=[1234], corporation_id=None,
+        include_personal=True,
+    )
+    assert solo[34] == 5000

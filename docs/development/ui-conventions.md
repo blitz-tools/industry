@@ -27,8 +27,11 @@ this site — it contains live character and corporation names.)
   extract geometry (grid columns, field positions) when aligning
   layout. The app's content width was 72rem against the mockups' 84rem
   — invisible in code, obvious in a column count.
-- Planner-specific components (meters, wave bars, phase rows) stay in
-  mockups.css until their consuming milestone ports them.
+- Planner-specific components port as their consuming milestone lands:
+  the phase rows, node rows, stage states, and activity tags came with
+  M4; the meters, chain-flow strip, and node gating with M5. Wave
+  bars, slot grids, and the copy-plan components stay in mockups.css
+  until M9.
 
 Chrome values of record: `.content` max-width **84rem**; form grids
 use proportional columns when a field needs width (activity chips on

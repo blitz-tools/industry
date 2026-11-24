@@ -1,8 +1,8 @@
-"""Depth-1 planner tests (M4): the orchestrator over the catalog
+"""Planner orchestrator tests (M4→M5): chain_plan over the catalog
 fixture extended with a registered facility, synced skills, and the
-world-data tables — plus the new planner read helpers and the
-facility-default resolution. Golden values follow the engine suite's
-hand-computed chains."""
+world-data tables — the M4 depth-1 goldens carried onto the target node
+of the resolved chain — plus the planner read helpers and the
+facility-default resolution."""
 
 from datetime import timedelta
 
@@ -28,7 +28,7 @@ from app.models import (
     Structure,
     StructureRegistration,
 )
-from app.planner import depth1_plan
+from app.planner import chain_plan
 from tests.test_catalog import SDE_DDL, SDE_ROWS
 
 # The fixture's Advanced Industry stand-in (the real skill id is 3388 —
@@ -173,115 +173,127 @@ async def _facility(db) -> StructureRegistration:
     return rows[0]
 
 
-async def test_depth1_plan_calculates_typhoon(planner_db):
-    """The full depth-1 chain for Typhoon ×10 at the registered Azbel:
-    runs/jobs, ME-adjusted materials with the rig/hull chain, the
-    intermediate's runs, install cost, time at the best participant's
-    skills, and copy time."""
+async def test_chain_plan_calculates_typhoon(planner_db):
+    """The resolved chain for Typhoon ×10 at the registered Azbel: the
+    M4 depth-1 goldens on the target node — runs/jobs, ME-adjusted
+    materials with the rig/hull chain, the input node's runs, install
+    cost, time at the best participant's skills, and copy time. (The
+    fixture's CPG slice carries no materials, so the chain bottoms out
+    one level down.)"""
     facility = await _facility(planner_db)
-    plan = await depth1_plan(
+    plan = await chain_plan(
         planner_db,
         target_type_id=644,
         units=10,
         facilities={"manufacturing": facility},
     )
     assert plan is not None
-    assert plan.runs == 10 and plan.jobs == 1  # max production limit 10
-    assert plan.me == 10 and plan.te == 20  # the corp BPO
-    assert plan.has_original and plan.bpc_pool_runs is None
+    chain = plan.chain
+    target = chain.target_node
+    assert target.runs == 10 and target.jobs == 1  # max production limit 10
+    assert target.calc.me == 10 and target.calc.te == 20  # the corp BPO
+    assert target.calc.has_original and target.calc.bpc_pool_runs is None
 
     # Materials: Tritanium (raw) and Capital Power Generator
     # (buildable), quantities per the engine suite's golden chains.
-    by_name = {material.name: material for material in plan.materials}
+    by_name = {material.name: material for material in target.calc.materials}
     assert by_name["Tritanium"].required_qty == 68_571_360
     assert by_name["Tritanium"].buildable is False
     assert by_name["Capital Power Generator"].required_qty == 471
     assert by_name["Capital Power Generator"].buildable is True
 
-    # The intermediate: 471 required at 3/run → 157 runs.
-    (intermediate,) = plan.intermediates
-    assert intermediate.type_id == 20410
-    assert intermediate.runs == 157
-    assert intermediate.blueprint_type_id == 20411
-    assert intermediate.owned is False  # no CPG blueprint seeded
+    # The input node one phase below: 471 required at 3/run → 157 runs.
+    (cpg,) = [node for node in chain.buildable_nodes if node.type_id == 20410]
+    assert cpg.runs == 157
+    assert cpg.blueprint_type_id == 20411
+    assert cpg.calc.selected is None  # no CPG blueprint seeded
+    assert cpg.calc.bpc_pool_runs == 0
 
     # Install cost bills the un-adjusted quantities (the engine's
-    # golden chain: 958,869.3744 Ƶ).
-    assert plan.install.total == pytest.approx(958_869.3744, rel=1e-9)
+    # golden chain: 958,869.3744 Ƶ); the empty-material CPG node bills
+    # zero, not missing data.
+    assert target.calc.install.total == pytest.approx(958_869.3744, rel=1e-9)
+    assert cpg.calc.install.total == 0.0
+    assert chain.install_total == pytest.approx(958_869.3744, rel=1e-9)
+    assert chain.install_missing_nodes == 0
 
     # Time: the default pool's best multiplier is the main's 0.68 →
-    # 48,568 s for the single 10-run job.
-    assert plan.job_seconds == 48_568
-    assert plan.total_seconds == 48_568
+    # 48,568 s for the single 10-run job (the CPG slice has no duration
+    # row, so it contributes nothing).
+    assert target.calc.job_seconds == 48_568
+    assert chain.total_seconds == 48_568
 
-    # Copy time: 4 h/run at a station with the best multiplier.
-    assert plan.copy_seconds_per_run == pytest.approx(9_792, abs=1)
-    assert plan.copy_total_seconds == pytest.approx(97_920, abs=1)
+    # Copy time: 4 h/run at a station with the best COPYING multiplier
+    # (Advanced Industry only — 0.85 at level 5; the M4 depth-1 readout
+    # applied the manufacturing multiplier against its own docstring).
+    assert plan.copy_seconds_per_run == 12_240
+    assert plan.copy_total_seconds == 122_400
 
 
-async def test_depth1_plan_default_pool_is_corp_members(planner_db):
+async def test_chain_plan_default_pool_is_corp_members(planner_db):
     """Participants=None resolves the main's corporation's members —
     the outsider stays out (the participants decision of record)."""
     facility = await _facility(planner_db)
-    plan = await depth1_plan(
+    plan = await chain_plan(
         planner_db, target_type_id=644, units=10, facilities={"manufacturing": facility}
     )
-    names = {row.name for row in plan.participant_times}
+    names = {row.name for row in plan.participants}
     assert names == {"Test Pilot", "Corp Mate"}
 
-    by_name = {row.name: row for row in plan.participant_times}
+    by_name = {row.name: row for row in plan.participants}
     # The main: Industry 5 + AI 5 → 0.68, gate held.
-    assert by_name["Test Pilot"].multiplier == pytest.approx(0.68)
-    assert by_name["Test Pilot"].holds_gate
+    assert by_name["Test Pilot"].multipliers["manufacturing"] == pytest.approx(0.68)
+    assert by_name["Test Pilot"].holds_target_gate
     # The corp-mate: Industry 5 only → 0.80, and fails the level-3
     # required skill the fixture carries.
-    assert by_name["Corp Mate"].multiplier == pytest.approx(0.80)
-    assert not by_name["Corp Mate"].holds_gate
-    assert by_name["Corp Mate"].missing_skills == ["Advanced Industry"]
+    assert by_name["Corp Mate"].multipliers["manufacturing"] == pytest.approx(0.80)
+    assert not by_name["Corp Mate"].holds_target_gate
+    assert by_name["Corp Mate"].missing_target_skills == ["Advanced Industry"]
 
 
-async def test_depth1_plan_explicit_participants(planner_db):
+async def test_chain_plan_explicit_participants(planner_db):
     """An explicit participant list replaces the default pool, and the
-    headline time uses the best gate-holding multiplier among them."""
+    target's time uses the best gate-holding multiplier among them."""
     facility = await _facility(planner_db)
-    plan = await depth1_plan(
+    plan = await chain_plan(
         planner_db,
         target_type_id=644,
         units=10,
         participants=[CORP_MEMBER, OUT_OF_CORP],
         facilities={"manufacturing": facility},
     )
-    assert {row.name for row in plan.participant_times} == {"Corp Mate", "Outsider"}
+    assert {row.name for row in plan.participants} == {"Corp Mate", "Outsider"}
     # Corp Mate 0.80 (gate held? no — missing Advanced Industry);
     # Outsider AI 1 → 0.97, but the fixture's required skills (Industry
-    # 1) are unmet too. Neither holds the gate, so the headline falls
-    # back to the unskilled 1.0 baseline.
-    by_name = {row.name: row for row in plan.participant_times}
-    assert by_name["Corp Mate"].multiplier == pytest.approx(0.80)
-    assert by_name["Outsider"].multiplier == pytest.approx(0.97)
-    assert not any(row.holds_gate for row in plan.participant_times)
+    # 1) are unmet too. Neither holds the gate, so the target's time
+    # falls back to the unskilled 1.0 baseline.
+    by_name = {row.name: row for row in plan.participants}
+    assert by_name["Corp Mate"].multipliers["manufacturing"] == pytest.approx(0.80)
+    assert by_name["Outsider"].multipliers["manufacturing"] == pytest.approx(0.97)
+    assert not any(row.holds_target_gate for row in plan.participants)
     # Unskilled: 180,000 × 0.8 (TE) × 0.8 (hull) × 0.62 (rig) = 71,424.
-    assert plan.job_seconds == 71_424
+    assert plan.chain.target_node.calc.job_seconds == 71_424
 
 
-async def test_depth1_plan_unowned_target_defaults_me_te_zero(planner_db):
+async def test_chain_plan_unowned_target_defaults_me_te_zero(planner_db):
     """A target whose blueprint nobody owns calculates at ME/TE 0 with
     no selection and no run coverage."""
     await planner_db.execute(text("DELETE FROM blueprints"))
     await planner_db.commit()
     facility = await _facility(planner_db)
-    plan = await depth1_plan(
+    plan = await chain_plan(
         planner_db, target_type_id=644, units=10, facilities={"manufacturing": facility}
     )
-    assert plan.selected is None
-    assert plan.me == 0 and plan.te == 0
-    assert plan.has_original is False and plan.bpc_pool_runs == 0
+    target = plan.chain.target_node
+    assert target.calc.selected is None
+    assert target.calc.me == 0 and target.calc.te == 0
+    assert target.calc.has_original is False and target.calc.bpc_pool_runs == 0
     # No ME: Tritanium 8M × 10 × 0.99 × 0.962 = 76,190,400.
-    by_name = {material.name: material for material in plan.materials}
+    by_name = {material.name: material for material in target.calc.materials}
     assert by_name["Tritanium"].required_qty == 76_190_400
 
 
-async def test_depth1_plan_bpc_only_selection_and_coverage(planner_db):
+async def test_chain_plan_bpc_only_selection_and_coverage(planner_db):
     """BPC-only pool: the best-ME copy drives the calculation and the
     run-coverage shortfall surfaces (Σ BPC runs vs required)."""
     await planner_db.execute(text("DELETE FROM blueprints"))
@@ -315,35 +327,36 @@ async def test_depth1_plan_bpc_only_selection_and_coverage(planner_db):
     )
     await planner_db.commit()
     facility = await _facility(planner_db)
-    plan = await depth1_plan(
+    plan = await chain_plan(
         planner_db, target_type_id=644, units=10, facilities={"manufacturing": facility}
     )
-    assert plan.selected is not None and plan.selected.is_original is False
-    assert plan.me == 10 and plan.te == 18
-    assert plan.has_original is False
-    assert plan.bpc_pool_runs == 17  # 9 + 8 — short of the 10-run need
+    target = plan.chain.target_node
+    assert target.calc.selected is not None
+    assert target.calc.selected.is_original is False
+    assert target.calc.me == 10 and target.calc.te == 18
+    assert target.calc.has_original is False
+    assert target.calc.bpc_pool_runs == 17  # 9 + 8 — short of the 10-run need
 
 
-async def test_depth1_plan_none_outside_catalog(planner_db):
+async def test_chain_plan_none_outside_catalog(planner_db):
     facility = await _facility(planner_db)
     assert (
-        await depth1_plan(
+        await chain_plan(
             planner_db, target_type_id=34, units=1, facilities={"manufacturing": facility}
         )
         is None
     )
 
 
-async def test_depth1_plan_no_facility_degrades(planner_db):
+async def test_chain_plan_no_facility_degrades(planner_db):
     """No registration: station baselines (no hull, no rig, no tax) and
     the install cost still reads the (systemless) index as missing."""
-    plan = await depth1_plan(
-        planner_db, target_type_id=644, units=10, facilities={}
-    )
+    plan = await chain_plan(planner_db, target_type_id=644, units=10, facilities={})
     assert plan is not None
-    assert plan.install.total is None  # no system → no index
+    target = plan.chain.target_node
+    assert target.calc.install.total is None  # no system → no index
     # Station + no rig: 8M × 10 × 0.9 = 72,000,000.
-    by_name = {material.name: material for material in plan.materials}
+    by_name = {material.name: material for material in target.calc.materials}
     assert by_name["Tritanium"].required_qty == 72_000_000
 
 

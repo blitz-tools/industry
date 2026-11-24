@@ -19,6 +19,8 @@ Run inside the dev container from the repo root:
 
 ```sh
 podman exec industry_dev_1 python reference/chain_expand.py 644 1
+podman exec industry_dev_1 python reference/chain_expand.py 644 1 --json
+podman exec industry_dev_1 python reference/chain_expand.py --all
 podman exec industry_dev_1 python reference/timeline_model.py 644 100
 podman exec industry_dev_1 python reference/timeline_model.py 644 100 \
     --timelines 10,25,50,100
@@ -214,11 +216,17 @@ runtime; nothing here is learned or guessed at run time.
   job targets one output), and there is no job-lock (each attempt
   consumes its relic). T3 BPC ME/TE is fixed per grade and decryptors
   do not apply — both community-documented, pin at M8
-- cycle detection: NOT implemented — and the SDE **does contain
-  cycles** (whole-catalog census, 2026-11-21: 51 cycles in the
-  mfg+reaction producer graph, mostly self-referential structure
-  arrays — e.g. the Component Assembly Array lists 1× itself as a
-  build input); M5's defensive mandate is provably necessary
+- cycle detection: NOT implemented in `aggregated_phases` (the original
+  walk) — and the SDE **does contain cycles** (whole-catalog census,
+  2026-11-21: 51 cycles in the mfg+reaction producer graph, mostly
+  self-referential structure arrays — e.g. the Component Assembly Array
+  lists 1× itself as a build input); M5's defensive mandate is provably
+  necessary. The M5 validation modes implement it: `resolved_chain`
+  (behind `--json`) and the app resolver both cut a back-edge — a
+  cyclic material already expanded at or above the consumer's level —
+  treating it as terminal and recording it; `--all` (the census)
+  path-tracks instead (a material on the current walk path is the
+  back-edge), matching CENSUS.md's recorded method
 - phase depth is bounded at 7 by the SDE (whole-catalog census,
   2026-11-21): the deepest possible target sits at phase 7 —
   29 products, all **ship-on-ship nesters at capital scale**
@@ -276,6 +284,12 @@ runtime; nothing here is learned or guessed at run time.
   reproduce reference/chains/TYPHOON-CHAIN.md's tables; small-N timeline values differ
   slightly from the doc's charts (the doc used linear-rate approximation,
   the script computes directly — the script is the source of truth).
+- M5 validation modes landed (2026-11-24): `--json` emits the resolved
+  chain as structured data (phases ascending, type ids, raw totals,
+  cycle cuts) — the functional diff harness's golden source
+  (`tests/functional/test_chain_sde.py`); `--all` is the whole-catalog
+  census (CENSUS.md's regeneration tool). Both walk with the
+  prefer-published producer rule the app catalog uses.
 - Unverified inputs (M4's dogma task): skill→time/copy multipliers,
   whether copying is skill-reducible, reaction slot semantics, exact
   BPO job-lock behavior. Invention pins (M8's dogma task, surfaced by
