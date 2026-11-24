@@ -371,3 +371,220 @@ class MarketPrice(Base, TimestampMixin):
     adjusted_price: Mapped[float | None] = mapped_column(Float, nullable=True)
     average_price: Mapped[float | None] = mapped_column(Float, nullable=True)
 
+
+class BuildPlan(Base, TimestampMixin):
+    """One exported build plan (M6): a resolved chain snapshotted as the
+    plan of record. Re-running the planner makes a NEW plan — snapshot
+    columns are never mutated after export; only status, timestamps, and
+    the materialized node columns move. Participant ids and facility
+    facts are pinned at export (roster/registry changes never move an
+    active plan); `source_query` is the planner URL the plan came from,
+    the Re-run button's target. Progress refreshes are recorded on the
+    row itself (refreshed_at/refresh_error) rather than in data_syncs —
+    that table is for ESI syncs."""
+
+    __tablename__ = "build_plans"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    target_type_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    # Denormalized so the plans list renders without SDE joins.
+    target_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    units: Mapped[int] = mapped_column(nullable=False)
+    # "draft" | "active" | "complete" | "abandoned"
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="draft")
+    # The main's corporation at export — the office-pool key.
+    corporation_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    # Resolved participant character ids at export (JSON list).
+    participants_json: Mapped[str] = mapped_column(Text, nullable=False)
+    include_personal_stock: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    # Activity key → pinned registration facts (JSON; null values where
+    # no facility is registered for the activity).
+    facilities_json: Mapped[str] = mapped_column(Text, nullable=False)
+    me_override: Mapped[int | None] = mapped_column(nullable=True)
+    te_override: Mapped[int | None] = mapped_column(nullable=True)
+    # The /planner/plan query string the plan was exported from.
+    source_query: Mapped[str] = mapped_column(Text, nullable=False)
+    copy_seconds_per_run: Mapped[int | None] = mapped_column(nullable=True)
+    copy_total_seconds: Mapped[int | None] = mapped_column(nullable=True)
+    # The pinned copying registration (JSON, one facilities_json entry).
+    copy_facility_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # ChainResult.cycles rendered shape (JSON; display-only).
+    cycles_json: Mapped[str] = mapped_column(Text, nullable=False)
+    # Set on the plan a Re-run fork replaced (the only auto-abandon
+    # path; fresh exports never touch sibling plans).
+    superseded_by_plan_id: Mapped[int | None] = mapped_column(
+        ForeignKey("build_plans.id", ondelete="SET NULL"), nullable=True
+    )
+    refreshed_at: Mapped[datetime | None] = mapped_column(DateTime(), nullable=True)
+    refresh_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    activated_at: Mapped[datetime | None] = mapped_column(DateTime(), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(), nullable=True)
+    abandoned_at: Mapped[datetime | None] = mapped_column(DateTime(), nullable=True)
+
+
+class BuildPlanNode(Base, TimestampMixin):
+    """One buildable node of an exported plan (M6) — the chain resolver's
+    (type, phase) unit. Everything the detail page renders is snapshotted
+    here (columns for measured facts, JSON for display blobs) so pages
+    stay DB-pure; the materialized columns (available/delivered/running/
+    state) are written only by the refresh tick, never recomputed on
+    render. `sourcing` is the one mutable snapshot column — the
+    Purchase⇄Build marking amends it in place."""
+
+    __tablename__ = "build_plan_nodes"
+    __table_args__ = (
+        UniqueConstraint("plan_id", "phase", "type_id", name="uq_plan_node_phase_type"),
+        Index("ix_build_plan_nodes_plan_phase", "plan_id", "phase"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    plan_id: Mapped[int] = mapped_column(
+        ForeignKey("build_plans.id", ondelete="CASCADE"), nullable=False
+    )
+    phase: Mapped[int] = mapped_column(nullable=False)
+    type_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    # invGroups name — the phase display-name material.
+    group_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    qty: Mapped[int] = mapped_column(nullable=False)
+    runs: Mapped[int] = mapped_column(nullable=False)
+    jobs: Mapped[int] = mapped_column(nullable=False)
+    activity_id: Mapped[int] = mapped_column(nullable=False)
+    blueprint_type_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    blueprint_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    products_per_run: Mapped[int] = mapped_column(nullable=False)
+    max_production_limit: Mapped[int | None] = mapped_column(nullable=True)
+    is_target: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # Calc snapshot (export-time blueprint selection and facility math).
+    me: Mapped[int] = mapped_column(nullable=False)
+    te: Mapped[int] = mapped_column(nullable=False)
+    has_original: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    bpc_pool_runs: Mapped[int | None] = mapped_column(nullable=True)
+    blueprint_owner_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    blueprint_location_name: Mapped[str | None] = mapped_column(
+        String(200), nullable=True
+    )
+    job_seconds: Mapped[int] = mapped_column(nullable=False)
+    total_seconds: Mapped[int] = mapped_column(nullable=False)
+    install_json: Mapped[str] = mapped_column(Text, nullable=False)
+    # Export-time skill-gate fact (the plan is a pinned document — a
+    # later-trained skill doesn't clear it until Re-run).
+    holds_gate: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # [{skill_id, name, level}] — feeds the roster eligibility flag, M9.
+    skills_json: Mapped[str] = mapped_column(Text, nullable=False)
+    # The PlanMaterial list — purchase-marking's raw-math input and the
+    # multibuy source.
+    materials_json: Mapped[str] = mapped_column(Text, nullable=False)
+    # "build" | "purchase" — the marking, amended in place.
+    sourcing: Mapped[str] = mapped_column(String(8), nullable=False, default="build")
+    # Materialized by the refresh tick (never on render).
+    available_qty: Mapped[int] = mapped_column(nullable=False, default=0)
+    delivered_qty: Mapped[int] = mapped_column(nullable=False, default=0)
+    running_qty: Mapped[int] = mapped_column(nullable=False, default=0)
+    # "missing" | "ready" | "running" | "deliver" | "complete"
+    state: Mapped[str] = mapped_column(String(16), nullable=False, default="missing")
+    state_reason: Mapped[str | None] = mapped_column(String(32), nullable=True)
+
+
+class BuildPlanMaterial(Base, TimestampMixin):
+    """One acquisition line of an exported plan (M6): a raw terminator of
+    the chain, or a purchase line added for a node marked Purchase.
+    `required_qty` is amended in place by marking — recomputed from the
+    nodes' materials_json (snapshot total minus purchase-marked demands),
+    so the amend is lossless and un-marking is symmetric."""
+
+    __tablename__ = "build_plan_materials"
+
+    plan_id: Mapped[int] = mapped_column(
+        ForeignKey("build_plans.id", ondelete="CASCADE"), primary_key=True
+    )
+    type_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    category_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    group_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    # True on rows added for purchase-marked nodes (the commodity being
+    # bought, not built).
+    is_purchase_line: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    required_qty: Mapped[int] = mapped_column(nullable=False)
+    # The curated acquire-via label, snapshotted at export.
+    acquire_via: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    available_qty: Mapped[int] = mapped_column(nullable=False, default=0)
+
+
+class BuildPlanJob(Base, TimestampMixin):
+    """One industry-job-to-plan-node correlation (M6), written by the
+    refresh tick from the heuristic matcher (blueprint + activity +
+    location; the endpoint carries no plan reference). Rewritten
+    wholesale per tick. The unique constraint on the industry_jobs key
+    is global — one job claims into at most one plan across all plans
+    (the concurrent-plan false-positive guard)."""
+
+    __tablename__ = "build_plan_jobs"
+    __table_args__ = (
+        UniqueConstraint("owner_type", "owner_id", "job_id", name="uq_plan_job_claim"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    plan_id: Mapped[int] = mapped_column(
+        ForeignKey("build_plans.id", ondelete="CASCADE"), nullable=False
+    )
+    node_id: Mapped[int] = mapped_column(
+        ForeignKey("build_plan_nodes.id", ondelete="CASCADE"), nullable=False
+    )
+    owner_type: Mapped[str] = mapped_column(String(16), nullable=False)
+    owner_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    job_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+
+
+class BuildPlanContainer(Base, TimestampMixin):
+    """One station container a plan is scoped to (M6): availability and
+    delivery measure through `assets WHERE location_id IN (the plan's
+    container item_ids)` instead of the shared corp hangars (the PR #52
+    zero-data-layer-change join). No rows = the shared-hangar fallback.
+    Moves in and out of containers stay manual in-game steps."""
+
+    __tablename__ = "build_plan_containers"
+
+    plan_id: Mapped[int] = mapped_column(
+        ForeignKey("build_plans.id", ondelete="CASCADE"), primary_key=True
+    )
+    item_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    owner_type: Mapped[str] = mapped_column(String(16), nullable=False)
+    owner_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+
+
+class AssetName(Base, TimestampMixin):
+    """A custom item name from ESI's assets/names endpoint (M6's
+    container bucketing): the in-game label on a station container or
+    other renamed item. Written by a best-effort pass after the asset
+    snapshot replace and persisted independently of the wholesale-
+    replaced assets, so a failed name fetch keeps the previous names
+    (a batch containing any never-named id fails wholesale with 404 —
+    the sync falls back to per-item requests)."""
+
+    __tablename__ = "asset_names"
+
+    owner_type: Mapped[str] = mapped_column(String(16), primary_key=True)
+    owner_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    item_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+
+
+class CharacterLoyalty(Base, TimestampMixin):
+    """One character's loyalty-point balance with one corporation,
+    synced from ESI's loyalty endpoint and replaced wholesale per
+    character (M6's LP acquisition node — currency balances; the offer
+    variants are a curated pin until M15 syncs the lpstore dataset)."""
+
+    __tablename__ = "character_loyalty"
+
+    character_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    corporation_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    points: Mapped[int] = mapped_column(nullable=False)
+

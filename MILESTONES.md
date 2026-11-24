@@ -2018,6 +2018,16 @@ connects this fork branch to the posture control in the end goal.*
   rate, and is paid on contract completion. The app tracks contract
   state only — isk settlement happens in-game; this is a
   record/tracking layer, not a payment layer.
+- **Farming may need its own plan shape** (owner note, M6 schema review
+  2026-11-24): contracting a phase out is more than a node marking —
+  a farmed phase removes its jobs from the wave calculator's
+  allocation, shifts responsibility for the input materials onto the
+  farming agent, and may hand off an earlier phase's output to the
+  agent through in-game contracts or other transfer mechanics. Whether
+  that is a plan type, a phase state, or a marking extension is a
+  design question for this milestone's pickup; the M6 schema (sourcing
+  as the single mutable marking, everything else frozen at export) was
+  reviewed against this future and does not block it.
 
 **Validation**: publish a one-stage request from a Typhoon plan with
 a blueprint in a corp hangar, have a second account claim and produce
