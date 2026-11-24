@@ -31,6 +31,7 @@ from ..models import (
     AssetSync,
     Blueprint,
     Character,
+    CharacterLoyalty,
     DataSync,
     IndustryJob,
     Skill,
@@ -38,7 +39,7 @@ from ..models import (
 )
 from .client import ESIClient, ESIError, ReauthorizationRequired
 from .roles import check_corp_access
-from .universe import UniverseResolver
+from .universe import UniverseResolver, corporation_name
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +50,7 @@ CORP_JOBS_SCOPE = "esi-industry.read_corporation_jobs.v1"
 CHAR_BLUEPRINTS_SCOPE = "esi-characters.read_blueprints.v1"
 SKILLS_SCOPE = "esi-skills.read_skills.v1"
 CHAR_JOBS_SCOPE = "esi-industry.read_character_jobs.v1"
+LOYALTY_SCOPE = "esi-characters.read_loyalty.v1"
 
 # data_syncs kinds for the data this module syncs.
 KIND_CORP_BLUEPRINTS = "corp-blueprints"
@@ -56,6 +58,7 @@ KIND_CORP_JOBS = "corp-jobs"
 KIND_CHAR_BLUEPRINTS = "char-blueprints"
 KIND_CHAR_SKILLS = "char-skills"
 KIND_CHAR_JOBS = "char-jobs"
+KIND_CHAR_LOYALTY = "char-loyalty"
 
 # ESI's marker item for a rented office (corporation assets only): each
 # office shows up as a type-27 "Office" row (flag "OfficeFolder" for
@@ -130,6 +133,7 @@ async def _sync_one_character(
     for kind, fetch in (
         (KIND_CHAR_BLUEPRINTS, _sync_character_blueprints),
         (KIND_CHAR_SKILLS, _sync_character_skills),
+        (KIND_CHAR_LOYALTY, _sync_character_loyalty),
         (KIND_CHAR_JOBS, _sync_character_jobs),
     ):
         if dead_token:
@@ -412,6 +416,56 @@ async def _sync_character_skills(
     if outcome.status == "synced":
         # Skill names for the page, best-effort (see blueprints above).
         await resolver.ensure_types({skill["skill_id"] for skill in sheet})
+    return outcome
+
+
+async def _sync_character_loyalty(
+    db: AsyncSession,
+    esi: ESIClient,
+    resolver: UniverseResolver,
+    character: Character,
+) -> SyncOutcome:
+    """Character loyalty-point balances: one row per corporation the
+    character holds points with (not paginated), replaced wholesale.
+    M6's LP acquisition node reads these — the offer variants stay a
+    curated pin until M15 syncs the lpstore dataset."""
+    balances: list[dict[str, Any]] = []
+
+    async def replace() -> int:
+        rows = await esi.get(character, "/characters/{character_id}/loyalty/")
+        balances.extend(rows if isinstance(rows, list) else [])
+        values = [
+            {
+                "character_id": character.character_id,
+                "corporation_id": row["corporation_id"],
+                "points": row.get("points", 0),
+            }
+            for row in balances
+        ]
+        await db.execute(
+            delete(CharacterLoyalty).where(
+                CharacterLoyalty.character_id == character.character_id
+            )
+        )
+        if values:
+            await db.execute(insert(CharacterLoyalty), values)
+        return len(balances)
+
+    outcome = await _sync_data_kind(
+        db,
+        kind=KIND_CHAR_LOYALTY,
+        holder=character,
+        owner_type=OWNER_CHARACTER,
+        owner_id=character.character_id,
+        owner_name=character.name,
+        scope=LOYALTY_SCOPE,
+        replace=replace,
+    )
+    if outcome.status == "synced":
+        # Corporation names for the LP ledger, best-effort (see skills
+        # above) — renders stay pure universe_corporations joins.
+        for row in balances:
+            await corporation_name(db, esi, row["corporation_id"])
     return outcome
 
 

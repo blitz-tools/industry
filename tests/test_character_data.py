@@ -13,9 +13,11 @@ from app.db import utc_now
 from app.models import (
     Blueprint,
     Character,
+    CharacterLoyalty,
     DataSync,
     IndustryJob,
     Skill,
+    UniverseCorporation,
     UniverseLocation,
     UniverseType,
 )
@@ -25,6 +27,7 @@ SSO_TOKEN_URL = "https://sso.test/v2/oauth/token"
 ASSETS_URL = "https://esi.test/latest/characters/1234/assets/"
 BLUEPRINTS_URL = "https://esi.test/latest/characters/1234/blueprints/"
 SKILLS_URL = "https://esi.test/latest/characters/1234/skills/"
+LOYALTY_URL = "https://esi.test/latest/characters/1234/loyalty/"
 JOBS_URL = "https://esi.test/latest/characters/1234/industry/jobs/"
 
 ALPHA = 1234
@@ -34,10 +37,13 @@ TYPE_BPO = 999  # "Typhoon Blueprint"
 TYPE_BPC = 998  # "Panther Blueprint"
 SKILL_INDUSTRY = 3380  # "Industry"
 SKILL_ADVANCED = 3388  # "Advanced Industry"
+LP_CORP = 1000001  # the offering corporation
+LP_WRONG_CURRENCY_CORP = 1000002  # balance in a non-offering store
 
 FULL_GRANT = (
     "publicData esi-assets.read_assets.v1 esi-characters.read_blueprints.v1 "
-    "esi-skills.read_skills.v1 esi-industry.read_character_jobs.v1 "
+    "esi-skills.read_skills.v1 esi-characters.read_loyalty.v1 "
+    "esi-industry.read_character_jobs.v1 "
     "esi-universe.read_structures.v1"
 )
 
@@ -129,6 +135,13 @@ def _skills_payload() -> dict:
     }
 
 
+def _loyalty_payload() -> list[dict]:
+    return [
+        {"corporation_id": LP_CORP, "points": 200_000},
+        {"corporation_id": LP_WRONG_CURRENCY_CORP, "points": 632_000},
+    ]
+
+
 def _jobs_payload() -> list[dict]:
     return [
         {
@@ -181,7 +194,15 @@ def _mock_character_endpoints():
         json=_blueprint_payload(), headers={"X-Pages": "1"}
     )
     respx.get(SKILLS_URL).respond(json=_skills_payload())
+    respx.get(LOYALTY_URL).respond(json=_loyalty_payload())
     respx.get(JOBS_URL).respond(json=_jobs_payload(), headers={"X-Pages": "1"})
+    # The loyalty kind's best-effort name pass reads the corporations.
+    respx.get(f"https://esi.test/latest/corporations/{LP_CORP}/").respond(
+        json={"name": "Test Liberation Force"}
+    )
+    respx.get(f"https://esi.test/latest/corporations/{LP_WRONG_CURRENCY_CORP}/").respond(
+        json={"name": "Paragon Syndicate"}
+    )
     # The structure-located blueprint resolves through the scoped
     # structures endpoint (docking access assumed).
     respx.get(f"https://esi.test/latest/universe/structures/{STRUCTURE}/").respond(
@@ -222,11 +243,12 @@ async def test_sync_character_data(app, db_session):
     )
 
     assert [outcome.status for outcome in outcomes] == [
-        "synced", "synced", "synced", "synced",
+        "synced", "synced", "synced", "synced", "synced",
     ]
     assert outcomes[1].item_count == 3
     assert outcomes[2].item_count == 2
     assert outcomes[3].item_count == 2
+    assert outcomes[4].item_count == 2
 
     blueprints = {
         row.item_id: row
@@ -271,7 +293,24 @@ async def test_sync_character_data(app, db_session):
     assert jobs[11].completed_date is not None
     assert jobs[11].activity_id == 3
 
-    for kind in ("char-blueprints", "char-skills", "char-jobs"):
+    loyalty = {
+        row.corporation_id: row
+        for row in (
+            await db_session.execute(
+                select(CharacterLoyalty).where(
+                    CharacterLoyalty.character_id == ALPHA
+                )
+            )
+        ).scalars()
+    }
+    assert set(loyalty) == {LP_CORP, LP_WRONG_CURRENCY_CORP}
+    assert loyalty[LP_CORP].points == 200_000
+    assert loyalty[LP_WRONG_CURRENCY_CORP].points == 632_000
+    # The best-effort name pass cached the store corporations.
+    corp = await db_session.get(UniverseCorporation, LP_CORP)
+    assert corp is not None and corp.name == "Test Liberation Force"
+
+    for kind in ("char-blueprints", "char-skills", "char-loyalty", "char-jobs"):
         sync = await db_session.get(DataSync, (kind, "character", ALPHA))
         assert sync.status == "ok"
 
@@ -293,13 +332,14 @@ async def test_sync_character_missing_scope(app, db_session):
         db_session, esi, [character], resolver=resolver
     )
 
-    # Assets sync (empty); the three data kinds trip their own scope gates
+    # Assets sync (empty); the four data kinds trip their own scope gates
     # without touching their endpoints.
     assert [outcome.status for outcome in outcomes] == [
-        "synced", "no-scope", "no-scope", "no-scope",
+        "synced", "no-scope", "no-scope", "no-scope", "no-scope",
     ]
     assert respx.get(BLUEPRINTS_URL).call_count == 0
     assert respx.get(SKILLS_URL).call_count == 0
+    assert respx.get(LOYALTY_URL).call_count == 0
     assert respx.get(JOBS_URL).call_count == 0
     sync = await db_session.get(DataSync, ("char-blueprints", "character", ALPHA))
     assert sync.status == "no-scope"
@@ -328,15 +368,16 @@ async def test_reauth_short_circuits_remaining_kinds(app, db_session):
     )
 
     assert [outcome.status for outcome in outcomes] == [
-        "reauth", "reauth", "reauth", "reauth",
+        "reauth", "reauth", "reauth", "reauth", "reauth",
     ]
     # The assets fetch fails the refresh before any data endpoint is
     # touched; the short-circuit keeps the other kinds from re-attempting
     # the same dead refresh.
     assert respx.get(BLUEPRINTS_URL).call_count == 0
     assert respx.get(SKILLS_URL).call_count == 0
+    assert respx.get(LOYALTY_URL).call_count == 0
     assert respx.get(JOBS_URL).call_count == 0
-    for kind in ("char-blueprints", "char-skills", "char-jobs"):
+    for kind in ("char-blueprints", "char-skills", "char-loyalty", "char-jobs"):
         sync = await db_session.get(DataSync, (kind, "character", ALPHA))
         assert sync.status == "reauth"
 
