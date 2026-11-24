@@ -49,13 +49,11 @@ from .facilities import (
 from .industry import (
     BlueprintRow,
     ChainMaterial,
-    CommodityRecipe,
     RecipeHeader,
     active_skill_levels,
     activity_materials,
     activity_skills,
     adjusted_prices,
-    commodity_recipe,
     cost_index,
     material_categories,
     owned_blueprints_for_types,

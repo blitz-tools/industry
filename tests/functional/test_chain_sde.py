@@ -139,7 +139,7 @@ async def test_anchor_chain_matches_golden_source(db, sde, name, type_id):
         f"{name}: phase count {len(app_rows)} vs golden {len(json_rows)}"
     )
     for phase_index, (app_phase, golden_phase) in enumerate(
-        zip(app_rows, json_rows)
+        zip(app_rows, json_rows, strict=True)
     ):
         assert app_phase == golden_phase, (
             f"{name}: phase {phase_index} rows differ"

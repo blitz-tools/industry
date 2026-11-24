@@ -8,8 +8,29 @@ recurring-commodity level split from CHARON-CHAIN.md (one node per
 census mandates (reference/CENSUS.md). The enrichment orchestrator
 suite extends this file below."""
 
+import pytest
+import pytest_asyncio
+from sqlalchemy import text
+
+from app.esi.assets import OWNER_CHARACTER, OWNER_CORPORATION
 from app.industry import ChainMaterial, RecipeHeader
-from app.planner import ChainAdjustments, ChainCatalog, resolve_chain
+from app.models import (
+    Asset,
+    Blueprint,
+    CostIndex,
+    MarketPrice,
+    Structure,
+    StructureRegistration,
+)
+from app.planner import (
+    ChainAdjustments,
+    ChainCatalog,
+    chain_plan,
+    fresh_node_state,
+    phase_state,
+    resolve_chain,
+)
+from tests.test_planner_plan import MAIN, planner_db  # noqa: F401 (fixture)
 
 
 def header(type_id, bp, activity, per_run, mpl=None, duration=None):
@@ -346,22 +367,6 @@ def test_units_scale_runs_and_jobs():
 # shape) and pool stock: ice and fuel blocks in the corp office,
 # Tritanium partial in the main's hangar.
 
-import pytest
-import pytest_asyncio
-from sqlalchemy import text
-
-from app.esi.assets import OWNER_CHARACTER, OWNER_CORPORATION
-from app.models import (
-    Asset,
-    Blueprint,
-    CostIndex,
-    MarketPrice,
-    Structure,
-    StructureRegistration,
-)
-from app.planner import chain_plan, fresh_node_state, phase_state
-from tests.test_planner_plan import MAIN, planner_db  # noqa: F401 (fixture)
-
 TYPHOON = 644
 CPG = 20410
 CARBIDE = 16672
@@ -371,7 +376,7 @@ TRITANIUM = 34
 
 
 @pytest_asyncio.fixture
-async def chain_db(planner_db):
+async def chain_db(planner_db):  # noqa: F811 (layered fixture: the module-level import exposes it, this parameter consumes it)
     rows = {
         "sde_invTypes": [
             (4100, "Test Fuel Block", 5.0, 5.0, 104, 1),
