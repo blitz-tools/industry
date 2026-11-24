@@ -107,13 +107,16 @@
     <div class="form-grid even">
       {% for activity in activities %}
       <div class="field">
-        <label class="field-label" for="fac-{{ activity }}">{{ activity_labels[activity] }}</label>
-        <select class="form-select facility-select" id="fac-{{ activity }}" data-activity="{{ activity }}"
-                data-default-id="{{ defaults[activity].registration_id if defaults[activity] else '' }}">
-          {% for row in registrations[activity] %}
-          <option value="{{ row.registration_id }}" {{ 'selected' if chosen[activity] and chosen[activity].registration_id == row.registration_id }}>{{ row.structure_name }}</option>
-          {% endfor %}
-        </select>
+        <span class="field-label">{{ activity_labels[activity] }}</span>
+        <div class="drop-select facility-drop" data-activity="{{ activity }}"
+             data-default-id="{{ defaults[activity].registration_id if defaults[activity] else '' }}">
+          <button type="button" class="chip-button drop-chip">{{ chosen[activity].structure_name if chosen[activity] else '—' }} ▾</button>
+          <div class="drop-panel" hidden>
+            {% for row in registrations[activity] %}
+            <button type="button" class="drop-option" data-id="{{ row.registration_id }}">{{ row.structure_name }}</button>
+            {% endfor %}
+          </div>
+        </div>
         <span class="field-hint">{% if not registrations[activity] %}nothing registered for {{ activity_labels[activity] | lower }} — the plan runs at station baselines
           {%- elif chosen[activity] %}{{ structure_types[chosen[activity].structure_type] }}{% if chosen[activity].security_class %} · {{ chosen[activity].security_class }}sec{% endif %}{% if chosen[activity].me_rig != 'none' or chosen[activity].te_rig != 'none' %} · {{ 'ME ' + chosen[activity].me_rig.upper() if chosen[activity].me_rig != 'none' }}{{ ' · ' if chosen[activity].me_rig != 'none' and chosen[activity].te_rig != 'none' }}{{ 'TE ' + chosen[activity].te_rig.upper() if chosen[activity].te_rig != 'none' }}{% endif %}{% if chosen[activity].tax_rate is not none %} · tax {{ '{:.2f}'.format(chosen[activity].tax_rate * 100).rstrip('0').rstrip('.') }}%{% endif %}{% if not chosen[activity].is_default %} — not the registry default{% endif %}
           {%- else %}—{% endif %}</span>
@@ -124,6 +127,18 @@
     <p class="meta-line" style="margin-top: 0.75rem;">
       {% for line in multiplies %}{{ line.activity_label }}: materials × ME rig (−{{ '{:.1f}'.format(line.rig_me) }}% at the {{ line.facility.structure_name }}{% if line.security %}, {{ line.security }}sec{% endif %}) · job time × hull {% if line.hull_time < 1 %}−{{ '{:.0f}'.format((1 - line.hull_time) * 100) }}%{% else %}—{% endif %} and TE rig (−{{ '{:.1f}'.format(line.rig_te) }}%){% if not loop.last %} · {% endif %}{% endfor %}
     </p>
+
+    <hr class="divider">
+
+    <!-- Material sources -->
+    <h2 style="font-size: 0.95rem;">Material sources</h2>
+    <p class="card-sub">Where the stock meters count from — every corp office hangar and container in them by default; a participant's personal hangar opts in per location (participants may be job-allocation positions, not material sources). Narrow to the local build system when planning; the acquisition table shows where stock sits either way, so what isn't in place is visible as a move.</p>
+
+    {% if source_groups %}
+    {% include "_source_select.html" %}
+    {% else %}
+    <p class="meta-line" style="margin: 0 0 0.4rem;">No stocked locations for this target's materials yet.</p>
+    {% endif %}
 
     <hr class="divider">
 

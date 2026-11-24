@@ -689,8 +689,8 @@ async def test_chain_plan_stage_states_and_coverage(chain_db):
 
     # Coverage: node-level (the fuel node's own stock vs its need) and
     # terminator-level (ice exactly covered, Tritanium partial — the
-    # office stock only; the main's personal 1M stays out of the
-    # default measurement).
+    # offices-only default: the participants' personal stock stays out
+    # of scope until chipped in).
     fuel = _node(chain, FUEL, phase=1)
     assert fuel.calc.on_hand == 40 and fuel.calc.coverage == pytest.approx(10.0)
     by_type = {row.type_id: row for row in chain.raw_totals}
@@ -698,12 +698,16 @@ async def test_chain_plan_stage_states_and_coverage(chain_db):
     assert by_type[TRITANIUM].on_hand == 2_000_000  # office stock only
 
 
-async def test_chain_plan_personal_stock_is_per_character(chain_db):
-    """The coverage measurement defaults to the corp office hangars;
-    `personal_stock_ids` opts in specific participants' own hangars —
-    a per-character choice (the false-positive guard for out-of-corp
-    participants), and ids outside the participant pool are ignored."""
+async def test_chain_plan_material_source_selection(chain_db):
+    """The coverage measurement defaults to the corp-side sources only
+    (offices and containers — personal hangars stay out of scope until
+    chipped in), and `material_sources` narrows or widens it to the
+    listed source refs. Refs the read doesn't know are ignored; an
+    explicitly empty selection counts nothing."""
     facilities = await _facilities(chain_db)
+    office = "office:8000"  # the fixture's single office structure
+    main_hangar = f"hangar:{MAIN}:60003743"
+    mate_hangar = f"hangar:{CORP_MEMBER}:60003743"
 
     async def on_hand(**kwargs):
         plan = await chain_plan(
@@ -713,17 +717,34 @@ async def test_chain_plan_personal_stock_is_per_character(chain_db):
         by_type = {row.type_id: row for row in plan.chain.raw_totals}
         return by_type[TRITANIUM].on_hand
 
-    # Default: the office's 2M only.
+    # Default: the office's 2M only (personal stock out of scope).
     assert await on_hand() == 2_000_000
-    # The main's chip: office 2M + their personal 1M.
-    assert await on_hand(personal_stock_ids=[MAIN]) == 3_000_000
-    # The corp mate's chip: office 2M + their personal 500k.
-    assert await on_hand(personal_stock_ids=[CORP_MEMBER]) == 2_500_000
-    # Both chips.
-    assert await on_hand(personal_stock_ids=[MAIN, CORP_MEMBER]) == 3_500_000
-    # An id outside the participant pool never counts (the caller owns
-    # honest links; the intersect is the authoritative guard).
-    assert await on_hand(personal_stock_ids=[OUT_OF_CORP]) == 2_000_000
+    # The office alone (same as the default, explicitly).
+    assert await on_hand(material_sources=[office]) == 2_000_000
+    # One personal hangar alone.
+    assert await on_hand(material_sources=[main_hangar]) == 1_000_000
+    # Office + the main's hangar.
+    assert await on_hand(material_sources=[office, main_hangar]) == 3_000_000
+    # Both personal hangars, no office.
+    assert await on_hand(
+        material_sources=[main_hangar, mate_hangar]
+    ) == 1_500_000
+    # Unknown refs are ignored (stale links degrade, never 500).
+    assert await on_hand(material_sources=[office, "hangar:0:0"]) == 2_000_000
+    # An explicitly empty selection counts nothing.
+    assert await on_hand(material_sources=[]) == 0
+    # The out-of-corp character's hangar is not a source at all (only
+    # the participant pool's locations are enumerated).
+    sources = {
+        source.ref
+        for source in (
+            await chain_plan(
+                chain_db, target_type_id=TYPHOON, units=10,
+                facilities=facilities,
+            )
+        ).source_stock
+    }
+    assert f"hangar:{OUT_OF_CORP}:60003743" not in sources
 
 
 async def test_chain_plan_participants_and_copy_time(chain_db):

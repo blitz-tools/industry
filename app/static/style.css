@@ -750,6 +750,113 @@ button.danger:hover {
   color: var(--bg);
 }
 
+/* Dropdown chips (M6): +15% over the standard state chip, white-on-black
+   fill, and boxy — a vertical wall with rounded corners rather than a
+   full-round pill — so they read as menu triggers, not toggles. Never
+   change colour on hover: a dropdown opens a menu, it isn't itself a
+   state. Shared by the Plan facilities selectors (single-select) and
+   the Material sources multi-select. */
+.drop-chip {
+  font-size: 0.86rem;
+  line-height: 1.2;
+  padding: 0.22rem 0.65rem;
+  border-radius: var(--radius);
+  background: #000;
+  color: var(--text);
+  /* Uniform width across every dropdown: fill the container's column
+     (the facilities grid field, the acquisition controls row) but cap
+     at a comfortable chip width, leaving padding. Long labels
+     ellipsize — the panel carries the full name. */
+  width: calc(100% - 0.75rem);
+  max-width: 18rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+.drop-chip:hover {
+  border-color: var(--line);
+  color: var(--text);
+  background: #000;
+}
+
+/* The Material sources trigger carries a longer label than a facility
+   name — widen its cap so the summary never truncates. */
+#material-source-select .drop-chip {
+  max-width: 24rem;
+}
+
+/* The menu panel any drop-chip opens. */
+.drop-panel {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  min-width: 18rem;
+  max-width: 32rem;
+  max-height: 22rem;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.5rem;
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.45);
+}
+
+.ms-select,
+.drop-select {
+  position: relative;
+  display: inline-block;
+}
+
+/* Option rows: buttons (single-select) and checkbox labels
+   (multi-select) share the row shape. */
+.drop-option,
+.ms-option {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  width: 100%;
+  padding: 0.28rem 0.4rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.drop-option:hover,
+.ms-option:hover {
+  background: var(--hover);
+}
+
+.ms-group {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin: 0.55rem 0 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ms-actions {
+  margin-top: 0.6rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* The panel's Apply is a panel-level control, not a page action —
+   80% of the primary button's size. Scoped past .button.primary: equal
+   specificity loses to whichever rule comes later in the file. */
+.ms-actions .button.primary {
+  font-size: 0.84rem;
+  padding: 0.48rem 1.4rem;
+}
+
 .char-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));

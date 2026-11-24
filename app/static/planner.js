@@ -173,31 +173,101 @@ window.initPlannerPage = () => {
     });
   });
 
-  // --- Facility selectors -----------------------------------------------------
-  document.querySelectorAll(".facility-select").forEach((select) => {
-    select.addEventListener("change", () => {
-      const next = params();
-      const activity = select.dataset.activity;
-      if (select.value && select.value === select.dataset.defaultId) {
-        next.delete(activity);  // picking the default keeps links honest
-      } else {
-        next.set(activity, select.value);
-      }
-      const query = next.toString();
-      swapMain("/planner" + (query ? "?" + query : ""));
+  // --- Facility selectors (chip-model dropdowns) -------------------------------
+  // Same semantics as the selects they replaced: picking the registry
+  // default drops the URL param (absence-means-default keeps links
+  // honest); anything else serializes the override. Selection applies
+  // immediately — one option per activity, no multi-step to batch.
+  document.querySelectorAll(".facility-drop").forEach((drop) => {
+    const trigger = drop.querySelector(".drop-chip");
+    const panel = drop.querySelector(".drop-panel");
+    trigger.addEventListener("click", () => {
+      panel.hidden = !panel.hidden;
+    });
+    drop.querySelectorAll(".drop-option").forEach((option) => {
+      option.addEventListener("click", () => {
+        const next = params();
+        const activity = drop.dataset.activity;
+        if (option.dataset.id === drop.dataset.defaultId) {
+          next.delete(activity);
+        } else {
+          next.set(activity, option.dataset.id);
+        }
+        const query = next.toString();
+        swapMain("/planner" + (query ? "?" + query : ""), true, true);
+      });
     });
   });
 };
 
 window.initPlanPage = () => {
-  // The plan page is server-rendered state; its controls (the re-run
-  // button, the back link) are plain links the shared swap handler
-  // intercepts. Kept for symmetry so swapMain can re-bind blindly.
+  // The plan page's remaining controls are plain links the shared swap
+  // handler intercepts, except the Material sources multi-select — the
+  // one control both pages carry, so it binds here (initPlanPage runs
+  // on both; initPlannerPage early-returns wherever the search box is
+  // absent). Checkbox state is local until Apply constructs the next
+  // URL; the swap keeps the viewport.
+  const select = document.getElementById("material-source-select");
+  if (select) {
+    const button = select.querySelector(".drop-chip");
+    const panel = select.querySelector(".drop-panel");
+    const allBox = select.querySelector("#src-all-box");
+    const corpBoxes = () =>
+      [...select.querySelectorAll(".src-option")].filter(
+        (box) => !box.value.startsWith("hangar:")
+      );
+
+    // "All offices" is checked exactly when the selection IS the
+    // default set: every corp-side source on, no personal hangar —
+    // re-synced after every change, so manual and default paths land
+    // on the same state (and Apply's drop-to-default is never wrong).
+    const syncAllBox = () => {
+      const corp = corpBoxes();
+      const personal = [...select.querySelectorAll(".src-option")].filter(
+        (box) => box.value.startsWith("hangar:")
+      );
+      allBox.checked =
+        corp.length > 0 &&
+        corp.every((box) => box.checked) &&
+        !personal.some((box) => box.checked);
+    };
+
+    button.addEventListener("click", () => {
+      panel.hidden = !panel.hidden;
+    });
+    // "All offices" is a select-all over the corp-side sources: on
+    // checks every office/container option (personal stays off), off
+    // clears them. syncAllBox keeps the box in step with manual
+    // changes, so both paths land on the same state.
+    allBox?.addEventListener("change", () => {
+      const corpOn = allBox.checked;
+      select.querySelectorAll(".src-option").forEach((box) => {
+        box.checked = corpOn && !box.value.startsWith("hangar:");
+      });
+    });
+    select.querySelectorAll(".src-option").forEach((box) => {
+      box.addEventListener("change", syncAllBox);
+    });
+    select.querySelector("#src-apply")?.addEventListener("click", () => {
+      const next = new URLSearchParams(window.location.search);
+      next.delete("src");
+      if (!(allBox && allBox.checked)) {
+        const refs = [...select.querySelectorAll(".src-option")]
+          .filter((box) => box.checked)
+          .map((box) => box.value);
+        if (refs.length) refs.forEach((ref) => next.append("src", ref));
+        else next.append("src", "");  // explicit-empty sentinel
+      }
+      const query = next.toString();
+      const base = window.location.pathname;
+      swapMain(base + (query ? "?" + query : ""), true, true);
+    });
+  }
 };
 
 // --- In-place page swaps (no full refreshes) ----------------------------------
 
-function swapMain(url, push = true, keepScroll = false) {
+function swapMain(url, push = true, keepScroll = true) {
   const scrollY = window.scrollY;
   fetch(url, { headers: { "X-Requested-With": "fetch" } })
     .then((response) => {
@@ -213,10 +283,10 @@ function swapMain(url, push = true, keepScroll = false) {
       if (push) history.pushState({}, "", url);
       window.initPlannerPage();
       window.initPlanPage();
-      // A swapped page should land in view (the mocked Calculate
-      // navigation arrives at the top of a new page) — unless the link
-      // asked to keep the viewport (a view toggle deep in the page:
-      // flipping it must not bounce the reader back to the top).
+      // Interactions keep the viewport where it was (the owner's
+      // standing call: a control deep in the page must never bounce the
+      // reader to the top); only cross-page navigations (Calculate,
+      // back to planner) land at the top of the arriving page.
       if (keepScroll) window.scrollTo({ top: scrollY });
       else window.scrollTo({ top: 0 });
     })
@@ -228,8 +298,8 @@ function swapMain(url, push = true, keepScroll = false) {
 if (!window.initPlannerPageWired) {
   window.initPlannerPageWired = true;
 
-  // Close the autocomplete on outside clicks. Re-queried at event time
-  // so it survives main swaps.
+  // Close the autocomplete and any open dropdown panel on outside
+  // clicks. Re-queried at event time so it survives main swaps.
   document.addEventListener("click", (event) => {
     const dropdown = document.getElementById("target-autocomplete");
     const searchInput = document.getElementById("target-search");
@@ -237,18 +307,26 @@ if (!window.initPlannerPageWired) {
         event.target !== searchInput) {
       dropdown.hidden = true;
     }
+    document.querySelectorAll(".drop-panel").forEach((panel) => {
+      if (!panel.hidden && !panel.parentElement.contains(event.target)) {
+        panel.hidden = true;
+      }
+    });
   });
 
   // In-main planner links (Calculate, back to planner) swap in place;
-  // modified clicks keep their native behavior. A link carrying
-  // data-keep-scroll (the acquisition table's view toggle) keeps the
-  // viewport where it was.
+  // modified clicks keep their native behavior. Cross-page links land
+  // at the top of the arriving page; same-page links (the acquisition
+  // table's view toggle) and anything carrying data-keep-scroll keep
+  // the viewport where it was.
   document.addEventListener("click", (event) => {
     const link = event.target.closest("main a[href^='/planner']");
     if (!link) return;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
-    swapMain(link.href, true, link.hasAttribute("data-keep-scroll"));
+    const samePage =
+      new URL(link.href).pathname === window.location.pathname;
+    swapMain(link.href, true, link.hasAttribute("data-keep-scroll") || samePage);
   });
 
   window.addEventListener("popstate", () => {
