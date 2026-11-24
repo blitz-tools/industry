@@ -44,8 +44,9 @@ from ..facilities import (
 from ..industry import (
     catalog_size,
     search_catalog,
+    type_names,
 )
-from ..models import Character, UniverseCorporation
+from ..models import Character, UniverseCorporation, UniverseLocation
 from ..planner import (
     ChainPlan,
     ChainResult,
@@ -143,17 +144,132 @@ def _parse_participants(request: Request) -> list[int] | None:
     ]
 
 
-def _parse_personal_stock(request: Request) -> list[int]:
-    """`ps` semantics: the participants whose personal hangars count in
-    the coverage measurement, on top of the corp office hangars (the
-    default measures offices only). Absent and empty are the same state
-    — none — so no absent/empty sentinel is needed (unlike `p`, the
-    default never changes)."""
+def _parse_material_sources(request: Request) -> list[str] | None:
+    """`src` semantics (the Material sources selector): the source refs
+    the coverage measurement counts from. Absent = all sources (the
+    source-from-all default); present (even empty) = an explicit set —
+    the same absent/empty sentinel `p` uses, because an explicitly
+    empty selection (nothing counts) is a real state."""
+    if "src" not in request.query_params:
+        return None
     return [
-        int(value)
-        for value in request.query_params.getlist("ps")
-        if value.strip().isdigit()
+        value for value in request.query_params.getlist("src") if value.strip()
     ]
+
+
+async def _labeled_sources(db: DbDep, plan: ChainPlan | None) -> list[dict]:
+    """The chain's relevant material sources (only those holding
+    measured types — a roster spans dozens of locations), labeled and
+    carrying their per-type quantities and selection state. Both the
+    planner's Material sources section and the plan page's acquisition
+    breakdown read this one shape."""
+    if plan is None or not plan.source_stock:
+        return []
+    location_ids = {
+        source.location_id for source in plan.source_stock if source.location_id
+    }
+    location_names: dict[int, str | None] = {}
+    if location_ids:
+        location_names = dict(
+            (
+                await db.execute(
+                    select(
+                        UniverseLocation.location_id, UniverseLocation.name
+                    ).where(UniverseLocation.location_id.in_(location_ids))
+                )
+            ).all()
+        )
+    container_type_ids = {
+        source.container_type_id
+        for source in plan.source_stock
+        if source.container_type_id
+    }
+    container_names = (
+        await type_names(db, list(container_type_ids))
+        if container_type_ids
+        else {}
+    )
+    participant_names = {
+        row.character_id: row.name for row in plan.participants
+    }
+    all_mode = plan.material_source_refs is None
+    selected = set(plan.material_source_refs or [])
+    # Default mode: corp-side sources (offices, containers) count;
+    # personal hangars render uncounted until chipped in.
+    default_counts = {"office", "container"}
+
+    labeled = []
+    for source in plan.source_stock:
+        location = location_names.get(source.location_id) or str(
+            source.location_id
+        )
+        if source.kind == "office":
+            label = location
+        elif source.kind == "container":
+            type_name = container_names.get(
+                source.container_type_id, f"Type {source.container_type_id}"
+            )
+            label = f"{type_name} · {location}"
+        else:
+            who = participant_names.get(
+                source.character_id, str(source.character_id)
+            )
+            label = f"{who} · {location}"
+        labeled.append(
+            {
+                "ref": source.ref,
+                "kind": source.kind,
+                "label": label,
+                "selected": (
+                    source.kind in default_counts if all_mode
+                    else source.ref in selected
+                ),
+                "quantities": source.quantities,
+            }
+        )
+    return labeled
+
+
+def _source_groups(labeled: list[dict]) -> list[dict]:
+    """The Material sources section's chip groups: offices, containers,
+    personal hangars."""
+    groups: dict[str, list[dict]] = {}
+    for source in labeled:
+        groups.setdefault(source["kind"], []).append(source)
+    order = [
+        ("office", "Corp office hangars"),
+        ("container", "Containers in corp hangars"),
+        ("hangar", "Personal hangars"),
+    ]
+    return [
+        {"label": group_label, "views": groups[kind]}
+        for kind, group_label in order
+        if groups.get(kind)
+    ]
+
+
+def _stock_lines(plan: ChainPlan, labeled: list[dict]) -> dict[int, list[dict]]:
+    """Per-type stock breakdown for the acquisition table: where each
+    measured type's on-hand stock sits (label + quantity + whether the
+    selection counts it), so material moving is visible regardless of
+    what the meters measure."""
+    by_ref = {source["ref"]: source for source in labeled}
+    lines: dict[int, list[dict]] = {}
+    for source in plan.source_stock:
+        view = by_ref.get(source.ref)
+        if view is None:
+            continue
+        for type_id, quantity in source.quantities.items():
+            lines.setdefault(type_id, []).append(
+                {
+                    "label": view["label"],
+                    "qty": quantity,
+                    "counted": view["selected"],
+                }
+            )
+    for type_lines in lines.values():
+        type_lines.sort(key=lambda line: -line["qty"])
+    return lines
 
 
 async def _planner_state(
@@ -353,10 +469,10 @@ def _state_qs(
     me: int | None = None,
     te: int | None = None,
     owned: bool = False,
-    personal_stock: list[int] | None = None,
+    material_sources: list[str] | None = None,
 ) -> str:
     """The URL state both pages share, serialized once: target, count,
-    an explicit participant pool, the personal-stock character set,
+    an explicit participant pool, the material-source selection, and
     facility overrides (only when they differ from the registry
     default — absence-means-default keeps links honest when the
     default changes), and ME/TE overrides."""
@@ -369,8 +485,13 @@ def _state_qs(
         params.append(("qty", str(qty)))
     if owned:
         params.append(("owned", "1"))
-    if personal_stock:
-        params.extend(("ps", str(pid)) for pid in personal_stock)
+    if material_sources is not None:
+        # The present-even-empty sentinel: an explicit empty selection
+        # serializes as a bare src=.
+        if material_sources:
+            params.extend(("src", ref) for ref in material_sources)
+        else:
+            params.append(("src", ""))
     if participants is not None:
         params.extend(("p", str(pid)) for pid in participants)
     for activity in ACTIVITIES:
@@ -429,7 +550,7 @@ async def planner_page(
     others = [c for c in characters if c.corporation_id != corp_id]
 
     participants, registrations, chosen, defaults = await _planner_state(request, db)
-    personal_stock = _parse_personal_stock(request)
+    material_sources = _parse_material_sources(request)
 
     # The target: an invalid id bounces to the bare planner (search
     # only offers catalog products, so this is a stale or hand-built
@@ -444,14 +565,16 @@ async def planner_page(
             facilities=chosen,
             me_override=me,
             te_override=te,
-            personal_stock_ids=personal_stock,
+            material_sources=material_sources,
         )
         if plan is None:
             return RedirectResponse("/planner", status_code=302)
 
     state_qs = _state_qs(
-        target, qty, participants, chosen, defaults, me, te, owned, personal_stock
+        target, qty, participants, chosen, defaults, me, te, owned,
+        material_sources,
     )
+    labeled_sources = await _labeled_sources(db, plan)
     return templates.TemplateResponse(
         request,
         "planner.html",
@@ -462,6 +585,8 @@ async def planner_page(
             "target": target,
             "qty": qty,
             "owned": owned,
+            "material_sources": material_sources,
+            "source_groups": _source_groups(labeled_sources),
             "me_override": me,
             "te_override": te,
             "plan": plan,
@@ -542,7 +667,7 @@ async def planner_plan_page(
         return RedirectResponse("/planner", status_code=302)
     qty = max(1, qty or 1)
     participants, _registrations, chosen, defaults = await _planner_state(request, db)
-    personal_stock = _parse_personal_stock(request)
+    material_sources = _parse_material_sources(request)
 
     plan = await chain_plan(
         db,
@@ -552,14 +677,14 @@ async def planner_plan_page(
         facilities=chosen,
         me_override=me,
         te_override=te,
-        personal_stock_ids=personal_stock,
+        material_sources=material_sources,
     )
     if plan is None:
         return RedirectResponse("/planner", status_code=302)
 
     state_qs = _state_qs(
         target, qty, participants, chosen, defaults, me, te,
-        personal_stock=personal_stock,
+        material_sources=material_sources,
     )
     base_href = "/planner/plan" + state_qs
     # The toggle flips `all`; dropping the param returns to the
@@ -567,6 +692,7 @@ async def planner_plan_page(
     toggle_href = (
         base_href if show_all else base_href + ("&all=1" if state_qs else "?all=1")
     )
+    labeled_sources = await _labeled_sources(db, plan)
     raw_groups = _raw_groups(plan.chain)
     covered_count = sum(
         1 for _label, rows in raw_groups for row in rows if row["meter"] == "full"
@@ -587,6 +713,9 @@ async def planner_plan_page(
             "toggle_href": toggle_href,
             "planner_href": "/planner" + state_qs,
             "qty": qty,
+            "material_sources": material_sources,
+            "source_groups": _source_groups(labeled_sources),
+            "stock_lines": _stock_lines(plan, labeled_sources),
             "me_override": me,
             "te_override": te,
             "format_duration": _format_duration,

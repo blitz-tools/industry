@@ -41,7 +41,17 @@ def _static_version() -> str:
     return str(int(newest))
 
 
-templates.env.globals["static_version"] = _static_version()
+class _LazyStaticVersion:
+    """Evaluates the cache-buster at render time, not import time: a
+    stylesheet edited after the process started still gets a fresh ?v=
+    (the startup-time value served a stale URL and browsers kept the
+    cached file — the changes were on disk but never fetched)."""
+
+    def __str__(self) -> str:
+        return _static_version()
+
+
+templates.env.globals["static_version"] = _LazyStaticVersion()
 
 
 def dev_site_version() -> str:

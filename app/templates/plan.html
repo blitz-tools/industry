@@ -152,10 +152,11 @@
 
 <!-- Raw materials — acquisition -->
 <h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Raw materials — acquisition</h2>
-<p class="meta-line" style="margin: 0 0.25rem 0.75rem;">Chain terminators summed across all phases, measured against the selected pool. Bars fill from asset syncs; green = covered, yellow = partial, pink = under half. Defaults to gaps only so blockers stand out — stock is measured, not depleted, across phases.</p>
+<p class="meta-line" style="margin: 0 0.25rem 0.75rem;">Chain terminators summed across all phases, measured against {% if material_sources is none %}the corp office hangars (personal hangars not counted){% else %}{{ material_sources | length }} selected source{{ 's' if material_sources | length != 1 }}{% endif %}. Bars fill from asset syncs; green = covered, yellow = partial, pink = under half. Defaults to gaps only so blockers stand out — stock is measured, not depleted, across phases.</p>
 
 <div style="margin-bottom: 0.75rem;">
   <a class="chip-button{{ ' selected' if show_all }}" data-keep-scroll href="{{ toggle_href }}">{{ 'Gaps only' if show_all else 'Show all ' + (chain.raw_totals | length | string) + ' types' }}</a>
+  {% if source_groups %}{% include "_source_select.html" %}{% endif %}
 </div>
 
 <table class="asset-table">
@@ -176,7 +177,8 @@
     {% for row in rows %}
     {% if show_all or row.meter != 'full' %}
     <tr>
-      <td><img class="type-icon" src="{{ type_icon_url(row.row.type_id, 32) }}" alt="">{{ row.row.name }}</td>
+      <td><img class="type-icon" src="{{ type_icon_url(row.row.type_id, 32) }}" alt="">{{ row.row.name }}{% if stock_lines.get(row.row.type_id) %}<br>
+        <span class="muted" style="font-size: 0.78rem;">{% for line in stock_lines[row.row.type_id] %}{% if line.counted %}{{ '{:,}'.format(line.qty) }} {{ line.label }}{% else %}({{ '{:,}'.format(line.qty) }} {{ line.label }} — not counted){% endif %}{% if not loop.last %} · {% endif %}{% endfor %}</span>{% endif %}</td>
       <td class="num qty">{{ '{:,}'.format(row.row.qty) }}</td>
       <td class="num">{{ '{:,}'.format(row.on_hand) }}</td>
       <td>

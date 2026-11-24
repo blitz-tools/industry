@@ -49,6 +49,7 @@ from .facilities import (
 from .industry import (
     BlueprintRow,
     ChainMaterial,
+    MaterialSource,
     RecipeHeader,
     active_skill_levels,
     activity_materials,
@@ -56,8 +57,8 @@ from .industry import (
     adjusted_prices,
     cost_index,
     material_categories,
+    material_source_stock,
     owned_blueprints_for_types,
-    pool_on_hand,
     recipe_headers,
     type_names,
 )
@@ -826,8 +827,11 @@ class ChainParticipantTime:
 class ChainPlan:
     """chain_plan's output: the enriched chain plus the plan-level
     readouts both planner pages render — the participant rows, the
-    target blueprint's owned-copies overlay, and its copy-time math
-    (M4's readout, unchanged)."""
+    target blueprint's owned-copies overlay, its copy-time math (M4's
+    readout, unchanged), and the material-source stock (M6: per-source
+    on-hand quantities the coverage meters and the acquisition
+    breakdown read — the selection lives here too, None = all
+    sources)."""
 
     chain: ChainResult
     participants: list[ChainParticipantTime]
@@ -835,6 +839,8 @@ class ChainPlan:
     copy_facility: RegistrationRow | None
     copy_seconds_per_run: int | None
     copy_total_seconds: int | None
+    source_stock: list[MaterialSource] = field(default_factory=list)
+    material_source_refs: list[str] | None = None
 
 
 async def build_chain_catalog(
@@ -907,7 +913,7 @@ async def chain_plan(
     facilities: dict[str, RegistrationRow | None] | None = None,
     me_override: int | None = None,
     te_override: int | None = None,
-    personal_stock_ids: list[int] | None = None,
+    material_sources: list[str] | None = None,
 ) -> ChainPlan | None:
     """Resolve and calculate the full chain for one commodity: the pure
     walk over the bulk-read catalog, then per-node enrichment (selection
@@ -917,11 +923,15 @@ async def chain_plan(
     cost against the synced world data; pool-stock coverage). None when
     the type is not a catalog product. `facilities` maps registry
     activity keys to chosen registrations; each node resolves its own
-    entry, copying reads the "copying" entry. `personal_stock_ids` opts
-    specific participants' personal hangars into the coverage
-    measurement (the corp office hangars are always measured); ids
-    outside the participant pool are ignored — an excluded character is
-    never a stock source."""
+    entry, copying reads the "copying" entry. `material_sources` narrows
+    the coverage measurement to the listed source refs (MaterialSource
+    ref format); None means the DEFAULT source set — every corp office
+    hangar and container in them, with personal hangars OUT of scope
+    (the M5 review's false-positive guard stands: participants may be
+    job-allocation positions rather than material sources, so a
+    personal hangar opts in per location through the selector). Refs
+    the read doesn't know are ignored — an unselected location is
+    simply absent."""
     catalog = await build_chain_catalog(db, [target_type_id])
     if catalog is None or target_type_id not in catalog.headers:
         return None
@@ -954,7 +964,6 @@ async def chain_plan(
             else []
         )
     pool_ids = [character.character_id for character in roster]
-    pool_id_set = set(pool_ids)
     corporation_id = main.corporation_id if main is not None else None
     levels = await active_skill_levels(db, pool_ids) if pool_ids else {}
     roster_names = {character.character_id: character.name for character in roster}
@@ -1044,16 +1053,30 @@ async def chain_plan(
             + [row.type_id for row in result.raw_totals]
         )
     )
-    on_hand = await pool_on_hand(
+    # Per-source stock over every material source; the coverage meters
+    # sum the selection (all sources when none is given) and the
+    # acquisition breakdown renders the full list.
+    source_stock = await material_source_stock(
         db,
         measured_ids,
         corporation_id=corporation_id,
-        personal_character_ids=[
-            character_id
-            for character_id in (personal_stock_ids or [])
-            if character_id in pool_id_set
-        ],
+        participant_ids=pool_ids,
     )
+    if material_sources is None:
+        # The default: corp-side sources only (offices + containers);
+        # personal hangars stay out of scope until chipped in.
+        counted = [
+            source for source in source_stock if source.kind != "hangar"
+        ]
+    else:
+        selected = set(material_sources)
+        counted = [
+            source for source in source_stock if source.ref in selected
+        ]
+    on_hand: dict[int, int] = {type_id: 0 for type_id in measured_ids}
+    for source in counted:
+        for type_id, quantity in source.quantities.items():
+            on_hand[type_id] += quantity
     for row in result.raw_totals:
         row.on_hand = on_hand.get(row.type_id, 0)
         category, group = classified.get(row.type_id, (None, None))
@@ -1255,4 +1278,6 @@ async def chain_plan(
         copy_facility=copy_facility,
         copy_seconds_per_run=copy_seconds_per_run,
         copy_total_seconds=copy_total_seconds,
+        source_stock=source_stock,
+        material_source_refs=material_sources,
     )

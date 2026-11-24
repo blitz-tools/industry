@@ -1,0 +1,28 @@
+{# The Material sources multi-select (M6), shared by the planner's
+   Material sources section and the plan page's acquisition controls.
+   Expects `material_sources` (list | none) and `source_groups` in
+   context. Checkbox state is local until Apply constructs the next
+   URL — the server stays authoritative for every recomputation. The
+   trigger uses the chip model (drop-chip): standard chip size, no
+   hover fill. #}
+<div class="ms-select" id="material-source-select">
+  <button type="button" class="chip-button drop-chip">Material sources: {% if material_sources is none %}All offices{% else %}{{ material_sources | length }} selected{% endif %} ▾</button>
+  <div class="drop-panel" hidden>
+    <label class="ms-option ms-all">
+      <input type="checkbox" id="src-all-box"{% if material_sources is none %} checked{% endif %}>
+      All offices <span class="muted">(default — personal hangars not counted)</span>
+    </label>
+    {% for group in source_groups %}
+    <div class="ms-group">{{ group.label }}</div>
+    {% for view in group.views %}
+    <label class="ms-option">
+      <input type="checkbox" class="src-option" value="{{ view.ref }}"{% if view.selected %} checked{% endif %}>
+      {{ view.label }}
+    </label>
+    {% endfor %}
+    {% endfor %}
+    <div class="ms-actions">
+      <button type="button" class="button primary" id="src-apply">Apply</button>
+    </div>
+  </div>
+</div>

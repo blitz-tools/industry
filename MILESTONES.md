@@ -1676,12 +1676,17 @@ reality over time.*
   sits is always visible (selected sources measured; the rest visible
   as moving logistics toward the working facilities). This subsumes the
   station-container bucketing item above (containers are one source
-  kind) and supersedes the per-character personal-stock chips (their
-  backend landed first: `chain_plan(personal_stock_ids=...)` with the
-  participant-pool intersect, `pool_on_hand(personal_character_ids=...)`
-  as an id-literal read, the `ps` URL param threading both pages — no
-  UI ships until this lands). Lands as its own PR **before the export
-  PR**, so the plan snapshot bakes the source set in once.
+  kind) and supersedes the per-character personal-stock chips. The
+  coverage default stays **corp-side only** — every office hangar and
+  container in them counts, personal hangars out of scope until chipped
+  in per location (the M5 review's false-positive guard stands);
+  selection rides the `src` URL param (repeatable source refs,
+  present-even-empty sentinel). The read is `material_source_stock` —
+  one MaterialSource per office / container / personal hangar at a
+  location, buckets disjoint (office = loose content; container
+  contents belong to their container), only sources holding measured
+  types enumerated. Lands as its own PR **before the export PR**, so
+  the plan snapshot bakes the source set in once.
 
 **Schema sketch**
 

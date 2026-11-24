@@ -199,11 +199,13 @@ async def test_plan_page_renders_chain_surfaces(client, chain_db):  # noqa: F811
     assert "4 / 4 blueprints owned" in response.text
     assert "Owned · BPC only" in response.text
     assert "short of the 157-run need by 146" in response.text
-    # The acquisition table: Tritanium's gap shows by default (the
-    # office's 2M covered, the main's personal stock not measured).
+    # The acquisition table: Tritanium's gap shows by default (offices
+    # only — the participants' personal stock renders in the breakdown
+    # but reads as not counted).
     assert "Raw materials — acquisition" in response.text
     assert "Tritanium" in response.text
     assert "short 66,582,789" in response.text
+    assert "not counted" in response.text
 
 
 @respx.mock
@@ -252,33 +254,57 @@ async def test_planner_renders_deepened_tiers(client, chain_db):  # noqa: F811
 
 
 @respx.mock
-async def test_personal_stock_param_threads_into_coverage(client, chain_db):  # noqa: F811
-    """The `ps` URL param (personal-stock characters, backend plumbing
-    for the upcoming Material sources selector — no UI ships yet)
-    threads through both pages into the coverage measurement: the
-    Tritanium gap shrinks by exactly the listed characters' personal
-    stock, and ids outside the participant pool are ignored."""
+async def test_material_sources_selector_and_breakdown(client, chain_db):  # noqa: F811
+    """The Material sources selector (`src` URL param, absence = the
+    offices-only default) narrows or widens the coverage measurement on
+    both pages — personal hangars opt in per location — and the
+    acquisition table's per-location breakdown shows where stock sits,
+    uncounted sources marked as such."""
     await _login(client)
+    # The planner's section: the multi-select dropdown, the All-offices
+    # box checked by default, office options checked, personal-hangar
+    # options not.
+    planner = await client.get("/planner", params={"target": 644, "qty": 10})
+    assert planner.status_code == 200
+    assert 'id="material-source-select"' in planner.text
+    assert 'id="src-all-box" checked' in planner.text
+    assert planner.text.count('class="src-option"') >= 3
+    assert "Personal hangars" in planner.text
+    assert 'value="office:8000" checked' in planner.text
+    assert 'value="hangar:1234:60003743"' in planner.text
+    assert 'value="hangar:1234:60003743" checked' not in planner.text
+
+    # The plan page defaults to offices with the breakdown inline —
+    # personal stock visible but not counted.
     default = await client.get("/planner/plan", params={"target": 644, "qty": 10})
     assert default.status_code == 200
+    assert "measured against the corp office hangars" in default.text
     assert "short 66,582,789" in default.text
+    assert "not counted" in default.text
 
-    main_counted = await client.get(
-        "/planner/plan", params=[("target", 644), ("qty", 10), ("ps", 1234)]
-    )
-    assert main_counted.status_code == 200
-    assert "short 65,582,789" in main_counted.text
-
-    both = await client.get(
+    # Opting a personal hangar in: the gap shrinks by exactly it.
+    main_in = await client.get(
         "/planner/plan",
-        params=[("target", 644), ("qty", 10), ("ps", 1234), ("ps", 5678)],
+        params=[
+            ("target", 644), ("qty", 10),
+            ("src", "office:8000"), ("src", "hangar:1234:60003743"),
+        ],
     )
-    assert both.status_code == 200
-    assert "short 65,082,789" in both.text
+    assert main_in.status_code == 200
+    assert "measured against 2 selected sources" in main_in.text
+    assert "short 65,582,789" in main_in.text
 
-    # Outside the pool: no effect even in a hand-built URL.
-    outside = await client.get(
-        "/planner/plan", params=[("target", 644), ("qty", 10), ("ps", 9999)]
+    # The selection serializes into the planner's state (Calculate
+    # carries it), and the empty sentinel holds an explicit nothing.
+    narrowed = await client.get(
+        "/planner",
+        params=[("target", 644), ("qty", 10), ("src", "office:8000")],
     )
-    assert outside.status_code == 200
-    assert "short 66,582,789" in outside.text
+    assert narrowed.status_code == 200
+    assert "src=office%3A8000" in narrowed.text
+    empty = await client.get(
+        "/planner/plan",
+        params=[("target", 644), ("qty", 10), ("src", "")],
+    )
+    assert empty.status_code == 200
+    assert "measured against 0 selected sources" in empty.text

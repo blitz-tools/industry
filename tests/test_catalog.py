@@ -493,3 +493,86 @@ async def test_pool_on_hand_measures_corp_offices_by_default(catalog_db):
         personal_character_ids=[1234],
     )
     assert solo[34] == 5000
+
+
+async def test_material_source_stock_buckets_disjointly(catalog_db):
+    """The per-source read (M6's Material sources): one source per
+    office, per personal hangar at each location, and per container in
+    a corp hangar — buckets disjoint (an office's quantity is its loose
+    content; container contents belong to the container), sources
+    holding none of the measured types omitted, and the office marker
+    itself never inventory."""
+    from app.industry import material_source_stock
+
+    catalog_db.add_all(
+        [
+            # A participant (character 1234, from the fixture's roster)
+            # with stock at two locations.
+            Asset(
+                owner_type=OWNER_CHARACTER, owner_id=1234, item_id=7001,
+                type_id=34, quantity=100, location_id=60003743,
+                location_flag="Hangar", location_type="station",
+                parent_location_id=60003743, is_blueprint_copy=False,
+                is_singleton=False,
+            ),
+            Asset(
+                owner_type=OWNER_CHARACTER, owner_id=1234, item_id=7002,
+                type_id=34, quantity=50, location_id=6001,
+                location_flag="Hangar", location_type="station",
+                parent_location_id=6001, is_blueprint_copy=False,
+                is_singleton=False,
+            ),
+            # The office: marker + loose stock + a container with
+            # contents (the container's own row is office-loose
+            # inventory; its contents belong to the container source).
+            Asset(
+                owner_type=OWNER_CORPORATION, owner_id=98000001, item_id=9000,
+                type_id=27, quantity=1, location_id=8000,
+                location_flag="OfficeFolder", location_type="item",
+                parent_location_id=8000, is_blueprint_copy=False,
+                is_singleton=True,
+            ),
+            Asset(
+                owner_type=OWNER_CORPORATION, owner_id=98000001, item_id=9001,
+                type_id=34, quantity=300, location_id=8000,
+                location_flag="CorpSAG1", location_type="item",
+                parent_location_id=8000, is_blueprint_copy=False,
+                is_singleton=False,
+            ),
+            Asset(
+                owner_type=OWNER_CORPORATION, owner_id=98000001, item_id=9005,
+                type_id=24, quantity=1, location_id=8000,
+                location_flag="CorpSAG1", location_type="item",
+                parent_location_id=8000, is_blueprint_copy=False,
+                is_singleton=True,
+            ),
+            Asset(
+                owner_type=OWNER_CORPORATION, owner_id=98000001, item_id=9006,
+                type_id=34, quantity=200, location_id=9005,
+                location_flag="None", location_type="item",
+                parent_location_id=8000, is_blueprint_copy=False,
+                is_singleton=False,
+            ),
+        ]
+    )
+    await catalog_db.commit()
+
+    sources = {
+        source.ref: source
+        for source in await material_source_stock(
+            catalog_db, [34, 16672],
+            corporation_id=98000001, participant_ids=[1234],
+        )
+    }
+    # The office (loose only — the container's 200 is not loose) and
+    # the container, disjoint; two personal hangars; unheld types key
+    # nothing and type-16672 sources are omitted entirely.
+    assert sources["office:8000"].quantities == {34: 300}
+    assert sources["container:9005"].quantities == {34: 200}
+    assert sources["container:9005"].container_type_id == 24
+    assert sources["hangar:1234:60003743"].quantities == {34: 100}
+    assert sources["hangar:1234:6001"].quantities == {34: 50}
+    assert set(sources) == {
+        "office:8000", "container:9005",
+        "hangar:1234:60003743", "hangar:1234:6001",
+    }

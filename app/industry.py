@@ -5,7 +5,7 @@ jobs carry the activity ids that join the SDE, skills feed time math and
 slot ceilings.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
 from sqlalchemy import String, and_, bindparam, cast, func, literal, select, text
@@ -647,6 +647,26 @@ class ChainMaterial:
 
     type_id: int
     quantity_per_run: int
+
+
+@dataclass
+class MaterialSource:
+    """One location the coverage measurement can count from (M6's
+    Material sources selector): a corp office hangar, a participant's
+    personal hangar at one location, or a station container inside a
+    corp office hangar. `ref` is the selection identity used in URL
+    state and (later) the plan snapshot — "office:<structure id>",
+    "hangar:<character id>:<structure id>", "container:<item id>".
+    `quantities` holds this source's on-hand stock per measured type.
+    Labeling is the view layer's job; this read returns ids only."""
+
+    kind: str  # "office" | "hangar" | "container"
+    ref: str
+    character_id: int | None  # hangar sources only
+    location_id: int | None  # structure/station the source sits at
+    container_item_id: int | None = None  # container sources only
+    container_type_id: int | None = None  # container sources only (labeling)
+    quantities: dict[int, int] = field(default_factory=dict)
 
 
 @dataclass
@@ -1383,3 +1403,219 @@ async def pool_on_hand(
         for type_id, quantity in rows:
             on_hand[type_id] += quantity
     return on_hand
+
+
+async def material_source_stock(
+    db: AsyncSession,
+    type_ids: list[int],
+    *,
+    corporation_id: int | None,
+    participant_ids: list[int],
+) -> list[MaterialSource]:
+    """Per-source on-hand stock over the plan's material sources: one
+    MaterialSource per corp office hangar, per participant personal
+    hangar at each location, and per station container inside a corp
+    office hangar. Sources holding none of the measured types are
+    omitted (the selector shows only relevant locations — a roster
+    spans dozens). Buckets are DISJOINT: an office's quantity is its
+    loose hangar content (container contents belong to their container
+    source, so office + containers never double-count), and personal
+    containers roll into their location's hangar source. The caller
+    applies selection (sum a subset, or all when no selection exists);
+    this read never filters."""
+    if not type_ids:
+        return []
+    sources: list[MaterialSource] = []
+    if corporation_id is not None:
+        # Office parents (the structures with a rented office), then
+        # everything under them grouped per office, minus the containers
+        # (computed in Python — no SQL NOT IN edge cases).
+        office_rows = (
+            await db.execute(
+                text(
+                    """
+                    SELECT DISTINCT parent_location_id FROM assets
+                    WHERE owner_type = :corp_kind
+                      AND owner_id = :corporation_id
+                      AND location_flag IN :office_flags
+                    """
+                ).bindparams(bindparam("office_flags", expanding=True)),
+                {
+                    "corp_kind": OWNER_CORPORATION,
+                    "corporation_id": corporation_id,
+                    "office_flags": list(OFFICE_FLAGS),
+                },
+            )
+        ).all()
+        office_parents = [row[0] for row in office_rows]
+        per_office: dict[int, dict[int, int]] = {}
+        if office_parents:
+            rows = (
+                await db.execute(
+                    text(
+                        """
+                        SELECT a.parent_location_id, a.type_id, sum(a.quantity)
+                        FROM assets a
+                        WHERE a.owner_type = :corp_kind
+                          AND a.owner_id = :corporation_id
+                          AND a.type_id IN :type_ids
+                          AND a.type_id != :office_type
+                          AND a.parent_location_id IN :office_parents
+                        GROUP BY a.parent_location_id, a.type_id
+                        """
+                    ).bindparams(
+                        bindparam("type_ids", expanding=True),
+                        bindparam("office_parents", expanding=True),
+                    ),
+                    {
+                        "corp_kind": OWNER_CORPORATION,
+                        "corporation_id": corporation_id,
+                        "type_ids": list(type_ids),
+                        "office_type": OFFICE_TYPE_ID,
+                        "office_parents": office_parents,
+                    },
+                )
+            ).all()
+            for parent, type_id, quantity in rows:
+                per_office.setdefault(parent, {})[type_id] = quantity
+        # Containers: corp asset rows inside office hangars that other
+        # corp assets report as their location_id (the marker itself is
+        # the office, never a container). No offices means no corp
+        # containers either — the parent filter is what scopes them to
+        # the hangars.
+        per_container: dict[int, dict[int, int]] = {}
+        container_parent: dict[int, int] = {}
+        container_rows: list[tuple[int, int, int]] = []
+        if office_parents:
+            container_rows = (
+                await db.execute(
+                    text(
+                        """
+                        SELECT DISTINCT c.item_id, c.parent_location_id,
+                                        c.type_id
+                        FROM assets c
+                        WHERE c.owner_type = :corp_kind
+                          AND c.owner_id = :corporation_id
+                          AND c.parent_location_id IN :office_parents
+                          AND c.location_flag NOT IN :office_flags
+                          AND c.item_id IN (
+                              SELECT location_id FROM assets
+                               WHERE owner_type = :corp_kind
+                                 AND owner_id = :corporation_id
+                                 AND location_type = 'item'
+                          )
+                        """
+                    ).bindparams(
+                        bindparam("office_parents", expanding=True),
+                        bindparam("office_flags", expanding=True),
+                    ),
+                    {
+                        "corp_kind": OWNER_CORPORATION,
+                        "corporation_id": corporation_id,
+                        "office_parents": office_parents,
+                        "office_flags": list(OFFICE_FLAGS),
+                    },
+                )
+            ).all()
+        if container_rows:
+            container_ids = [row[0] for row in container_rows]
+            container_parent = {row[0]: row[1] for row in container_rows}
+            container_types = {row[0]: row[2] for row in container_rows}
+            rows = (
+                await db.execute(
+                    text(
+                        """
+                        SELECT a.location_id, a.type_id, sum(a.quantity)
+                        FROM assets a
+                        WHERE a.owner_type = :corp_kind
+                          AND a.owner_id = :corporation_id
+                          AND a.type_id IN :type_ids
+                          AND a.location_id IN :container_ids
+                        GROUP BY a.location_id, a.type_id
+                        """
+                    ).bindparams(
+                        bindparam("type_ids", expanding=True),
+                        bindparam("container_ids", expanding=True),
+                    ),
+                    {
+                        "corp_kind": OWNER_CORPORATION,
+                        "corporation_id": corporation_id,
+                        "type_ids": list(type_ids),
+                        "container_ids": container_ids,
+                    },
+                )
+            ).all()
+            for item_id, type_id, quantity in rows:
+                per_container.setdefault(item_id, {})[type_id] = quantity
+        for parent, quantities in per_office.items():
+            # Loose office stock: the office's total minus its
+            # containers' contents (disjoint buckets — see docstring).
+            loose = dict(quantities)
+            for item_id, held in per_container.items():
+                if container_parent.get(item_id) == parent:
+                    for type_id, quantity in held.items():
+                        loose[type_id] = loose.get(type_id, 0) - quantity
+            loose = {t: q for t, q in loose.items() if q > 0}
+            if loose:
+                sources.append(
+                    MaterialSource(
+                        kind="office",
+                        ref=f"office:{parent}",
+                        character_id=None,
+                        location_id=parent,
+                        container_item_id=None,
+                        quantities=loose,
+                    )
+                )
+        for item_id, quantities in per_container.items():
+            if quantities:
+                sources.append(
+                    MaterialSource(
+                        kind="container",
+                        ref=f"container:{item_id}",
+                        character_id=None,
+                        location_id=container_parent.get(item_id),
+                        container_item_id=item_id,
+                        container_type_id=container_types.get(item_id),
+                        quantities=quantities,
+                    )
+                )
+    if participant_ids:
+        rows = (
+            await db.execute(
+                text(
+                    """
+                    SELECT a.owner_id, a.parent_location_id, a.type_id,
+                           sum(a.quantity)
+                    FROM assets a
+                    WHERE a.owner_type = :char_kind
+                      AND a.owner_id IN :participant_ids
+                      AND a.type_id IN :type_ids
+                    GROUP BY a.owner_id, a.parent_location_id, a.type_id
+                    """
+                ).bindparams(
+                    bindparam("participant_ids", expanding=True),
+                    bindparam("type_ids", expanding=True),
+                ),
+                {
+                    "char_kind": OWNER_CHARACTER,
+                    "participant_ids": list(participant_ids),
+                    "type_ids": list(type_ids),
+                },
+            )
+        ).all()
+        per_hangar: dict[tuple[int, int], dict[int, int]] = {}
+        for owner, parent, type_id, quantity in rows:
+            per_hangar.setdefault((owner, parent), {})[type_id] = quantity
+        for (owner, parent), quantities in per_hangar.items():
+            sources.append(
+                MaterialSource(
+                    kind="hangar",
+                    ref=f"hangar:{owner}:{parent}",
+                    character_id=owner,
+                    location_id=parent,
+                    container_item_id=None,
+                    quantities=quantities,
+                )
+            )
+    return sources
