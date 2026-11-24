@@ -16,6 +16,10 @@ this site — it contains live character and corporation names.)
 - **Port components verbatim** from mockups.css — never restyle from
   memory. The first structures pass re-invented badges, chips, and
   autocomplete with wrong values; every divergence was visible.
+- **The mockups' `.var` cyan highlight is mockup-only** (owner
+  direction, 2026-11-23): it marks computed values for design review
+  and never ships — the app does not visually mark computed vs static
+  content. Do not port it; templates carry no `.var` spans.
 - When a page uses a class the app doesn't style yet, **port it** —
   several classes shipped unstyled (`card-sub`, `sync-source`,
   `muted`) because nothing checked.
@@ -75,6 +79,31 @@ The assets-page pattern, generalized on structures:
   `confirm()` popup. The pending action is stored; Confirm submits it
   through the swap path.
 - Any fetch failure falls back to full navigation.
+- **Multi-page flows share one JS file** (the planner's entry and plan
+  pages): each page's init is a no-op when its elements are absent,
+  and one `swapMain` calls every init after a swap — dispatch on
+  element presence, never on the URL (pushState and swaps can disagree
+  mid-flight).
+
+## URL-state pages (the planner pattern)
+
+Pages whose whole input set is query params (the planner, until M6
+persists plans):
+
+- **Absence means default**: params are omitted when they equal the
+  registry/roster default (a `?manufacturing=` appears only when it
+  overrides), so a default change re-resolves honestly instead of
+  pinning stale links. Never serialize the default; always serialize
+  an explicit choice.
+- **Absent vs empty are different states** for list params: `p`
+  missing = the default participant pool; `?p=` present-but-empty =
+  an explicit empty pool. Parse from `request.query_params` — FastAPI's
+  typed list params cannot express the empty sentinel.
+- The server re-renders on every interaction (the stepper, toggles,
+  and selects rebuild the URL and swap) — the client never computes
+  derived values, it only constructs the next URL.
+- Invalid ids (a stale target, an unknown registration) degrade to the
+  default or redirect — never a 500, never trust link construction.
 
 ## Page purity and ESI
 

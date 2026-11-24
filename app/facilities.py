@@ -166,6 +166,8 @@ class RegistrationRow:
     activity: str
     structure_name: str
     structure_type: str
+    # Denormalized for the planner's join-free reads (cost index lookups).
+    system_id: int | None
     system_name: str | None
     security_class: str | None
     me_rig: str
@@ -208,6 +210,7 @@ async def registration_rows(db: AsyncSession) -> list[RegistrationRow]:
             activity=registration.activity,
             structure_name=structure.name,
             structure_type=structure.structure_type,
+            system_id=structure.system_id,
             system_name=structure.system_name,
             security_class=structure.security_class,
             me_rig=registration.me_rig,
@@ -218,6 +221,65 @@ async def registration_rows(db: AsyncSession) -> list[RegistrationRow]:
         )
         for registration, structure in rows
     ]
+
+
+async def activity_registrations(
+    db: AsyncSession, activity: str
+) -> list[RegistrationRow]:
+    """Every registration for one activity, name-ordered — the planner's
+    per-activity facility selector list."""
+    rows = (
+        await db.execute(
+            select(StructureRegistration, Structure)
+            .join(Structure, Structure.id == StructureRegistration.structure_id)
+            .where(StructureRegistration.activity == activity)
+            .order_by(Structure.name, Structure.id)
+        )
+    ).all()
+    return [
+        RegistrationRow(
+            registration_id=registration.id,
+            structure_id=structure.id,
+            activity=registration.activity,
+            structure_name=structure.name,
+            structure_type=structure.structure_type,
+            system_id=structure.system_id,
+            system_name=structure.system_name,
+            security_class=structure.security_class,
+            me_rig=registration.me_rig,
+            te_rig=registration.te_rig,
+            tax_rate=registration.tax_rate,
+            is_default=registration.is_default,
+            supercapital_assembly=structure.supercapital_assembly,
+        )
+        for registration, structure in rows
+    ]
+
+
+async def default_facilities(db: AsyncSession) -> dict[str, RegistrationRow | None]:
+    """The planner's per-activity facility default: the activity's
+    `is_default` registration, else its first registration by id (a
+    registry with defaults unset still resolves something), else None.
+    Copying falls back to the invention default when it has no own
+    registration — the recorded 2026-11-22 decision (copy jobs may run
+    elsewhere with the BPCs transported, so the two can diverge per
+    plan, but copying rarely earns a dedicated registration)."""
+    rows = await registration_rows(db)
+    by_activity: dict[str, list[RegistrationRow]] = {}
+    for row in rows:
+        by_activity.setdefault(row.activity, []).append(row)
+    defaults: dict[str, RegistrationRow | None] = {}
+    for activity in ACTIVITIES:
+        candidates = by_activity.get(activity, [])
+        default = next((row for row in candidates if row.is_default), None)
+        if default is None and candidates:
+            # registration_rows orders by name; the fallback picks the
+            # lowest registration id for stability.
+            default = min(candidates, key=lambda row: row.registration_id)
+        defaults[activity] = default
+    if defaults.get("copying") is None:
+        defaults["copying"] = defaults.get("invention")
+    return defaults
 
 
 async def import_candidates(db: AsyncSession) -> list[ImportCandidate]:

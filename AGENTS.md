@@ -42,7 +42,10 @@ Building the app surfaces described by the milestones.
   timeline formula reference — the math the planner implements),
   `reference/chains/TYPHOON-CHAIN.md` (golden values to check
   against), `docs/development/` (architecture, testing, workflow).
-- `app/industry.py` is the module the planner query layer grows in.
+- The planner's read/query layer grows in `app/industry.py` (catalog,
+  skills, world data) and `app/facilities.py` (registry reads); the
+  calculation engine and M5's chain resolver live in `app/planner.py`.
+  The public world-state syncs (M15 band) live in `app/esi/world.py`.
 
 ### Reference / model work
 

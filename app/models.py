@@ -342,3 +342,32 @@ class StructureRegistration(Base, TimestampMixin):
     tax_rate: Mapped[float | None] = mapped_column(Float, nullable=True)
     is_default: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
+
+class CostIndex(Base, TimestampMixin):
+    """One system's industry cost index for one activity, verbatim from
+    ESI's /industry/systems/ payload (M15's public sync band; M4's
+    install-cost input). The activity string is ESI's own enum
+    ("manufacturing", "reaction", …), stored verbatim — mapping to the
+    registry's activity keys is a query-layer concern. Replaced wholesale
+    on every sync."""
+
+    __tablename__ = "cost_indices"
+
+    system_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    activity: Mapped[str] = mapped_column(String(32), primary_key=True)
+    cost_index: Mapped[float] = mapped_column(Float, nullable=False)
+
+
+class MarketPrice(Base, TimestampMixin):
+    """One type's global adjusted/average price, verbatim from ESI's
+    /markets/prices/ payload (M15's public sync band). Either price can
+    be absent — ESI omits average_price on ~2k types — so consumers
+    (M4's install-cost base value) degrade rather than crash. Replaced
+    wholesale on every sync."""
+
+    __tablename__ = "market_prices"
+
+    type_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    adjusted_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    average_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+

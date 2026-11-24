@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block title %}soliton — build plan{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><img class="type-icon" style="width:32px;height:32px;" src="{{ type_icon_url(plan.recipe.type_id, 32) }}" alt=""> Build Plan — {{ plan.recipe.type_name }} ×{{ '{:,}'.format(qty) }}</h1>
+  <div class="actions">
+    <span class="badge plan-state" title="A plan activates when its first job installs (M6, when plans persist) and completes when every leaf node is delivered.">Draft</span>
+    <a class="icon-button" href="{{ planner_href }}" title="Re-run planner" aria-label="Re-run planner">⟳</a>
+  </div>
+</div>
+
+<!-- Summary tiles -->
+<div class="stats">
+  <div class="stat">
+    <p class="stat-value">{{ '{:,}'.format(plan.runs) }}</p>
+    <p class="stat-label">Runs · {{ plan.jobs }} job{{ 's' if plan.jobs != 1 }} at {{ plan.recipe.products_per_run }} per run</p>
+  </div>
+  <div class="stat">
+    <p class="stat-value">{{ format_duration(plan.job_seconds) }}</p>
+    <p class="stat-label">One job ({{ format_duration(plan.total_seconds) }} all jobs, serial)</p>
+  </div>
+  <div class="stat">
+    <p class="stat-value">{{ format_isk(plan.install.total) }}</p>
+    <p class="stat-label">Install cost — base {{ format_isk(plan.install.base_value) }} × index{% if plan.install.missing_types %} · {{ plan.install.missing_types }} unpriced input{{ 's' if plan.install.missing_types != 1 }}{% endif %}</p>
+  </div>
+  <div class="stat">
+    <p class="stat-value">{{ plan.materials | length }}</p>
+    <p class="stat-label">Direct input types · {{ plan.intermediates | length }} buildable · {{ plan.raw | length }} raw</p>
+  </div>
+</div>
+
+<!-- Reverse chain -->
+<h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse chain</h2>
+<p class="meta-line" style="margin: 0 0 0.75rem;">The target's direct inputs, one level deep — the full chain resolves at M5. Runs and quantities are computed at the selected facility and blueprint (ME {{ plan.me }} / TE {{ plan.te }}).</p>
+
+<details class="phase-row" open>
+  <summary>
+    <span class="phase-title">Inputs — direct</span>
+    <span class="phase-count">{{ plan.materials | length }} types</span>
+    <span class="summary-right">
+      <span class="stage-state {{ 'ready' if plan.intermediates | length == (plan.materials | length - plan.raw | length) else 'missing' }}">{{ plan.intermediates | length }} buildable · {{ plan.raw | length }} raw</span>
+    </span>
+  </summary>
+  <div class="phase-body">
+    {% for material in plan.materials %}
+    <div class="node-row">
+      <img class="type-icon" src="{{ type_icon_url(material.type_id, 32) }}" alt="">
+      <span class="node-name">{{ material.name }}</span>
+      <span class="node-qty">×{{ '{:,}'.format(material.required_qty) }}</span>
+      <span class="node-runs">{% if material.buildable %}{{ '{:,}'.format((plan.intermediates | selectattr('type_id', 'equalto', material.type_id) | list)[0].runs) }} runs{% else %}raw material{% endif %}</span>
+    </div>
+    {% endfor %}
+  </div>
+</details>
+
+<details class="phase-row" open>
+  <summary>
+    <span class="phase-title">Target — {{ plan.recipe.type_name }}</span>
+    <span class="activity-tag {{ 'mfg' if plan.activity_key == 'manufacturing' else 'rxn' }}">{{ plan.activity_key }}</span>
+    <span class="phase-count">{{ '{:,}'.format(plan.runs) }} runs</span>
+    <span class="summary-right">
+      {% if plan.selected %}<span class="badge owned">{{ 'BPO' if plan.has_original else 'BPC' }} · ME {{ plan.me }} / TE {{ plan.te }}</span>{% else %}<span class="badge missing">Blueprint not owned</span>{% endif %}
+    </span>
+  </summary>
+  <div class="phase-body">
+    <div class="node-row">
+      <img class="type-icon" src="{{ type_icon_url(plan.recipe.type_id, 32) }}" alt="">
+      <span class="node-name">{{ plan.recipe.type_name }}</span>
+      <span class="node-qty">×{{ '{:,}'.format(qty) }}</span>
+      <span class="node-runs">{{ '{:,}'.format(plan.runs) }} runs · {{ plan.jobs }} job{{ 's' if plan.jobs != 1 }} · max {{ plan.max_production_limit or '—' }} per job</span>
+    </div>
+  </div>
+</details>
+
+<!-- Required blueprints -->
+<h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Required blueprints</h2>
+{% set owned_count = (1 if plan.recipe.owned else 0) + (plan.intermediates | selectattr('owned') | list | length) %}
+{% set bp_total = 1 + plan.intermediates | length %}
+<p class="meta-line" style="margin: 0 0 0.75rem;">{% if owned_count == bp_total %}<span style="color: var(--green);">✓ {{ owned_count }} / {{ bp_total }} blueprints owned</span> — nothing to acquire.{% else %}<span style="color: var(--pink);">{{ owned_count }} / {{ bp_total }} blueprints owned</span> — missing blueprints default to acquiring BPCs off contract (the contract scan is M15).{% endif %}</p>
+
+<table class="asset-table">
+  <thead>
+    <tr>
+      <th>Blueprint</th>
+      <th>Activity</th>
+      <th>Status</th>
+      <th>Best owned</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="group-row"><td colspan="4">Target</td></tr>
+    <tr>
+      <td><img class="type-icon" src="{{ type_icon_url(plan.recipe.blueprint_type_id, 32, 'bpc') }}" alt="">{{ plan.recipe.blueprint_name }}</td>
+      <td><span class="activity-tag {{ 'mfg' if plan.activity_key == 'manufacturing' else 'rxn' }}">{{ plan.activity_key }}</span></td>
+      <td>{% if plan.recipe.owned %}<span class="badge owned">Owned · {{ 'BPO' if plan.has_original else 'BPC only' }}</span>{% else %}<span class="badge missing">Missing</span>{% endif %}</td>
+      <td class="muted">{% if plan.selected %}{{ 'BPO · ME ' + (plan.selected.material_efficiency | string) + ' / TE ' + (plan.selected.time_efficiency | string) if plan.has_original else (plan.recipe.owned | length | string) + ' BPCs · ' + (plan.bpc_pool_runs | string) + ' runs · best ME ' + (plan.me | string) }}{% if not plan.has_original and plan.bpc_pool_runs is not none and plan.bpc_pool_runs < plan.runs %} — short of the {{ plan.runs }}-run need{% endif %}{% else %}—{% endif %}</td>
+    </tr>
+    {% if plan.intermediates %}
+    <tr class="group-row"><td colspan="4">Inputs</td></tr>
+    {% for intermediate in plan.intermediates %}
+    <tr>
+      <td><img class="type-icon" src="{{ type_icon_url(intermediate.blueprint_type_id, 32, 'bpc') }}" alt="">{{ intermediate.blueprint_name }}</td>
+      <td><span class="activity-tag {{ 'mfg' if intermediate.activity_id == 1 else 'rxn' }}">{{ 'manufacture' if intermediate.activity_id == 1 else 'reaction' }}</span></td>
+      <td>{% if intermediate.owned %}<span class="badge owned">Owned</span>{% else %}<span class="badge missing">Missing</span>{% endif %}</td>
+      <td class="muted">{% if intermediate.best_owned %}{{ 'BPO · ME ' + (intermediate.best_owned.material_efficiency | string) + ' / TE ' + (intermediate.best_owned.time_efficiency | string) if intermediate.best_owned.is_original else 'BPC ×' + ((plan.intermediates | selectattr('type_id', 'equalto', intermediate.type_id) | list)[0].bpc_runs | string) + ' runs' }}{% else %}—{% endif %}</td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+  </tbody>
+</table>
+
+<!-- Materials -->
+<h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Materials</h2>
+<p class="meta-line" style="margin: 0 0 0.75rem;">Base quantity per run × {{ '{:,}'.format(plan.runs) }} runs, adjusted for blueprint ME {{ plan.me }}{% if multiplies.facility %}, {{ multiplies.facility.structure_name }} material hull{% if multiplies.rig_me %} and ME rig −{{ '{:.1f}'.format(multiplies.rig_me) }}%{% endif %}{% endif %} — rounded once, at the end of the chain.</p>
+
+<table class="asset-table">
+  <thead>
+    <tr>
+      <th>Material</th>
+      <th class="num">Per run</th>
+      <th class="num">× Runs</th>
+      <th class="num">Required</th>
+      <th>Builds from</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for material in plan.materials %}
+    <tr>
+      <td><img class="type-icon" src="{{ type_icon_url(material.type_id, 32) }}" alt="">{{ material.name }}</td>
+      <td class="num">{{ '{:,}'.format(material.base_qty) }}</td>
+      <td class="num">{{ '{:,}'.format(plan.runs) }}</td>
+      <td class="num qty">{{ '{:,}'.format(material.required_qty) }}</td>
+      <td class="muted">{% if material.buildable %}{{ (plan.intermediates | selectattr('type_id', 'equalto', material.type_id) | list)[0].blueprint_name }}{% else %}raw — acquire (coverage lands at M5){% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- Time -->
+<h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Time</h2>
+<p class="meta-line" style="margin: 0 0 0.75rem;">Per-run duration {{ format_duration(plan.recipe.duration_seconds or 0) }} × {{ '{:,}'.format(plan.runs) }} runs × TE {{ plan.te }}%{% if multiplies.facility %} × hull −{{ '{:.0f}'.format((1 - multiplies.hull_time) * 100) }}%{% if multiplies.rig_te %} × TE rig −{{ '{:.1f}'.format(multiplies.rig_te) }}%{% endif %}{% endif %} × skill multiplier — assignment is M9's; the readout names whose multiplier it used.</p>
+
+<table class="asset-table">
+  <thead>
+    <tr>
+      <th>Participant</th>
+      <th>Gate</th>
+      <th class="num">Multiplier</th>
+      <th class="num">One job</th>
+      <th class="num">All jobs (serial)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in plan.participant_times %}
+    <tr>
+      <td><img class="type-icon" src="{{ portrait_url(row.character_id, 32) }}" alt="">{{ row.name }}</td>
+      <td>{% if row.holds_gate %}<span class="badge owned">holds</span>{% else %}<span class="badge missing">missing {{ row.missing_skills | join(', ') }}</span>{% endif %}</td>
+      <td class="num">{{ '{:.3f}'.format(row.multiplier) }}</td>
+      <td class="num">{{ format_duration(row.job_seconds) }}</td>
+      <td class="num">{{ format_duration(row.total_seconds) }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" class="muted">No participants in the pool — include corp members on the planner.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<p class="meta-line" style="margin: 0.5rem 0 0;">
+  Copy time for {{ plan.recipe.blueprint_name }}: {% if plan.copy_seconds_per_run %}{{ format_duration(plan.copy_seconds_per_run) }} per run · {{ format_duration(plan.copy_total_seconds) }} for {{ '{:,}'.format(plan.runs) }} runs at the {{ plan.copy_facility.structure_name if plan.copy_facility else 'station baseline' }}{% if not plan.has_original %} — no original owned, so copying is unavailable for this type (the plan draws from owned BPCs){% endif %}.{% else %}no copy duration in the SDE for this blueprint.{% endif %}
+</p>
+
+<!-- Raw materials -->
+{% if plan.raw %}
+<h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Raw materials</h2>
+<p class="meta-line" style="margin: 0 0 0.75rem;">The chain's direct terminators by category — the full chain's terminators and the availability meters land at M5.</p>
+
+<table class="asset-table">
+  <thead>
+    <tr>
+      <th>Category</th>
+      <th class="num">Types</th>
+      <th>Largest requirement</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for label, materials in raw_groups %}
+    {% set largest = materials | sort(attribute='required_qty') | list %}
+    <tr>
+      <td>{{ label }}</td>
+      <td class="num">{{ materials | length }}</td>
+      <td class="muted">{{ largest[-1].name }} {{ '{:,}'.format(largest[-1].required_qty) }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<p class="meta-line" style="margin-top: 1.25rem;">
+  Depth-1 plan — waves, job allocation, the market panel, and the full
+  chain are their own milestones' surfaces.
+  <a href="{{ planner_href }}">← back to planner</a>
+</p>
+{% endblock %}
+{% block page_scripts %}
+<script src="/static/planner.js?v={{ static_version }}"></script>
+{% endblock %}
