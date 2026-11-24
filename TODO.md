@@ -177,6 +177,14 @@ LICENSE**; this item aligns everything around it.
 
 ## Smaller items / ideas
 
+- **Plan-of-Plans overview** (owner note, M6 schema review 2026-11-24):
+  a single overview aligning all rostered characters and job
+  requirements across every existing plan — a Gantt-chart style of
+  upcoming jobs, pre-aligned to the plans the M6 one-claim job
+  correlation has pinned jobs to (a job installs against one plan
+  only, so the overview reads the pins, never re-matches). Future
+  milestone investigation — M9's scheduling surfaces and M11's DAG
+  visualization are the natural homes.
 - **Planner UI a11y (accessibility; from mockup iteration, 2026-11-18)** — rides
   M4's planner-entry implementation (2026-11-22 fold-in note): the Purchase ⇄
   Build chip is a `cursor: pointer` span in the wireframes but must ship as
