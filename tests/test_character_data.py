@@ -450,11 +450,13 @@ async def test_skills_page_overview_and_sheet(client, db_session):
     assert "Alpha Pilot" in response.text
     assert "2 skills" in response.text
     assert "346,510" in response.text  # summed skillpoints
-    assert "Industry" not in response.text  # sheet hidden in the overview
+    # Sheet hidden in the overview — "Advanced Industry" is the sentinel
+    # because the nav group is itself named "Industry".
+    assert "Advanced Industry" not in response.text
 
     response = await client.get(f"/skills?char={ALPHA}")
     assert response.status_code == 200
-    assert "Industry" in response.text
+    assert "Advanced Industry" in response.text
     assert "Advanced Industry" in response.text
     assert "V" in response.text
     # Trained IV with an active implant boost reads distinctly.

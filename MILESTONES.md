@@ -66,12 +66,14 @@ paid contracts), or **pick a better target**.
 | M2 — SDE foundation & blueprint catalog | ✅ **Complete** (PRs #15–#17 + #85, 2026-11-22/23) |
 | Mockup program | ✅ **Complete — 13 of 13** (2026-11-22): ten chain sets (Typhoon → Ragnarok) + the refinement pass + three surfaces (structures M3, markets M15, capability M12); the 2026-11-22 conventions (facilities/markets selection, market panels, wave paging, Ƶ, static scaffolding, variable-content marking) cover every page |
 | M3 — structure manager | ✅ **Complete** (PR #86) — registry, multipliers pinned from live dogma, Build Planner nav (2026-11-23) |
-| M4+ | Not started |
+| M4 — planner: single-BP calc | 🚧 **In review** (branch `m4-planner`) — depth-1 planner + build plan, M15 framework slice soaking |
+| M5+ | Not started |
 
-**Pick up at**: **M4 — the planner** (single-blueprint calculation),
-consuming M2's catalog query layer and M3's facility defaults; per the
-order of operations below, **M15's framework slice + The Forge seed
-start now** so the sync band soaks while M4/M5/M6 build.
+**Pick up at**: review/land **M4** (branch `m4-planner`), then **M5 —
+chain resolution** (deepens the planner's depth-1 requirement tiers to
+the full recursive chain, test-first against the ten chain anchors);
+the M15 framework slice + light families are already soaking (cost
+indices + market prices, hourly).
 
 **Order of operations** (refined 2026-11-22, final pre-implementation
 evaluation): the spine holds (M2 → M4 → M5 → M6 → M9) with three
@@ -636,6 +638,14 @@ Two consequences worth stating outright:
   structure holds it today, so Hel/Ragnarok plans surface it as an
   acquisition gap on the final hull job. (M3; surfaced by
   HEL-CHAIN / RAGNAROK-CHAIN.)
+- **Nav structure: Industry today, a Market parent later**
+  (2026-11-23, owner direction): the planner-track nav group is
+  **Industry** (Structures · Planner · Plans at M6 — fanned out to
+  the mockup sidebars the same day). When the market surfaces
+  arrive, they get **their own "Market" parent header** (the M15
+  sync panel / market manager, M10's analysis surfaces) rather than
+  nesting under Industry — the markets mockup already carries a
+  flat Markets link as its placeholder.
 
 ---
 
@@ -1237,7 +1247,9 @@ real numbers. This and M5 are the substrate the M9 distribution engine
 consumes — the per-node skill and time math decided here is what the
 assignment weighting later multiplies against.*
 
-**Scope**
+**Scope** (original; the landed-as notes below supersede where they
+conflict — the 2026-11-20 commodity-first decision reshaped the entry
+after this text was written)
 
 - Planner entry: search + select a blueprint — from owned blueprints
   (pre-filled ME/TE from the `blueprints` table) or from the SDE catalog
@@ -1275,6 +1287,102 @@ assignment weighting later multiplies against.*
 **Validation**: a known Typhoon BPO at ME 10 in a defined Azbel
 reproduces hand-checkable material counts, time, and install cost
 against in-game numbers.
+
+**Landed as (branch `m4-planner`, 2026-11-23 — product-owner review
+pending)**
+
+- **Scope calls settled at pickup**: the requirement tiers resolve at
+  **depth-1** (the selected commodity's direct inputs — producer
+  blueprint, buildable inputs as intermediates, terminator inputs as
+  raw; M5's resolver deepens the same tiers); Calculate navigates to a
+  **minimal build-plan page** (build-plan.html's vocabulary at
+  depth-1 — page-header, stat tiles, phase-row/node-row tree, required
+  blueprints, adjusted materials, per-participant time, copy-time
+  readout; wave bar / copy plan / market panel / job allocation are
+  their own milestones'); the **M15 framework slice + the two light
+  families** (cost indices, market prices) landed so install cost
+  computes real numbers; the **sell-side market selector is omitted**
+  until M15's market manager exists.
+- **The calculation engine is `app/planner.py`** — a pure section
+  (run/job math, the material and time multiplier chains, install
+  cost, copy time, skill multipliers, blueprint selection; hermetic
+  golden-value tests) plus the `depth1_plan` orchestrator both pages
+  consume. Query reads split by ownership: registry reads in
+  `app/facilities.py` (`activity_registrations`, `default_facilities`
+  — copying falls back to the invention default), SDE/world/skill
+  reads in `app/industry.py` (`active_skill_levels`,
+  `adjusted_prices`, `cost_index`, `material_categories`,
+  `catalog_size`, `commodity_recipe.copy_duration_seconds`).
+- **Skill→time mapping pinned from live ESI dogma (2026-11-23)**,
+  correcting the reference model's unverified assumption: Industry
+  (3380, dogma attribute 440 `manufacturingTimeBonus`) −4%/level
+  manufacturing only; Advanced Industry (**3388** — not 22242, which
+  is Capital Ship Construction; dogma attribute 1961
+  `advancedIndustrySkillIndustryJobTimeBonus`) −3%/level on ALL
+  industry job times (manufacturing, copying, invention, TE/ME
+  research — reactions untouched). Multiplicative stacking confirmed:
+  Industry 5 + AI 5 = 0.68, the reference's max-skills scenario.
+  **Active** skill levels (implants/boosters) are the deliberate pick.
+  The reference model's "copy times unadjusted" was wrong — copying
+  carries the AI bonus per its dogma effects.
+- **Blueprint selection: originals first** (unlimited runs), then best
+  ME, ties → TE; BPC-only pools surface the **run-coverage shortfall**
+  (Σ BPC runs vs required runs). The full multi-copy policy stays
+  parked at M5. ME/TE URL overrides exist for hand-checking the math
+  (no mockup control — derived-from-best-owned is the UI behavior).
+- **The planner is stateless in URL params** (nothing persists until
+  M6): `target`, `qty` (server-clamped), `owned` (Match From
+  Inventory), `me`/`te` (absent = derived), `p` (absent = the main's
+  corp members; present-even-empty = an explicit pool — links never
+  serialize the default set), per-activity registration ids (absent =
+  the registry default, so a registry edit re-resolves honestly).
+  Invalid targets redirect to the bare planner. Out-of-corp roster
+  characters render as individual Include rows (the promoted
+  Panther-set shape).
+- **M15 framework slice (`app/esi/world.py`)**: the public-endpoint
+  sync category (no scopes or role gates — status only ok/error,
+  keyed on the "public" owner), ETag-cached, snapshot-replace-last,
+  its own `world_sync_loop` (the character tick early-returns on an
+  empty roster — public data must sync regardless; hourly by default).
+  `/industry/systems/` (5,485 systems × 6 verbatim activity strings —
+  the enum pinned live: `copying, invention, manufacturing, reaction,
+  researching_*`) and `/markets/prices/` (16,234 types; average_price
+  absent on ~2k — columns nullable, consumers degrade). Both landed
+  **soaking live** on the dev deployment. `GET /admin/sync` is the
+  status surface (the seed of M15's Observability page).
+- **Raw-material classification** via sde_invGroups/invCategories
+  with a name-list fallback for the SDE's known misfilings (Morphite),
+  labels pinned against the live mirror — M5-shared query work
+  (category → the mockup's tier-3 labels).
+- **Flagged for the owner's in-game hand-check** (the M4 exit
+  criterion): the install-cost formula bills the **un-ME-adjusted**
+  base quantities (Σ base × adjusted price × index × EC hull cost
+  bonus × (1 + tax)) per community documentation — if the in-game
+  Typhoon number disagrees, the fix is one line in `app/planner.py`;
+  job-time rounding to the second at the end of the chain; possible
+  SCC surcharge not modeled (not in the milestone formula either).
+- **Owner review adjustments (2026-11-23, first pass)**: the
+  mockups' `.var` cyan highlight is **mockup-only** and never ships —
+  the app does not visually mark computed values (recorded in
+  ui-conventions); autocomplete rows render as full-width rows
+  without button chrome (they are `<button>`s for keyboard
+  navigation, which had picked up the generic green button border and
+  shrink-to-fit widths); the Plan-facilities panel uses an even-width
+  grid variant (`.form-grid.even`) rather than the registry form's
+  proportional columns; the nav group renamed **"Build Planner" →
+  "Industry"** with order Structures · Planner (owner direction),
+  fanned out to every mockup sidebar the same day.
+- Validation: `tests/test_planner_math.py` (16 golden-value cases —
+  the multiplier chains, round-half-up at the chain's end, the
+  run-coverage and selection rules), `tests/test_planner_plan.py`
+  (13 — the orchestrator over the catalog fixture extended with
+  facilities/skills/world data: tier split, default pool, gates,
+  copying fallback, unowned defaults), `tests/test_planner_routes.py`
+  (12 — auth gates, search feed, URL-state semantics),
+  `tests/test_world_sync.py` (5 — cold pull, ETag revalidation, error
+  preservation, never-raising tick, admin surface); full suite 224
+  passed; migration 0010 up/down/up clean; live soak verified against
+  real ESI.
 
 ---
 
@@ -1425,11 +1533,17 @@ reality over time.*
   acquisition node (**split** — currency balances + offer variants
   in v1, the TFI-designed surfaces; the corp-LP curated workflow
   deferred to M16); the skill-plan calculator (**deferred to M13** —
-  it is the fork branch). Also carries the plan home: Corporation →
-  Jobs grows into the planner's plan home (review, tracking,
-  management — delete, copy-for-reuse after completion; the navbar
-  fold-in). These widen M6's surface without changing the
-  dependency structure.
+  it is the fork branch). Also carries the plan home. **The plan home
+  is its own "Plans" section under the Industry nav group**
+  (supersedes the earlier "Corporation → Jobs grows into the plan
+  home" direction, re-decided 2026-11-23: plans span personal and
+  corporate pools while the Corporation nav is corp-scoped, and the
+  Jobs pages are ESI mirrors of installed jobs — the plan/join story
+  renders on the plan detail's nodes, so Corporation → Jobs stays a
+  pure mirror view). The nav lands with M6's first page: Industry →
+  Structures · Planner · **Plans** (flat children for now; deeper
+  nesting under Planner only if more Planner children emerge). These
+  widen M6's surface without changing the dependency structure.
 
 **Schema sketch**
 

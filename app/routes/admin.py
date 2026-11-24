@@ -1,4 +1,4 @@
-"""Admin section: SDE data status and controls.
+"""Admin section: SDE data status and controls, public-sync status.
 
 The SDE mirror is administrator-controlled: a background loop checks the
 published dump MD5 at most once per configured interval and
@@ -8,14 +8,28 @@ control surface: the initial Import now, the interval-bypassing Check
 now, pause/resume of the automation, and a stop for a running
 import. Single-user app today: the session gate is the only access
 control (local accounts are a TODO platform item).
+
+The public world-state syncs (cost indices, market prices — M15's
+framework slice) get their status surface here: one row per family with
+its last outcome and row counts, plus a Sync now. This is deliberately
+the seed of M15's Admin > Observability page; the heavier families join
+the same view when they land.
 """
 
 import asyncio
 
 from fastapi import APIRouter, Request
 from fastapi.responses import RedirectResponse
+from sqlalchemy import func, select
 
-from ..deps import is_authenticated
+from ..deps import DbDep, is_authenticated
+from ..esi.world import (
+    KIND_COST_INDICES,
+    KIND_MARKET_PRICES,
+    public_sync_rows,
+    world_sync_tick,
+)
+from ..models import CostIndex, MarketPrice
 from ..sde import (
     check_and_import,
     ensure_sde_meta,
@@ -123,3 +137,75 @@ async def admin_sde_stop(request: Request):
         return RedirectResponse("/", status_code=303)
     request_cancel()
     return RedirectResponse("/admin/sde", status_code=303)
+
+
+# Public world-state syncs: family display metadata for the status page.
+_SYNC_FAMILIES = {
+    KIND_COST_INDICES: {
+        "label": "Cost indices",
+        "source": "/industry/systems/ · every system × activity",
+    },
+    KIND_MARKET_PRICES: {
+        "label": "Market prices",
+        "source": "/markets/prices/ · global adjusted/average per type",
+    },
+}
+
+
+@router.get("/admin/sync")
+async def admin_sync_page(request: Request, db: DbDep):
+    """Public-sync status: one row per family with its last outcome and
+    current row counts, plus a Sync now. DB-pure like every render."""
+    if not is_authenticated(request):
+        return RedirectResponse("/", status_code=302)
+    rows = await public_sync_rows(db)
+    by_kind = {row.kind: row for row in rows}
+    families = []
+    for kind, meta in _SYNC_FAMILIES.items():
+        sync = by_kind.get(kind)
+        if kind == KIND_COST_INDICES:
+            count = (
+                await db.execute(select(func.count()).select_from(CostIndex))
+            ).scalar_one()
+        else:
+            count = (
+                await db.execute(select(func.count()).select_from(MarketPrice))
+            ).scalar_one()
+        families.append(
+            {
+                "kind": kind,
+                "label": meta["label"],
+                "source": meta["source"],
+                "status": sync.status if sync else "never",
+                "detail": sync.detail if sync else None,
+                "synced_at": sync.synced_at if sync else None,
+                "count": count,
+            }
+        )
+    return templates.TemplateResponse(
+        request,
+        "admin_sync.html",
+        {
+            "authenticated": True,
+            "active": "admin-sync",
+            "families": families,
+            "interval_minutes": request.app.state.settings.world_sync_interval_minutes,
+        },
+    )
+
+
+@router.post("/admin/sync/run")
+async def admin_sync_run(request: Request):
+    """Sync now: one public-sync pass in the background (both families,
+    same engine as the loop — ETags make an early revalidation cheap)."""
+    if not is_authenticated(request):
+        return RedirectResponse("/", status_code=303)
+    app = request.app
+
+    async def run() -> None:
+        await world_sync_tick(
+            app.state.session_factory, app.state.http, app.state.settings
+        )
+
+    app.state.world_sync_task = asyncio.create_task(run())
+    return RedirectResponse("/admin/sync", status_code=303)

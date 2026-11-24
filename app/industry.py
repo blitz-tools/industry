@@ -8,7 +8,7 @@ slot ceilings.
 from dataclasses import dataclass
 from datetime import datetime
 
-from sqlalchemy import String, and_, cast, func, literal, select, text
+from sqlalchemy import String, and_, bindparam, cast, func, literal, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
@@ -17,8 +17,10 @@ from .models import (
     Asset,
     Blueprint,
     Character,
+    CostIndex,
     DataSync,
     IndustryJob,
+    MarketPrice,
     Skill,
     UniverseLocation,
     UniverseType,
@@ -616,7 +618,8 @@ class RecipeSkill:
 class CommodityRecipe:
     """Everything the M4 calculator needs for one selected commodity:
     the producing blueprint, its per-run inputs and skills, the activity
-    duration, and the owned-blueprint overlay (ME/TE/runs per copy)."""
+    duration, the per-run copy duration (activity 5 — M4's copy-time
+    math), and the owned-blueprint overlay (ME/TE/runs per copy)."""
 
     type_id: int
     type_name: str
@@ -627,6 +630,7 @@ class CommodityRecipe:
     products_per_run: int
     max_production_limit: int | None
     duration_seconds: int | None  # None: no industryActivity row
+    copy_duration_seconds: int | None  # activity 5; None: not copyable
     materials: list[RecipeMaterial]
     skills: list[RecipeSkill]
     owned: list[BlueprintRow]
@@ -728,6 +732,25 @@ async def search_catalog(
     ]
 
 
+async def catalog_size(db: AsyncSession) -> int:
+    """The buildable catalog's live size (the census membership rule,
+    counted at query time — never referenced as a constant; whatever
+    the current SDE release holds)."""
+    return (
+        await db.execute(
+            text(
+                f"""
+                SELECT count(*) FROM (
+                    SELECT DISTINCT p.productTypeID
+                    FROM sde_industryActivityProducts p
+                    WHERE p.activityID IN {CATALOG_ACTIVITIES}
+                )
+                """
+            )
+        )
+    ).scalar_one()
+
+
 async def commodity_recipe(db: AsyncSession, type_id: int) -> CommodityRecipe | None:
     """The full recipe read for one buildable commodity: producer
     blueprint (prefer-published first row), per-run materials flagged for
@@ -782,6 +805,17 @@ async def commodity_recipe(db: AsyncSession, type_id: int) -> CommodityRecipe | 
                 " WHERE typeID = :bp AND activityID = :activity"
             ),
             {"bp": bp_type_id, "activity": activity_id},
+        )
+    ).scalar_one_or_none()
+    # Per-run copy time (SDE activity 5) for the copy-time math; a
+    # blueprint with no copying row is not copyable.
+    copy_duration = (
+        await db.execute(
+            text(
+                "SELECT time FROM sde_industryActivity"
+                " WHERE typeID = :bp AND activityID = 5"
+            ),
+            {"bp": bp_type_id},
         )
     ).scalar_one_or_none()
 
@@ -850,6 +884,7 @@ async def commodity_recipe(db: AsyncSession, type_id: int) -> CommodityRecipe | 
         products_per_run=products_per_run,
         max_production_limit=max_production_limit,
         duration_seconds=duration,
+        copy_duration_seconds=copy_duration,
         materials=materials,
         skills=skills,
         owned=owned,
@@ -922,3 +957,119 @@ async def owned_blueprints_for_type(
         for (item_id, type_id, name, me, te, runs, location_name, flag, owner)
         in rows_raw
     ]
+
+
+# ---------------------------------------------------------------------------
+# Planner read helpers (M4) — skills, world data, and raw-material
+# classification. Same layer rules as the catalog section: pure DB reads,
+# interpretation lives with the consumer (app/planner.py).
+# ---------------------------------------------------------------------------
+
+# Registry activity key → ESI's /industry/systems/ activity string
+# (pinned from a live response 2026-11-23: copying, invention,
+# manufacturing, reaction, researching_material_efficiency,
+# researching_time_efficiency — the mirror stores these verbatim).
+COST_INDEX_ACTIVITIES: dict[str, str] = {
+    "manufacturing": "manufacturing",
+    "copying": "copying",
+    "invention": "invention",
+    "reactions": "reaction",
+}
+
+
+async def active_skill_levels(
+    db: AsyncSession, character_ids: list[int]
+) -> dict[int, dict[int, int]]:
+    """Active skill levels (implants/boosters included — what gameplay
+    math sees, the deliberate M4 pick) for a set of characters, keyed
+    {character_id: {skill_id: level}}. Characters with no synced sheet
+    simply key an empty dict."""
+    if not character_ids:
+        return {}
+    rows = (
+        await db.execute(
+            select(Skill.owner_id, Skill.skill_id, Skill.active_skill_level).where(
+                Skill.owner_type == OWNER_CHARACTER,
+                Skill.owner_id.in_(character_ids),
+            )
+        )
+    ).all()
+    levels: dict[int, dict[int, int]] = {cid: {} for cid in character_ids}
+    for owner_id, skill_id, level in rows:
+        levels[owner_id][skill_id] = level
+    return levels
+
+
+async def adjusted_prices(
+    db: AsyncSession, type_ids: list[int]
+) -> dict[int, float | None]:
+    """Adjusted base prices (ESI /markets/prices/, synced by the world
+    band) for a set of types. Types with no synced price (or a null
+    adjusted_price) key None — the install-cost math degrades on them
+    rather than crashing."""
+    if not type_ids:
+        return {}
+    rows = (
+        await db.execute(
+            select(MarketPrice.type_id, MarketPrice.adjusted_price).where(
+                MarketPrice.type_id.in_(type_ids)
+            )
+        )
+    ).all()
+    prices = {type_id: None for type_id in type_ids}
+    for type_id, adjusted in rows:
+        prices[type_id] = adjusted
+    return prices
+
+
+async def cost_index(
+    db: AsyncSession, system_id: int | None, activity_key: str
+) -> float | None:
+    """One system's cost index for a registry activity key. None when
+    the system is unknown or the world band has not synced it — the
+    install-cost readout degrades, never crashes."""
+    if system_id is None:
+        return None
+    esi_activity = COST_INDEX_ACTIVITIES.get(activity_key)
+    if esi_activity is None:
+        return None
+    return (
+        await db.execute(
+            select(CostIndex.cost_index).where(
+                CostIndex.system_id == system_id,
+                CostIndex.activity == esi_activity,
+            )
+        )
+    ).scalar_one_or_none()
+
+
+async def material_categories(
+    db: AsyncSession, type_ids: list[int]
+) -> dict[int, tuple[str | None, str | None]]:
+    """(category_name, group_name) for a set of types via the SDE's
+    invGroups/invCategories — the raw-material classification M4's tier
+    view groups by and M5's terminator table reuses. Types the mirror
+    lacks (or with no group) key (None, None); the display layer falls
+    back to a name-list for the catch-all groups (the reference model's
+    lesson: 'Commodities' and 'Mineral' hide members that belong
+    elsewhere)."""
+    if not type_ids:
+        return {}
+    rows = (
+        await db.execute(
+            text(
+                """
+                SELECT t.typeID, c.categoryName, g.groupName
+                FROM sde_invTypes t
+                LEFT JOIN sde_invGroups g ON g.groupID = t.groupID
+                LEFT JOIN sde_invCategories c ON c.categoryID = g.categoryID
+                WHERE t.typeID IN :type_ids
+                """
+            ).bindparams(bindparam("type_ids", expanding=True)),
+            {"type_ids": list(type_ids)},
+        )
+    ).all()
+    categories = {type_id: (None, None) for type_id in type_ids}
+    for type_id, category_name, group_name in rows:
+        categories[type_id] = (category_name, group_name)
+    return categories

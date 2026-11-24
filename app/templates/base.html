@@ -23,10 +23,11 @@
       <div class="nav-group" id="nav-planner-group">
         <button class="nav-group-toggle" type="button" aria-controls="nav-planner"
                 aria-expanded="{{ 'true' if planner_active else 'false' }}">
-          Build Planner
+          Industry
         </button>
         <div class="nav-group-items" id="nav-planner"{% if not planner_active %} hidden{% endif %}>
           <a href="/structures"{% if active == 'structures' %} class="active" aria-current="page"{% endif %}>Structures</a>
+          <a href="/planner"{% if active == 'planner' %} class="active" aria-current="page"{% endif %}>Planner</a>
         </div>
       </div>
       {% set char_active = active is defined and active in ('characters', 'assets', 'blueprints', 'skills', 'jobs') %}
@@ -65,6 +66,7 @@
         </button>
         <div class="nav-group-items" id="nav-admin"{% if not admin_active %} hidden{% endif %}>
           <a href="/admin/sde"{% if active == 'admin-sde' %} class="active" aria-current="page"{% endif %}>SDE Data</a>
+          <a href="/admin/sync"{% if active == 'admin-sync' %} class="active" aria-current="page"{% endif %}>Sync Status</a>
         </div>
       </div>
     </nav>

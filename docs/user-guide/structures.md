@@ -1,6 +1,6 @@
 # Structures
 
-The facility registry under **Build Planner → Structures**: where industry
+The facility registry under **Industry → Structures**: where industry
 happens, and what multiplies. Every planner calculation is per-facility —
 material and time bonuses from rigs and hulls, tax on install cost — so
 the registry is the user-state side of that math (the SDE and market syncs

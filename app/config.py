@@ -33,6 +33,11 @@ class Settings(BaseSettings):
     # Asset sync: background interval and page-render knobs.
     assets_sync_interval_minutes: int = 30
     assets_page_size: int = 50
+    # Public world-state syncs (cost indices, market prices): their own
+    # background loop — the character-sync tick early-returns on an empty
+    # roster, and public data must sync regardless. ETag revalidation
+    # makes frequent ticks near-free.
+    world_sync_interval_minutes: int = 60
     # SDE import source (python -m app.sde import): fuzzwork's gzipped
     # SQLite dump of the latest Tranquility release, at a stable URL.
     sde_dump_url: str = "https://www.fuzzwork.co.uk/dump/latest-sqlite.db.gz"

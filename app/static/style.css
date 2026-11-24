@@ -1197,6 +1197,13 @@ button.primary,
   }
 }
 
+/* Even variant (the planner's Plan-facilities panel): every column the
+   same width, wrapping below what fits — the registry form's
+   proportional columns are its own layout. */
+.form-grid.even {
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -1360,7 +1367,17 @@ button.primary,
   display: flex;
   gap: 0.6rem;
   align-items: flex-start;
+  /* Rows are rows whatever element carries them (buttons, for keyboard
+     navigation): full width so every row matches the longest match,
+     and none of the generic button chrome (the green outline). */
+  width: 100%;
   padding: 0.5rem 0.75rem;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.95rem;
+  text-align: left;
   cursor: pointer;
 }
 
@@ -1468,4 +1485,206 @@ button.primary,
 
 .chip-row.locked .chip-button {
   cursor: not-allowed;
+}
+
+/* --- Planner components (ported verbatim from design/shared/mockups.css
+ * for M4; meters, wave bars, chain flow, and pool pickers stay there
+ * until their consuming milestones. The mockups' .var cyan highlight
+ * is mockup-only scaffolding and is deliberately NOT ported — the app
+ * never marks computed values visually.) ------------------------------ */
+
+/* Target-build row breathing: scoped via the large commodity icon —
+ * it appears exactly once per page, in the Target build row. */
+.type-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 3px;
+  vertical-align: -0.45rem;
+  margin-right: 0.4rem;
+}
+
+.type-icon-lg {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  margin: 0.3rem 0.5rem 0.3rem 0;
+}
+
+.type-icon-lg + div > div:first-child {
+  margin-bottom: 0.4rem;
+}
+
+/* --- Target count stepper ------------------------------------------------ */
+
+.stepper {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.stepper button {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 0.3rem 0.8rem;
+}
+
+.stepper button:hover {
+  background: transparent;
+  color: var(--green);
+}
+
+.stepper .stepper-value {
+  min-width: 5rem;
+  text-align: center;
+  padding: 0.3rem 0.5rem;
+  border-inline: 1px solid var(--line);
+  font-size: 1.1rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Stage state: where a chain stage sits right now ---------------------- */
+
+.stage-state {
+  display: inline-block;
+  padding: 0.05rem 0.55rem;
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.stage-state.missing {
+  border-color: var(--pink);
+  color: var(--pink);
+}
+
+.stage-state.ready {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.stage-state.running {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.stage-state.deliver {
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+
+.stage-state.complete {
+  border-color: var(--muted);
+  color: var(--muted);
+}
+
+/* --- Phase tree: expandable stage rows (corp-row shape) -------------------- */
+
+.phase-row {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  margin-bottom: 0.5rem;
+}
+
+.phase-row > summary {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 0.6rem 0.9rem;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.phase-row > summary::-webkit-details-marker {
+  display: none;
+}
+
+.phase-row > summary::before {
+  content: "▸";
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+
+.phase-row[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.phase-row > summary:hover {
+  background: var(--hover);
+}
+
+.phase-row .phase-title {
+  font-weight: 650;
+}
+
+.phase-row .phase-count {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.phase-row .summary-right {
+  margin-left: auto;
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.phase-body {
+  padding: 0 0.9rem 0.6rem;
+}
+
+.node-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 0.4rem 0.3rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.9rem;
+}
+
+.node-row .node-name {
+  min-width: 16rem;
+}
+
+.node-row .node-qty {
+  color: var(--yellow);
+  font-variant-numeric: tabular-nums;
+}
+
+.node-row .node-runs {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.node-row .node-right {
+  margin-left: auto;
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.node-row.purchased {
+  color: var(--muted);
+}
+
+.node-row.purchased .node-name {
+  color: var(--muted);
+}
+
+/* --- Divider (planner card sections) --------------------------------------- */
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 1rem 0;
 }

@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% block title %}soliton — planner{% endblock %}
+{% block content %}
+<h1>Build Planner</h1>
+
+<!-- 1 · Search -->
+<section class="card overflow-visible" style="margin-top: 1.25rem;">
+  <div class="card-body">
+    <h2>1 · Find a target</h2>
+    <p class="card-sub">Search the buildable catalog ({{ '{:,}'.format(catalog_count) }} products) or match only what the corp can build from owned blueprints.</p>
+
+    <div style="display: flex; gap: 0.75rem; align-items: flex-start; flex-wrap: wrap;">
+      <div class="search-wrap">
+        <input class="search-input" type="text" id="target-search" autocomplete="off"
+               aria-label="Search targets"
+               value="{{ plan.recipe.type_name if plan else '' }}"
+               placeholder="type to search the catalog"
+               data-owned="{{ '1' if owned else '' }}"
+               {% if plan %}data-target="{{ target }}"{% endif %}>
+        <div class="autocomplete" id="target-autocomplete" hidden></div>
+      </div>
+      <div>
+        <button class="chip-button{{ ' selected' if owned }}" type="button"
+                id="owned-toggle" aria-pressed="{{ 'true' if owned else 'false' }}">Match From Inventory</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if plan %}
+<!-- 2 · Target build -->
+<section class="card">
+  <div class="card-body">
+    <h2>2 · Target build</h2>
+
+    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+      <img class="type-icon-lg" src="{{ type_icon_url(plan.recipe.type_id, 64) }}" alt="">
+      <div>
+        <div><b>{{ plan.recipe.type_name }}</b>
+          {% if plan.recipe.owned %}
+          <span class="badge bpc">Blueprint pool: {{ 'BPO' if plan.has_original else 'BPC ×' + (plan.recipe.owned | length | string) }}</span>
+          {% else %}<span class="badge missing">Blueprint not owned</span>{% endif %}
+        </div>
+        <div class="meta-line">Built from <img class="type-icon" src="{{ type_icon_url(plan.recipe.blueprint_type_id, 32, 'bpc') }}" alt=""> {{ plan.recipe.blueprint_name }} — {{ plan.runs }} run{{ 's' if plan.runs != 1 }} at {{ plan.recipe.products_per_run }} per run · max {{ plan.max_production_limit or '—' }} runs per job</div>
+      </div>
+      <div style="margin-left: auto; display: flex; gap: 0.75rem; align-items: center;">
+        <span class="meta-line">Target count</span>
+        <div class="stepper" id="qty-stepper" data-qty="{{ qty }}">
+          <button type="button" aria-label="Decrease" data-delta="-1">−</button>
+          <span class="stepper-value">{{ '{:,}'.format(qty) }}</span>
+          <button type="button" aria-label="Increase" data-delta="1">+</button>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Plan participants -->
+    <h2 style="font-size: 0.95rem;">Plan participants</h2>
+    <p class="card-sub">Who the plan may assign work to — set before Calculate, because eligibility depends on it: skill gates, wave allocation, and the stock meters all resolve against this pool. The corporation follows the main character (set on the Roster) and scopes the shared material pool plus the member set; corp members default to all included and take materials from the office hangars directly, while characters in other corporations need a distribution step (contract / station trade) before their jobs can install.</p>
+
+    <p class="meta-line" style="margin: 0 0 0.75rem;">Corporation: <b>{{ corp_name or corp_id or '—' }}</b> — from the main character {{ main.name if main else '—' }}{% if main %} (Director){% endif %}; it scopes the shared material pool (hangars, blueprints, assets) and defines the member set. To target a different corporation, change the main character on the Roster.</p>
+
+    <table class="asset-table" id="participants-table"
+           data-corp-members="{{ corp_members | map(attribute='character_id') | join(',') }}">
+      <tbody>
+        <tr class="group-row"><td colspan="3">Corp members — {{ corp_name or 'the main' }} · all included by default</td></tr>
+        {% for member in corp_members %}
+        {% set included = participants is none or member.character_id in participants %}
+        {% set gate = plan.participant_times | selectattr('character_id', 'equalto', member.character_id) | list %}
+        <tr>
+          <td><img class="type-icon" src="{{ portrait_url(member.character_id, 32) }}" alt="">{{ member.name }}
+            {% if member.is_main %}<span class="badge owned" style="margin-left: 0.4rem;">main · Director</span>{% endif %}
+          </td>
+          <td class="muted">{% if included and gate and gate[0].holds_gate %}holds the build gate
+            {% elif included and gate %}missing: {{ gate[0].missing_skills | join(', ') }}
+            {% elif plan %}— excluded from the pool
+            {% else %}—{% endif %}</td>
+          <td><button class="chip-button participant-toggle{{ ' selected' if included }}" type="button"
+                      data-character="{{ member.character_id }}" aria-pressed="{{ 'true' if included else 'false' }}">{{ 'Included' if included else 'Excluded' }}</button></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" class="muted">No corp members — set a main character on the Roster.</td></tr>
+        {% endfor %}
+        <tr class="group-row"><td colspan="3">Other corporations — included per plan</td></tr>
+        {% for member in other_characters %}
+        {% set included = participants is not none and member.character_id in participants %}
+        <tr>
+          <td><img class="type-icon" src="{{ portrait_url(member.character_id, 32) }}" alt="">{{ member.name }}</td>
+          <td class="muted">another corporation — jobs need a distribution step before they can install</td>
+          <td><button class="chip-button participant-toggle{{ ' selected' if included }}" type="button"
+                      data-character="{{ member.character_id }}" aria-pressed="{{ 'true' if included else 'false' }}">{{ 'Included' if included else 'Include' }}</button></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" class="muted">Every rostered character is in the corporation.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <hr class="divider">
+
+    <!-- Plan facilities -->
+    <h2 style="font-size: 0.95rem;">Plan facilities</h2>
+    <p class="card-sub">Where each activity runs. Defaults come from the Structures registry (one per activity); overrides are plan-scoped — the registry stays untouched. Every calculation multiplies against these: material requirements (ME rig), job durations (TE rig + structure hull), and install cost (system cost index × facility tax).</p>
+
+    <div class="form-grid even">
+      {% for activity in activities %}
+      <div class="field">
+        <label class="field-label" for="fac-{{ activity }}">{{ activity_labels[activity] }}</label>
+        <select class="form-select facility-select" id="fac-{{ activity }}" data-activity="{{ activity }}"
+                data-default-id="{{ defaults[activity].registration_id if defaults[activity] else '' }}">
+          {% for row in registrations[activity] %}
+          <option value="{{ row.registration_id }}" {{ 'selected' if chosen[activity] and chosen[activity].registration_id == row.registration_id }}>{{ row.structure_name }}</option>
+          {% endfor %}
+        </select>
+        <span class="field-hint">{% if not registrations[activity] %}nothing registered for {{ activity_labels[activity] | lower }} — the plan runs at station baselines
+          {%- elif chosen[activity] %}{{ structure_types[chosen[activity].structure_type] }}{% if chosen[activity].security_class %} · {{ chosen[activity].security_class }}sec{% endif %}{% if chosen[activity].me_rig != 'none' or chosen[activity].te_rig != 'none' %} · {{ 'ME ' + chosen[activity].me_rig.upper() if chosen[activity].me_rig != 'none' }}{{ ' · ' if chosen[activity].me_rig != 'none' and chosen[activity].te_rig != 'none' }}{{ 'TE ' + chosen[activity].te_rig.upper() if chosen[activity].te_rig != 'none' }}{% endif %}{% if chosen[activity].tax_rate is not none %} · tax {{ '{:.2f}'.format(chosen[activity].tax_rate * 100).rstrip('0').rstrip('.') }}%{% endif %}{% if not chosen[activity].is_default %} — not the registry default{% endif %}
+          {%- else %}—{% endif %}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <p class="meta-line" style="margin-top: 0.75rem;">
+      This plan multiplies: materials × ME rig (−{{ '{:.1f}'.format(multiplies.rig_me) }}% at the {{ multiplies.facility.structure_name if multiplies.facility else 'station baseline' }}{% if multiplies.security %}, {{ multiplies.security }}sec{% endif %}) · job time × hull {% if multiplies.hull_time < 1 %}−{{ '{:.0f}'.format((1 - multiplies.hull_time) * 100) }}%{% else %}—{% endif %} and TE rig (−{{ '{:.1f}'.format(multiplies.rig_te) }}%) · install cost = base × system index {% if multiplies.index is not none %}{{ '{:.2f}'.format(multiplies.index * 100).rstrip('0').rstrip('.') }}%{% else %}<span class="badge missing">not synced</span>{% endif %} × tax {% if multiplies.facility and multiplies.facility.tax_rate is not none %}{{ '{:.2f}'.format(multiplies.facility.tax_rate * 100).rstrip('0').rstrip('.') }}%{% else %}NPC-set{% endif %}
+    </p>
+
+    <hr class="divider">
+
+    <h2 style="font-size: 0.95rem;">Requirements at target ×{{ '{:,}'.format(qty) }}</h2>
+    <p class="card-sub">The direct inputs for this build{% if plan.runs != qty %} ({{ plan.runs }} runs){% endif %} — resolved at selection, tracking the target stepper live. Calculate runs the single-blueprint plan; the full chain resolves at M5.</p>
+
+    <!-- Tier 1: blueprints -->
+    {% set owned_count = (1 if plan.recipe.owned else 0) + (plan.intermediates | selectattr('owned') | list | length) %}
+    {% set bp_total = 1 + plan.intermediates | length %}
+    <details class="phase-row" open>
+      <summary>
+        <span class="phase-title">Blueprints</span>
+        <span class="phase-count">{{ bp_total }} types</span>
+        <span class="summary-right">
+          <span class="stage-state {{ 'ready' if owned_count == bp_total else 'missing' }}">{{ owned_count }} / {{ bp_total }} owned</span>
+        </span>
+      </summary>
+      <div class="phase-body">
+        <table class="asset-table">
+          <tbody>
+            <tr class="group-row"><td colspan="3">Target</td></tr>
+            <tr>
+              <td><img class="type-icon" src="{{ type_icon_url(plan.recipe.blueprint_type_id, 32, 'bpc') }}" alt="">{{ plan.recipe.blueprint_name }}</td>
+              <td class="muted">{% if plan.has_original %}BPO owned — copying available{% elif plan.recipe.owned %}BPC-only: usable, nothing to copy from · {{ plan.recipe.owned | length }} BPCs / {{ plan.bpc_pool_runs }} runs{% else %}not owned — the plan calculates at ME 0 / TE 0 until acquired{% endif %}</td>
+              <td>{% if plan.recipe.owned %}<span class="badge owned">Owned · {{ 'BPO' if plan.has_original else 'BPC ×' + (plan.recipe.owned | length | string) }}</span>{% else %}<span class="badge missing">Missing</span>{% endif %}</td>
+            </tr>
+            {% if plan.intermediates %}
+            <tr class="group-row"><td colspan="3">Inputs — {{ plan.intermediates | length }} blueprints</td></tr>
+            {% for intermediate in plan.intermediates %}
+            <tr>
+              <td><img class="type-icon" src="{{ type_icon_url(intermediate.blueprint_type_id, 32, 'bpc') }}" alt="">{{ intermediate.blueprint_name }}</td>
+              <td class="muted">{% if intermediate.best_owned %}best owned {{ 'BPO' if intermediate.best_owned.is_original else 'BPC · ME ' + intermediate.best_owned.material_efficiency | string + ' / TE ' + intermediate.best_owned.time_efficiency | string }}{% if not intermediate.best_owned.is_original %} · pool {{ intermediate.bpc_runs }} runs{% endif %}{% else %}not owned{% endif %}</td>
+              <td>{% if intermediate.owned %}<span class="badge owned">Owned</span>{% else %}<span class="badge missing">Missing</span>{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <!-- Tier 2: intermediates -->
+    {% if plan.intermediates %}
+    <details class="phase-row" open>
+      <summary>
+        <span class="phase-title">Intermediates</span>
+        <span class="phase-count">{{ plan.intermediates | length }} types · 1 level</span>
+        <span class="summary-right">
+          <span class="stage-state ready">All buildable</span>
+        </span>
+      </summary>
+      <div class="phase-body">
+        <table class="asset-table">
+          <thead>
+            <tr>
+              <th>Phase</th>
+              <th>Intermediates</th>
+              <th class="num">Required</th>
+              <th>Runs</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="muted">inputs — direct</td>
+              <td>{% for intermediate in plan.intermediates %}{{ intermediate.name }}{% if not loop.last %} · {% endif %}{% endfor %}</td>
+              <td class="num qty">{% for intermediate in plan.intermediates %}{{ '{:,}'.format(intermediate.required_qty) }}{% if not loop.last %} · {% endif %}{% endfor %}</td>
+              <td class="num">{% for intermediate in plan.intermediates %}{{ '{:,}'.format(intermediate.runs) }}{% if not loop.last %} · {% endif %}{% endfor %}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+    {% endif %}
+
+    <!-- Tier 3: raw materials -->
+    {% if plan.raw %}
+    <details class="phase-row">
+      <summary>
+        <span class="phase-title">Raw materials</span>
+        <span class="phase-count">{{ plan.raw | length }} types</span>
+      </summary>
+      <div class="phase-body">
+        <table class="asset-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th class="num">Types</th>
+              <th>Largest requirement</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for label, materials in raw_groups %}
+            {% set largest = materials | sort(attribute='required_qty') | list %}
+            <tr>
+              <td>{{ label }}</td>
+              <td class="num">{{ materials | length }}</td>
+              <td class="muted">{{ largest[-1].name }} {{ '{:,}'.format(largest[-1].required_qty) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
+    {% endif %}
+  </div>
+</section>
+
+<!-- 3 · Owned copies overlay -->
+<section class="card">
+  <div class="card-body">
+    <h2>3 · Owned copies of {{ plan.recipe.blueprint_name }}</h2>
+    <p class="card-sub">Every usable blueprint in the pool for this type — same blueprint can appear many times, each with its own location and ME/TE.</p>
+
+    <table class="asset-table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th class="num">Runs</th>
+          <th>ME / TE</th>
+          <th>Location</th>
+          <th>Owner</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in plan.recipe.owned %}
+        <tr>
+          <td><span class="badge {{ 'bpo' if row.is_original else 'bpc' }}">{{ 'BPO' if row.is_original else 'BPC' }}</span></td>
+          <td class="num qty">{{ '∞' if row.is_original else '{:,}'.format(row.runs) }}</td>
+          <td class="num">{{ row.material_efficiency }} / {{ row.time_efficiency }}</td>
+          <td class="muted">{{ row.location_name }}</td>
+          <td class="muted">{{ row.owner_name }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="muted">No copies of this blueprint in the pool.</td></tr>
+        {% endfor %}
+        {% if plan.recipe.owned and not plan.has_original %}
+        <tr>
+          <td colspan="5"><span class="badge missing">No original owned</span> <span class="muted">copying unavailable for this type — the plan draws from owned BPCs</span></td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Calculate bar -->
+<section class="card">
+  <div class="card-body" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+    <div class="meta-line">
+      {{ plan.recipe.type_name }} ×{{ '{:,}'.format(qty) }} · {{ bp_total }} blueprint{{ 's' if bp_total != 1 }} · {{ plan.intermediates | length }} intermediates · {{ plan.raw | length }} raw types · requirements resolved — Calculate runs the plan
+    </div>
+    <a class="button primary" id="calculate-link" href="{{ calculate_href }}">Calculate</a>
+  </div>
+</section>
+{% else %}
+<p class="meta-line" style="margin-top: 1rem;">
+  Select a target to set participants, facilities, and the requirement
+  tiers — Calculate then runs the single-blueprint plan.
+</p>
+{% endif %}
+{% endblock %}
+{% block page_scripts %}
+<script src="/static/planner.js?v={{ static_version }}"></script>
+{% endblock %}
