@@ -1664,6 +1664,24 @@ reality over time.*
   Structures · Planner · **Plans** (flat children for now; deeper
   nesting under Planner only if more Planner children emerge). These
   widen M6's surface without changing the dependency structure.
+- **Material sources — the coverage pool becomes an explicit source
+  set** (owner direction, 2026-11-24, from the personal-stock review):
+  one **Material sources** section on the planner holds every
+  material-source selection in one place — **corp office hangars per
+  location**, **personal hangars per character per location** ("stock
+  is one place" is explicitly rejected as an assumption), and **station
+  containers inside corp hangars** — as a multi-selector with
+  **source-from-all as the default** (absence-means-default). The
+  acquisition table gains a **per-location breakdown** so where stock
+  sits is always visible (selected sources measured; the rest visible
+  as moving logistics toward the working facilities). This subsumes the
+  station-container bucketing item above (containers are one source
+  kind) and supersedes the per-character personal-stock chips (their
+  backend landed first: `chain_plan(personal_stock_ids=...)` with the
+  participant-pool intersect, `pool_on_hand(personal_character_ids=...)`
+  as an id-literal read, the `ps` URL param threading both pages — no
+  UI ships until this lands). Lands as its own PR **before the export
+  PR**, so the plan snapshot bakes the source set in once.
 
 **Schema sketch**
 

@@ -1303,23 +1303,24 @@ async def pool_on_hand(
     db: AsyncSession,
     type_ids: list[int],
     *,
-    participant_ids: list[int],
     corporation_id: int | None,
-    include_personal: bool = False,
+    personal_character_ids: list[int] | None = None,
 ) -> dict[int, int]:
     """On-hand quantities per type over the plan's inventory pool. The
     default measures the main corporation's office hangars ONLY — the
-    shared pool corporate plans draw from; personal hangars opt in via
-    `include_personal`, because participants (out-of-corp ones
-    especially) may be job-allocation positions rather than material
-    sources, and counting their stock would over-report coverage (the
-    owner's false-positive call, 2026-11-24). Corporation assets
-    outside offices and characters outside the pool never count.
-    Unheld types key zero, not absence."""
+    shared pool corporate plans draw from; personal hangars opt in
+    per character via `personal_character_ids` (the owner's
+    per-character call, 2026-11-24: participants — out-of-corp ones
+    especially — may be job-allocation positions rather than material
+    sources, so whose hangar counts is an individual choice, never a
+    pool-wide switch). The caller owns the intersect with the
+    participant pool; this read counts exactly the ids it is handed.
+    Corporation assets outside offices never count. Unheld types key
+    zero, not absence."""
     if not type_ids:
         return {}
     on_hand = {type_id: 0 for type_id in type_ids}
-    if include_personal and participant_ids:
+    if personal_character_ids:
         rows = (
             await db.execute(
                 text(
@@ -1327,17 +1328,17 @@ async def pool_on_hand(
                     SELECT a.type_id, sum(a.quantity)
                     FROM assets a
                     WHERE a.owner_type = :char_kind
-                      AND a.owner_id IN :participant_ids
+                      AND a.owner_id IN :personal_ids
                       AND a.type_id IN :type_ids
                     GROUP BY a.type_id
                     """
                 ).bindparams(
-                    bindparam("participant_ids", expanding=True),
+                    bindparam("personal_ids", expanding=True),
                     bindparam("type_ids", expanding=True),
                 ),
                 {
                     "char_kind": OWNER_CHARACTER,
-                    "participant_ids": list(participant_ids),
+                    "personal_ids": list(personal_character_ids),
                     "type_ids": list(type_ids),
                 },
             )
