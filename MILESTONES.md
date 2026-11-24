@@ -66,14 +66,13 @@ paid contracts), or **pick a better target**.
 | M2 — SDE foundation & blueprint catalog | ✅ **Complete** (PRs #15–#17 + #85, 2026-11-22/23) |
 | Mockup program | ✅ **Complete — 13 of 13** (2026-11-22): ten chain sets (Typhoon → Ragnarok) + the refinement pass + three surfaces (structures M3, markets M15, capability M12); the 2026-11-22 conventions (facilities/markets selection, market panels, wave paging, Ƶ, static scaffolding, variable-content marking) cover every page |
 | M3 — structure manager | ✅ **Complete** (PR #86) — registry, multipliers pinned from live dogma, Build Planner nav (2026-11-23) |
-| M4 — planner: single-BP calc | 🚧 **In review** (branch `m4-planner`) — depth-1 planner + build plan, M15 framework slice soaking |
+| M4 — planner: single-BP calc | ✅ **Complete** (PR #88) — depth-1 planner + build plan, M15 sync slice soaking |
 | M5+ | Not started |
 
-**Pick up at**: review/land **M4** (branch `m4-planner`), then **M5 —
-chain resolution** (deepens the planner's depth-1 requirement tiers to
-the full recursive chain, test-first against the ten chain anchors);
-the M15 framework slice + light families are already soaking (cost
-indices + market prices, hourly).
+**Pick up at**: **M5 — chain resolution** (deepens the planner's
+depth-1 requirement tiers to the full recursive chain, test-first
+against the ten chain anchors); the M15 framework slice + light
+families are soaking (cost indices + market prices, hourly).
 
 **Order of operations** (refined 2026-11-22, final pre-implementation
 evaluation): the spine holds (M2 → M4 → M5 → M6 → M9) with three
@@ -1288,8 +1287,7 @@ after this text was written)
 reproduces hand-checkable material counts, time, and install cost
 against in-game numbers.
 
-**Landed as (branch `m4-planner`, 2026-11-23 — product-owner review
-pending)**
+**Landed as (PR #88, 2026-11-23)**
 
 - **Scope calls settled at pickup**: the requirement tiers resolve at
   **depth-1** (the selected commodity's direct inputs — producer
