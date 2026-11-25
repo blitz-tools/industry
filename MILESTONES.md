@@ -58,7 +58,7 @@ paid contracts), or **pick a better target**.
 
 ---
 
-## Status (updated 2026-11-22)
+## Status (updated 2026-11-25)
 
 | Milestone | State |
 |---|---|
@@ -68,13 +68,14 @@ paid contracts), or **pick a better target**.
 | M3 — structure manager | ✅ **Complete** (PR #86) — registry, multipliers pinned from live dogma, Build Planner nav (2026-11-23) |
 | M4 — planner: single-BP calc | ✅ **Complete** (PR #88) — depth-1 planner + build plan, M15 sync slice soaking |
 | M5 — chain resolution | ✅ **Complete** (2026-11-24) — recursive resolver + phase view, ten-anchor diff proof + census parity |
-| M6+ | Not started |
+| M6 — build plans | 🚧 **In progress** (PRs #90–#98, 2026-11-24/25) — schema, material sources, export + Plans list/detail, job correlation, refresh tick + active surface landed (7 of 9 slices); **remaining**: Purchase⇄Build markings + multibuy (PR 8), LP acquisition node + roster eligibility (PR 9 — either order) |
+| M7+ | Not started |
 
-**Pick up at**: **M6 — build plans** (persist the resolved chain as a
-living document: export, track vs. inventory, job correlation,
-progress — the purchase⇄Build marking and active-plan stage states
-deferred from M5 land here); the M15 framework slice + light families
-keep soaking (cost indices + market prices, hourly).
+**Pick up at**: **M6 — the last two slices** (PR 8: Purchase⇄Build
+markings + the multibuy export; PR 9: the LP acquisition node + the
+roster assignment-eligibility flag — independent of PR 8, either
+order); the M15 framework slice + light families keep soaking (cost
+indices + market prices, hourly).
 
 **Order of operations** (refined 2026-11-22, final pre-implementation
 evaluation): the spine holds (M2 → M4 → M5 → M6 → M9) with three
@@ -143,10 +144,10 @@ flowchart TD
     M1["M1 ✅ Corp pool<br/>main char, Director gate,<br/>owner-keyed syncs"]
     M2["M2 ✅ SDE + catalog<br/>verbatim mirror, admin self-update,<br/>char/corp syncs, catalog query layer"]
     M3["M3 ✅ Structure manager<br/>user-state facility registry:<br/>activity, type, rigs, security, tax"]
-    M15["M15 World-state syncs<br/>cost indices, contracts, prices,<br/>orders/history, LP store offers"]
-    M4["M4 Planner: single-BP calc<br/>materials, time, install cost,<br/>facility + skill multipliers"]
-    M5["M5 Chain resolution<br/>recursive BOM explosion → phases,<br/>test-first against ten chain anchors"]
-    M6["M6 Build plans<br/>export, track vs. inventory,<br/>job correlation, progress"]
+    M15["M15 World-state syncs<br/>framework + indices/prices soaking;<br/>contracts, orders/history, LP offers"]
+    M4["M4 ✅ Planner: single-BP calc<br/>materials, time, install cost,<br/>facility + skill multipliers"]
+    M5["M5 ✅ Chain resolution<br/>recursive BOM explosion → phases,<br/>test-first against ten chain anchors"]
+    M6["M6 🚧 Build plans (7 of 9 slices)<br/>export, correlation, refresh<br/>tick + active surface ✅;<br/>markings, multibuy, LP node remain"]
     M8["M8 Invention T2/T3<br/>decryptor + grade + sibling dispatch,<br/>expected-value math, retry loops"]
     M9["M9 Job orchestration<br/>slots, skills, waves,<br/>work distribution"]
     M10["M10 Market analysis<br/>build-vs-buy verdicts,<br/>target profitability"]
@@ -1617,7 +1618,7 @@ inventory.
 
 ---
 
-## M6 — Build plans: export, track, complete
+## M6 — Build plans: export, track, complete — 🚧 IN PROGRESS (PRs #90–#98 of the 9-slice sequence, 2026-11-24/25)
 
 *Persists a resolved chain as a living document and measures it against
 reality over time.*
@@ -1704,9 +1705,9 @@ reality over time.*
   `include_personal_stock` bool, and `build_plan_containers` folds
   into it — a container is one source kind among the refs. The Plans
   section (Industry → Structures · Planner · Plans) ships with the
-  list and a read-only draft detail; activation, progress refresh,
-  Purchase⇄Build marking, and multibuy are the milestone's next
-  slices. The shared planner-state helpers (participant/source
+  list and a read-only draft detail (the correlation and refresh
+  slices have since landed — below). The shared planner-state
+  helpers (participant/source
   parsing, facility resolution, URL serialization) moved from the
   planner routes into `app/plans.py` — the domain layer both routers
   and the snapshot writer consume.
@@ -1733,6 +1734,39 @@ reality over time.*
   changed target is exactly the waves-and-alignment math M9 owns.
   Changing the target therefore means re-planning from the entry, not
   patching the calculation.
+- **Progress slices** (landed 2026-11-25, PRs 6–7 of the sequence):
+  **Job correlation** — `correlate_jobs`, pure in `app/plans.py`: a
+  job claims a node on blueprint type plus the ESI→SDE activity
+  reconciliation `{1: 1, 9: 11, 11: 11}` (live-verified against corp
+  jobs — ESI reports reactions under 9, the SDE files them under 11),
+  a location filter only when the pinned facility resolved to a
+  sighting location (hand-entered structures match loosely), a
+  recency floor at plan creation (pre-export installs belong to a
+  previous effort), cancelled/reverted excluded, and **one claim per
+  job globally** (plans walk oldest-first — the concurrent-plan
+  false-positive guard). False positives accepted by design; no
+  un-match UI in v1. **The refresh tick** — `refresh_plans_tick`
+  materializes each non-abandoned plan in its own session (never
+  raises; 5-minute background loop): availability re-measured against
+  the pinned source set, delivery = min(qty, Σ successful_runs ×
+  products_per_run) over correlated delivered jobs (**sticky** —
+  never lowered, so a complete plan stays complete after its claims
+  leave the correlation pool), running/deliver/complete stage states,
+  and the state machine: draft→active on first correlation or the
+  manual Activate button (the heuristic-miss counterweight),
+  active→complete when every node is delivered, abandoned only by
+  owner action or the Re-plan fork. **Gating re-derives from fresh
+  world state** (owner decision 2026-11-25, reversing the earlier
+  export-pinned draft): blueprint-missing reads pool blueprint
+  existence, skill-gated reads the pinned participants' current skill
+  levels — gating is a measured readiness fact, not a planning input,
+  so a later-acquired BPO or trained skill un-gates without a
+  re-plan; the calc snapshot stays pinned (mid-flight acquisitions
+  with different ME/TE don't re-derive planned math — that's
+  Re-plan/M9). Surfaces: live stage chips with time-to-delivery,
+  matched-jobs summaries on the nodes, the refreshed/assets-synced/
+  jobs-correlated meta line, Activate/Abandon (native dialog), and
+  the list page's progress meter.
 
 **Schema sketch**
 
