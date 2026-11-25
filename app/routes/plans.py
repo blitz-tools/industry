@@ -81,7 +81,6 @@ async def plan_detail_page(
     db: DbDep,
     plan_id: int,
     show_all: bool = Query(False, alias="all"),
-    open_phase: int | None = Query(None, alias="open"),
 ):
     """The plan of record: snapshot tiles, the chain-flow strip, the
     phase tree with live stage states (materialized by the refresh
@@ -89,9 +88,9 @@ async def plan_detail_page(
     blueprint gate is missing — pool blueprint existence, the same read
     the refresh runs), the matched-jobs summaries, the draft-only
     blueprint and time sections, and the acquisition table (gaps-only
-    by default, availability as last materialized). `open` lands the
-    page at one phase's tree row — the marking POSTs redirect back to
-    the phase they changed."""
+    by default, availability as last materialized). Every phase row
+    renders expanded — the phases are the page's content, and the
+    scripted marking swap remembers collapses within a visit."""
     if not is_authenticated(request):
         return RedirectResponse("/", status_code=302)
     read = await plan_read(db, plan_id)
@@ -155,7 +154,6 @@ async def plan_detail_page(
             "covered_count": covered_count,
             "show_all": show_all,
             "toggle_href": toggle_href,
-            "open_phase": open_phase,
             "pool_badge": pool_badge(plan),
             "status_badge": status_badge(plan),
             "gating_text": gating_text,
@@ -420,9 +418,11 @@ async def plan_sourcing(request: Request, db: DbDep, plan_id: int):
     await apply_sourcing_math(db, nodes, materials)
     await refresh_plan(db, plan)
     await db.commit()
+    # The anchor lands the no-script path at the changed phase; every
+    # row is open by default, so the page reads in place.
     phase = selected[0].phase
     return RedirectResponse(
-        f"/plans/{plan.id}?open={phase}#phase-row-{phase}", status_code=303
+        f"/plans/{plan.id}#phase-row-{phase}", status_code=303
     )
 
 

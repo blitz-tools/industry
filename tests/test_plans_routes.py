@@ -113,8 +113,11 @@ async def test_plan_detail_renders_the_snapshot(client, chain_db):  # noqa: F811
     assert "Ready to build" in response.text and "Missing inputs" in response.text
     assert "waiting on phase 3" in response.text
     assert "no skilled character in the pool" in response.text
-    # Snapshot tiles: the golden install cost.
-    assert "960,471.87" in response.text
+    # Snapshot tiles: the golden install cost — compact in the tile
+    # (K/M/B/T units, never wraps the evenly sized tiles), exact in the
+    # tooltip.
+    assert "960.47 K Ƶ" in response.text
+    assert 'title="960,471.87 Ƶ"' in response.text
     # The draft-only sections: required blueprints and time.
     assert "Required blueprints" in response.text
     assert "Owned · BPC only" in response.text
@@ -348,7 +351,7 @@ async def test_chip_post_marks_purchase_and_amends_raw_math(client, chain_db):  
     )
     assert response.status_code == 303
     assert response.headers["location"] == (
-        f"/plans/{plan_id}?open={fuel.phase}#phase-row-{fuel.phase}"
+        f"/plans/{plan_id}#phase-row-{fuel.phase}"
     )
 
     fuel = await _reload_node(chain_db, plan_id, FUEL)
@@ -409,14 +412,10 @@ async def test_phase_bulk_toggles_both_directions(client, chain_db):  # noqa: F8
     assert (await _reload_node(chain_db, plan_id, FUEL)).sourcing == "build"
     html = (await client.get(f"/plans/{plan_id}")).text
     assert "Purchase all" in html
-    # The marking redirects land at the changed phase: ?open=N renders
-    # that phase's tree row expanded (phases past the first two default
-    # collapsed).
-    assert 'id="phase-row-3"' in html and 'id="phase-row-3" open' not in html
-    html = (await client.get(
-        f"/plans/{plan_id}", params={"open": 3}
-    )).text
-    assert 'id="phase-row-3" open' in html
+    # Every phase row renders expanded by default (the phases are the
+    # page's content; the scripted marking swap remembers collapses).
+    for phase in range(1, 5):
+        assert f'id="phase-row-{phase}" open' in html
 
 
 @respx.mock
@@ -888,3 +887,19 @@ async def test_plans_bulk_validates(client, chain_db):  # noqa: F811
         assert response.status_code == 303
         assert response.headers["location"] == "/plans"
     assert (await _reload_plan(chain_db, plan_id)).status == "draft"
+
+
+def test_format_isk_compact():
+    """The stat-tile ISK form: exact below 10k, then K/M/B/T units —
+    every compact render stays under the tiles' 130px minimum content
+    width (measured: full format wraps from ~100k up)."""
+    from app.templates import format_isk_compact
+
+    assert format_isk_compact(None) == "—"
+    assert format_isk_compact(9_876.54) == "9,876.54 Ƶ"
+    assert format_isk_compact(9_999.99) == "9,999.99 Ƶ"
+    assert format_isk_compact(10_000) == "10.00 K Ƶ"
+    assert format_isk_compact(960_471.87) == "960.47 K Ƶ"
+    assert format_isk_compact(10_000_000) == "10.00 M Ƶ"
+    assert format_isk_compact(1_234_567_890) == "1.23 B Ƶ"
+    assert format_isk_compact(1_234_567_890_123) == "1.23 T Ƶ"

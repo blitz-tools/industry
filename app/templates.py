@@ -55,6 +55,24 @@ def format_isk(value: float | None) -> str:
     return "—" if value is None else f"{value:,.2f} Ƶ"
 
 
+def format_isk_compact(value: float | None) -> str:
+    """The stat-tile ISK form: exact below 10k (it fits the evenly
+    sized tiles' 130px minimum content width), then EVE's K/M/B/T
+    units with two decimals — the widest compact render stays well
+    under that budget, so the value never wraps the tile no matter the
+    chain's scale. The exact figure rides the tile's tooltip
+    (format_isk)."""
+    if value is None:
+        return "—"
+    magnitude = abs(value)
+    if magnitude < 10_000:
+        return format_isk(value)
+    for threshold, unit in ((1e12, "T"), (1e9, "B"), (1e6, "M")):
+        if magnitude >= threshold:
+            return f"{value / threshold:,.2f} {unit} Ƶ"
+    return f"{value / 1e3:,.2f} K Ƶ"
+
+
 def format_qty(value: int | None) -> str:
     return "—" if value is None else f"{value:,}"
 
@@ -77,6 +95,7 @@ def format_age(then: datetime | None) -> str:
 # Shared display formatters (the planner and plans pages).
 templates.env.globals["format_duration"] = format_duration
 templates.env.globals["format_isk"] = format_isk
+templates.env.globals["format_isk_compact"] = format_isk_compact
 templates.env.globals["format_qty"] = format_qty
 templates.env.globals["format_age"] = format_age
 
