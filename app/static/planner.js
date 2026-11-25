@@ -280,6 +280,44 @@ window.initPlanPage = () => {
       }
     });
   }
+
+  // Export plan (↗): the multibuy shopping list in an on-page dialog —
+  // a large fixed-width text box to copy from, not a file download
+  // (the link stays the no-script fallback and downloads the .txt).
+  // The list rides the page render (the same materialized acquisition
+  // rows the table shows), so the dialog opens instantly and never
+  // disagrees with the table.
+  const exportLink = document.getElementById("export-plan");
+  const exportDialog = document.getElementById("multibuy-dialog");
+  if (exportLink && exportDialog) {
+    const textBox = document.getElementById("multibuy-text");
+    const copyButton = document.getElementById("multibuy-copy");
+    exportLink.addEventListener("click", (event) => {
+      event.preventDefault();
+      exportDialog.showModal();
+    });
+    copyButton.addEventListener("click", () => {
+      textBox.select();
+      const done = () => {
+        copyButton.textContent = "Copied";
+        setTimeout(() => { copyButton.textContent = "Copy"; }, 1500);
+      };
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(textBox.value).then(done, () => {
+          document.execCommand("copy");  // selection fallback
+          done();
+        });
+      } else {
+        document.execCommand("copy");  // selection fallback
+        done();
+      }
+    });
+    exportDialog.addEventListener("click", (event) => {
+      if (event.target.id === "multibuy-close" || event.target === exportDialog) {
+        exportDialog.close();
+      }
+    });
+  }
   const select = document.getElementById("material-source-select");
   if (select) {
     const button = select.querySelector(".drop-chip");
@@ -339,7 +377,7 @@ window.initPlanPage = () => {
 };
 
 // --- Unsaved-plan guard (M6) ---------------------------------------------------
-// The calculated chain is URL state until Save plan snapshots it, so
+// The calculated chain is URL state until Render plan snapshots it, so
 // leaving /planner/plan without saving loses the work-in-progress.
 // Departures covered: in-main link swaps (back to planner), back/forward,
 // and sidebar navigation — all through the on-page dialog (the
@@ -465,6 +503,58 @@ if (!window.initPlannerPageWired) {
         link.hasAttribute("data-keep-scroll") || samePage
       );
     }, null);
+  });
+
+  // Purchase⇄Build markings (chips and phase-bulk) POST to
+  // /plans/{id}/sourcing. Scripting off: the native POST 303s back to
+  // the detail (landing at ?open={phase}#phase-row-{phase}). Scripting
+  // on: the POST swaps the page in place instead — the viewport never
+  // moves (the no-JS anchor would snap it), and the phase tree's
+  // expanded/collapsed rows are restored over the fresh markup so
+  // flipping a chip deep in the tree doesn't collapse context. The
+  // history entry is the FINAL detail URL from the redirect, never the
+  // action URL (the /plans/{id}/{action} pin), with the no-JS landing
+  // params stripped — scripting already restored the state they carry.
+  document.addEventListener("submit", (event) => {
+    const form = event.target.closest("form[action$='/sourcing']");
+    if (!form) return;
+    event.preventDefault();
+    const scrollY = window.scrollY;
+    const openRows = Array.from(
+      document.querySelectorAll("details.phase-row")
+    ).filter((row) => row.open).map((row) => row.id);
+    fetch(form.action, {
+      method: "POST",
+      body: new FormData(form),
+      headers: { "X-Requested-With": "fetch" },
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.text().then(
+          (html) => ({ url: response.url, html })
+        );
+      })
+      .then(({ url, html }) => {
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        const current = document.querySelector("main");
+        const next = doc.querySelector("main");
+        if (!current || !next) throw new Error("unexpected page shape");
+        current.replaceChildren(...next.childNodes);
+        const clean = new URL(url, window.location.origin);
+        clean.search = "";
+        clean.hash = "";
+        history.pushState({}, "", clean.pathname);
+        refreshUnsavedPlan();
+        window.initPlannerPage();
+        window.initPlanPage();
+        document.querySelectorAll("details.phase-row").forEach((row) => {
+          row.open = openRows.includes(row.id);
+        });
+        window.scrollTo({ top: scrollY });
+      })
+      .catch(() => {
+        form.submit();  // native fallback: the full-navigation POST
+      });
   });
 
   window.addEventListener("popstate", () => {

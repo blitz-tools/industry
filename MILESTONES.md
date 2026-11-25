@@ -68,14 +68,14 @@ paid contracts), or **pick a better target**.
 | M3 — structure manager | ✅ **Complete** (PR #86) — registry, multipliers pinned from live dogma, Build Planner nav (2026-11-23) |
 | M4 — planner: single-BP calc | ✅ **Complete** (PR #88) — depth-1 planner + build plan, M15 sync slice soaking |
 | M5 — chain resolution | ✅ **Complete** (2026-11-24) — recursive resolver + phase view, ten-anchor diff proof + census parity |
-| M6 — build plans | 🚧 **In progress** (PRs #90–#98, 2026-11-24/25) — schema, material sources, export + Plans list/detail, job correlation, refresh tick + active surface landed (7 of 9 slices); **remaining**: Purchase⇄Build markings + multibuy (PR 8), LP acquisition node + roster eligibility (PR 9 — either order) |
+| M6 — build plans | 🚧 **In progress** (PRs #90–#98 + PR 8, 2026-11-24/25) — schema, material sources, export + Plans list/detail, job correlation, refresh tick + active surface, Purchase⇄Build markings + multibuy landed (8 of 9 slices); **remaining**: LP acquisition node + roster eligibility (PR 9) |
 | M7+ | Not started |
 
-**Pick up at**: **M6 — the last two slices** (PR 8: Purchase⇄Build
-markings + the multibuy export; PR 9: the LP acquisition node + the
-roster assignment-eligibility flag — independent of PR 8, either
-order); the M15 framework slice + light families keep soaking (cost
-indices + market prices, hourly).
+**Pick up at**: **M6 — the last slice** (PR 9: the LP acquisition
+node + the roster assignment-eligibility flag); the optional
+asset_names companion (container custom names, ESIClient.post) is the
+one loose end if it stays out; the M15 framework slice + light
+families keep soaking (cost indices + market prices, hourly).
 
 **Order of operations** (refined 2026-11-22, final pre-implementation
 evaluation): the spine holds (M2 → M4 → M5 → M6 → M9) with three
@@ -147,7 +147,7 @@ flowchart TD
     M15["M15 World-state syncs<br/>framework + indices/prices soaking;<br/>contracts, orders/history, LP offers"]
     M4["M4 ✅ Planner: single-BP calc<br/>materials, time, install cost,<br/>facility + skill multipliers"]
     M5["M5 ✅ Chain resolution<br/>recursive BOM explosion → phases,<br/>test-first against ten chain anchors"]
-    M6["M6 🚧 Build plans (7 of 9 slices)<br/>export, correlation, refresh<br/>tick + active surface ✅;<br/>markings, multibuy, LP node remain"]
+    M6["M6 🚧 Build plans (8 of 9 slices)<br/>export, correlation, refresh tick,<br/>active surface, markings + multibuy ✅;<br/>LP node remains"]
     M8["M8 Invention T2/T3<br/>decryptor + grade + sibling dispatch,<br/>expected-value math, retry loops"]
     M9["M9 Job orchestration<br/>slots, skills, waves,<br/>work distribution"]
     M10["M10 Market analysis<br/>build-vs-buy verdicts,<br/>target profitability"]
@@ -1618,7 +1618,7 @@ inventory.
 
 ---
 
-## M6 — Build plans: export, track, complete — 🚧 IN PROGRESS (PRs #90–#98 of the 9-slice sequence, 2026-11-24/25)
+## M6 — Build plans: export, track, complete — 🚧 IN PROGRESS (PRs #90–#98 + PR 8 of the 9-slice sequence, 2026-11-24/25)
 
 *Persists a resolved chain as a living document and measures it against
 reality over time.*
@@ -1642,8 +1642,8 @@ reality over time.*
   location; show installed jobs on their nodes, and pull completion
   status from job state. (Heuristic matching is fine — the endpoint
   has no plan reference; over-precision isn't worth it.)
-- Plan states: draft → active → complete (all leaf nodes delivered) /
-  abandoned.
+- Plan states: draft → active → complete (build nodes delivered,
+  purchased nodes in the pool) / abandoned.
 - **Folded scope (2026-11-22 triage — the five accumulated items,
   resolved)**: station-container plan bucketing (**v1** — feasible,
   zero data-layer change, core to concurrent plans);
@@ -1724,7 +1724,7 @@ reality over time.*
   Re-plan's job. **Copy plan** (⧉, blue) lands on the calculated page
   with the same context and NO fork — the quick path, sources
   adjustable only, the container-bucketing workflow's front door (same
-  chain, different material-source locations). Save plan (⭳)
+  chain, different material-source locations). Render plan (▤)
   highlights green. **Why targets are immutable on a calculated plan**
   (the recorded rationale): the target is a planning-phase input in
   all cases — a saved/calculated chain is never edited in place,
@@ -1767,6 +1767,48 @@ reality over time.*
   matched-jobs summaries on the nodes, the refreshed/assets-synced/
   jobs-correlated meta line, Activate/Abandon (native dialog), and
   the list page's progress meter.
+- **Markings slice** (landed 2026-11-25, PR 8 of the sequence, revised
+  in owner review): Purchase⇄Build chips on every node row (real
+  `<button>`s per the a11y TODO, `aria-pressed`, POST
+  /plans/{id}/sourcing) and Purchase-all / Build-all phase-bulk
+  toggles — the one in-place amendment a plan allows; structural
+  changes stay Re-plan's. The acquisition math amends **by recompute**
+  over the **necessity set** (`necessary_nodes`: backward
+  reachability from the target through build-marked nodes' snapshotted
+  demands — a purchase-marked node is acquired, not built, so the walk
+  never continues through it): raw required = the still-needed build
+  nodes' demands, purchase lines carry the needed purchase-marked
+  occurrences' combined qty, so un-marking is symmetric and repeated
+  markings idempotent. **Purchasing a later-phase node turns
+  everything only it consumed unnecessary** — greyed (dashed) in the
+  phase tree and the reverse-chain strip, raw demands gone, never
+  blocking completion; suppliers **shared** with still-built nodes
+  keep their full planned quantities in v1 (full re-derivation is
+  M9's never-a-local-patch rule), surfaced on the page and in the
+  docs. **The chip lock consults the fresh gate** (PR 7's
+  re-derivation): a node whose blueprint the pool no longer holds
+  renders a disabled Purchase chip and rejects Build markings —
+  missing blueprint forces Purchase; Purchase markings still land
+  (the Purchase-all workflow). Purchased nodes drop from phase
+  rollups ("N build · M purchased"), track pool availability instead
+  of delivery (complete when available ≥ qty), and carry the 4rem
+  gating meter; stock-gap gating gained its meter (input coverage
+  under materialized availability). Marking chips keep the page in
+  place: a scripted in-place POST swap (viewport fixed, phase
+  expanded/collapsed state restored, history at the final detail
+  URL), with the native 303-to-?open anchor as the no-script
+  fallback. **Multibuy export**: the header's ↗ opens an on-page
+  dialog (the unsaved-guard shape) holding the whole shopping list in
+  a large fixed-width text box with a Copy button — one `Item
+  Name<TAB>Quantity` line per short acquisition row (raw gaps against
+  the amended requirement plus purchase lines), name-sorted; GET
+  /plans/{id}/multibuy serves the same body as a text/plain
+  attachment (the no-script fallback). **Naming** (owner review): the
+  planner's ⭳ Save
+  plan became **Render plan (▤)** — "export" is reserved for taking
+  data out of the tool (the multibuy ↗). The asset_names companion
+  (container custom names + ESIClient.post) stayed out — the
+  milestone's one loose end.
 
 **Schema sketch**
 

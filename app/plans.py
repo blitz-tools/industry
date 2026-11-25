@@ -12,7 +12,10 @@ owns plan semantics, not chain math:
   table); the planner pages import them.
 - The snapshot is one transaction: columns for anything measured or
   mutated, JSON for pure display. Re-running the planner makes a NEW
-  plan; only status, timestamps, and materialized columns ever move.
+  plan; only status, timestamps, materialized columns, and the
+  Purchase⇄Build markings (`sourcing` — the one mutable snapshot
+  column, amended in place with the acquisition math recomputed from
+  the snapshot) ever move.
 """
 
 import asyncio
@@ -421,7 +424,10 @@ async def snapshot_plan(
 
 async def plans_overview(db: AsyncSession) -> list[dict]:
     """The list page's rows: plans newest first with their snapshot
-    counts (nodes, phases, acquisition types)."""
+    counts (nodes, phases, acquisition types) and the progress-meter
+    counts (delivered / needed build nodes — purchased and dead nodes
+    excluded, the same necessity rule the completion check runs, so the
+    meter never disagrees with a plan the tick already completed)."""
     plans = (
         (
             await db.execute(
@@ -433,49 +439,51 @@ async def plans_overview(db: AsyncSession) -> list[dict]:
         .scalars()
         .all()
     )
-    node_counts: dict[int, tuple[int, int]] = {
-        plan_id: (nodes, phases)
-        for plan_id, nodes, phases in (
-            await db.execute(
-                select(
-                    BuildPlanNode.plan_id,
-                    func.count(),
-                    func.count(func.distinct(BuildPlanNode.phase)),
-                ).group_by(BuildPlanNode.plan_id)
+    nodes_by_plan: dict[int, list[BuildPlanNode]] = {}
+    if plans:
+        for node in (
+            (
+                await db.execute(
+                    select(BuildPlanNode).where(
+                        BuildPlanNode.plan_id.in_([plan.id for plan in plans])
+                    )
+                )
             )
-        ).all()
-    }
-    delivered_counts: dict[int, int] = {
-        plan_id: count
-        for plan_id, count in (
-            await db.execute(
-                select(
-                    BuildPlanNode.plan_id, func.count()
-                ).where(BuildPlanNode.delivered_qty >= BuildPlanNode.qty)
-                .group_by(BuildPlanNode.plan_id)
-            )
-        ).all()
-    }
+            .scalars()
+            .all()
+        ):
+            nodes_by_plan.setdefault(node.plan_id, []).append(node)
     material_counts: dict[int, int] = {
         plan_id: count
         for plan_id, count in (
             await db.execute(
-                select(
-                    BuildPlanMaterial.plan_id, func.count()
-                ).group_by(BuildPlanMaterial.plan_id)
+                select(BuildPlanMaterial.plan_id, func.count())
+                .group_by(BuildPlanMaterial.plan_id)
             )
         ).all()
     }
-    return [
-        {
-            "plan": plan,
-            "nodes": node_counts.get(plan.id, (0, 0))[0],
-            "phases": node_counts.get(plan.id, (0, 0))[1],
-            "materials": material_counts.get(plan.id, 0),
-            "delivered": delivered_counts.get(plan.id, 0),
-        }
-        for plan in plans
-    ]
+    rows = []
+    for plan in plans:
+        nodes = nodes_by_plan.get(plan.id, [])
+        needed = necessary_nodes(nodes)
+        build = [
+            node
+            for node in nodes
+            if node.id in needed and node.sourcing != "purchase"
+        ]
+        rows.append(
+            {
+                "plan": plan,
+                "nodes": len(nodes),
+                "phases": len({node.phase for node in nodes}),
+                "materials": material_counts.get(plan.id, 0),
+                "build": len(build),
+                "delivered": sum(
+                    1 for node in build if node.delivered_qty >= node.qty
+                ),
+            }
+        )
+    return rows
 
 
 async def plan_read(
@@ -511,12 +519,23 @@ async def plan_read(
     return plan, nodes, materials
 
 
-def phase_views(nodes: list[BuildPlanNode]) -> list[dict]:
+def phase_views(
+    nodes: list[BuildPlanNode], needed: set[int] | None = None
+) -> list[dict]:
     """The detail page's phase tree: one entry per phase holding nodes,
     the modal invGroups display name (the planner's rule — ties break to
     the larger requirement, then the name; groupless phases fall back to
-    the largest node's own name), and the worst-child state rollup over
-    the full stage-state ladder (least advanced wins)."""
+    the largest node's own name), the marking-based build/purchased
+    split and bulk-toggle direction, and the worst-child state rollup
+    over the full stage-state ladder (least advanced wins) — over the
+    phase's still-NEEDED build nodes only: purchased nodes track the
+    pool instead of progress, and dead nodes (a purchase upstream
+    supplies their consumer) carry no state — a phase with nothing left
+    needed is dead outright and renders greyed in the tree and the
+    chain strip. `needed` defaults to everything (the unmarked-plan
+    case)."""
+    if needed is None:
+        needed = {node.id for node in nodes}
     by_phase: dict[int, list[BuildPlanNode]] = {}
     for node in nodes:
         by_phase.setdefault(node.phase, []).append(node)
@@ -535,18 +554,36 @@ def phase_views(nodes: list[BuildPlanNode]) -> list[dict]:
         if not any(node.group_name for node in phase_nodes):
             name = max(phase_nodes, key=lambda n: n.qty).name
         activity_ids = sorted({node.activity_id for node in phase_nodes})
+        marked_build = [
+            node for node in phase_nodes if node.sourcing != "purchase"
+        ]
+        needed_build = [
+            node for node in marked_build if node.id in needed
+        ]
         views.append(
             {
                 "phase": phase,
                 "nodes": phase_nodes,
                 "name": name,
-                "state": min(
-                    (node.state for node in phase_nodes),
-                    key=lambda state: (
-                        STAGE_ORDER.index(state)
-                        if state in STAGE_ORDER
-                        else 0
-                    ),
+                "needed_count": sum(
+                    1 for node in phase_nodes if node.id in needed
+                ),
+                "build_count": len(marked_build),
+                "build_runs": sum(node.runs for node in needed_build),
+                "purchased_count": len(phase_nodes) - len(marked_build),
+                "all_purchased": not marked_build,
+                "dead": not any(node.id in needed for node in phase_nodes),
+                "state": (
+                    min(
+                        (node.state for node in needed_build),
+                        key=lambda state: (
+                            STAGE_ORDER.index(state)
+                            if state in STAGE_ORDER
+                            else 0
+                        ),
+                    )
+                    if needed_build
+                    else None
                 ),
                 "activity_ids": activity_ids,
             }
@@ -613,6 +650,153 @@ def status_badge(plan: BuildPlan) -> str:
         "complete": "owned",
         "abandoned": "missing",
     }.get(plan.status, "plan-state")
+
+
+# --- Purchase marking + multibuy (M6 PR 8) ----------------------------------------
+
+
+def necessary_nodes(nodes: list[BuildPlanNode]) -> set[int]:
+    """The node ids the current markings still need — backward
+    reachability from the target through the build-marked nodes'
+    snapshotted demands. A purchase-marked node is acquired, not built,
+    so the walk does not continue through it: everything it would have
+    consumed is dead. The target itself purchase-marked means nothing
+    is built. Shared parents stay necessary in full while any necessary
+    consumer demands them — quantities never shrink in v1 (full
+    re-derivation around a local change is the M9 waves model's job),
+    but dead suppliers drop out entirely. A node without a target row
+    (defensive — exports always carry one) degrades to everything
+    necessary."""
+    target = next((node for node in nodes if node.is_target), None)
+    if target is None:
+        return {node.id for node in nodes}
+    if target.sourcing == "purchase":
+        return {target.id}
+    by_key = {(node.type_id, node.phase): node for node in nodes}
+    by_id = {node.id: node for node in nodes}
+    needed = {target.id}
+    stack = [target.id]
+    while stack:
+        node = by_id[stack.pop()]
+        for demand in json.loads(node.materials_json):
+            if not demand["buildable"]:
+                continue
+            child = by_key.get((demand["type_id"], node.phase - 1))
+            if child is None or child.id in needed:
+                continue
+            needed.add(child.id)
+            if child.sourcing != "purchase":
+                stack.append(child.id)
+    return needed
+
+
+async def apply_sourcing_math(
+    db: AsyncSession,
+    nodes: list[BuildPlanNode],
+    materials: list[BuildPlanMaterial],
+) -> None:
+    """Amend the acquisition table after a marking change, BY RECOMPUTE:
+    every raw row's required_qty = the demands of the nodes the current
+    markings still need (the necessary build-marked nodes' snapshotted
+    demands — recomputable from materials_json, so the amend is
+    lossless and un-marking is symmetric), and one purchase line per
+    still-needed purchase-marked node type carrying the needed
+    occurrences' combined qty. Dead nodes — purchased-away suppliers —
+    contribute nothing. Idempotent. Shared parents keep their full
+    quantities in v1 (the M9 waves model owns re-derivation — never a
+    local patch). The caller commits."""
+    needed = necessary_nodes(nodes)
+    demands: dict[int, int] = {}
+    purchase_qty: dict[int, int] = {}
+    sample: dict[int, BuildPlanNode] = {}
+    for node in nodes:
+        if node.id not in needed:
+            continue  # dead: a purchase upstream supplies its consumer
+        if node.sourcing == "purchase":
+            purchase_qty[node.type_id] = (
+                purchase_qty.get(node.type_id, 0) + node.qty
+            )
+            sample.setdefault(node.type_id, node)
+            continue
+        for demand in json.loads(node.materials_json):
+            demands[demand["type_id"]] = (
+                demands.get(demand["type_id"], 0) + demand["required_qty"]
+            )
+    known_types = {row.type_id for row in materials}
+    for row in materials:
+        if row.is_purchase_line:
+            if row.type_id in purchase_qty:
+                row.required_qty = purchase_qty[row.type_id]
+            else:
+                await db.delete(row)  # no needed occurrence remains
+        else:
+            row.required_qty = demands.get(row.type_id, 0)
+    for type_id, qty in purchase_qty.items():
+        if type_id in known_types:
+            continue
+        node = sample[type_id]
+        db.add(
+            BuildPlanMaterial(
+                plan_id=node.plan_id,
+                type_id=type_id,
+                name=node.name,
+                category_name=None,
+                group_name=node.group_name,
+                is_purchase_line=True,
+                required_qty=qty,
+                acquire_via="Market",
+                available_qty=0,
+            )
+        )
+
+
+def multibuy_lines(
+    materials: list[BuildPlanMaterial],
+) -> list[tuple[str, int]]:
+    """The multibuy export's rows: one (name, quantity) per acquisition
+    line short against its marking-amended requirement — raw-material
+    gaps plus purchase lines — name-sorted, ready to paste into the
+    in-game multibuy window."""
+    return sorted(
+        (row.name, row.required_qty - row.available_qty)
+        for row in materials
+        if row.required_qty > row.available_qty
+    )
+
+
+def multibuy_body(materials: list[BuildPlanMaterial]) -> str:
+    """The multibuy export as its paste body: one `Item Name<TAB>
+    Quantity` line per row, no header or footer — the file the export
+    route downloads and the shopping-list dialog shows."""
+    return "".join(
+        f"{name}\t{quantity}\n" for name, quantity in multibuy_lines(materials)
+    )
+
+
+def stock_gap_meters(
+    nodes: list[BuildPlanNode],
+    materials: list[BuildPlanMaterial],
+) -> dict[int, int]:
+    """The stock-gap gating meter's fill percentage per node: its input
+    demands' coverage under materialized availability (node and material
+    types together — delivered intermediates sit in the pool, so an
+    arrived input stops gating its consumer)."""
+    available = {node.type_id: node.available_qty for node in nodes}
+    available.update({row.type_id: row.available_qty for row in materials})
+    meters: dict[int, int] = {}
+    for node in nodes:
+        if node.state_reason != "stock-gap":
+            continue
+        demands = json.loads(node.materials_json)
+        required = sum(demand["required_qty"] for demand in demands)
+        if not required:
+            continue
+        covered = sum(
+            min(available.get(demand["type_id"], 0), demand["required_qty"])
+            for demand in demands
+        )
+        meters[node.id] = int(100 * covered / required)
+    return meters
 
 
 # --- Job correlation (M6 PR 6: the pure matcher + build_plan_jobs writes) --------
@@ -980,16 +1164,23 @@ async def refresh_plan(db: AsyncSession, plan: BuildPlan) -> BuildPlan:
 
     # 5. Plan rollups + the state machine. draft→active flips the first
     # time a job correlates (the export tooltip of record); active→
-    # complete when every node is delivered (purchased nodes measure
-    # availability instead — PR 8's markings). No transition touches
-    # snapshot columns; abandoned is an owner action or the Re-plan
-    # fork, never computed here.
+    # complete when every still-needed node is satisfied — build nodes
+    # delivered, purchased nodes with the commodity actually sitting in
+    # the pool (available ≥ qty); dead nodes (a purchase upstream
+    # supplies their consumer) never block completion. No transition
+    # touches snapshot columns; abandoned is an owner action or the
+    # Re-plan fork, never computed here.
     now = utc_now()
     if plan.status == "draft" and claims:
         plan.status = "active"
         plan.activated_at = now
+    needed = necessary_nodes(nodes)
     if plan.status == "active" and nodes and all(
-        node.delivered_qty >= node.qty for node in nodes
+        node.available_qty >= node.qty
+        if node.sourcing == "purchase"
+        else node.delivered_qty >= node.qty
+        for node in nodes
+        if node.id in needed
     ):
         plan.status = "complete"
         plan.completed_at = now

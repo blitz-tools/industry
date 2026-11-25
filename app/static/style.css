@@ -421,7 +421,7 @@ a:hover {
   text-decoration: none;
 }
 
-/* Plan-header action colors (M6, the owner's call): Save plan
+/* Plan-header action colors (M6, the owner's call): Render plan
    highlights green (the default), Copy plan blue, Branch plan yellow,
    Re-plan purple — the plan-shaping actions read apart at a glance. */
 .icon-button.save:hover {
@@ -444,6 +444,11 @@ a:hover {
   color: var(--purple);
 }
 
+.icon-button.export:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
 .icon-button.danger {
   border-color: var(--faint);
   color: var(--muted);
@@ -461,10 +466,16 @@ a:hover {
 
 /* --- Buttons ------------------------------------------------------------ */
 
+/* One control height: boxed action buttons match the glyph tiles'
+   2rem (Activate, Abandon, dialog confirms, form submits — the owner's
+   consistency sweep). Chip-scale controls opt out below. */
 button,
 .button {
-  display: inline-block;
-  padding: 0.45rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2rem;
+  padding: 0 1rem;
   border: 1px solid var(--green);
   border-radius: var(--radius);
   background: transparent;
@@ -480,6 +491,21 @@ button:hover,
   background: var(--green);
   color: var(--bg);
   text-decoration: none;
+}
+
+/* Chip-scale controls (pills, menu triggers, panel rows, stepper
+   keys, the nav group toggle) keep their content height — the 2rem
+   control height is for boxed action buttons only. */
+.chip-button,
+.corp-toggle,
+.drop-chip,
+.drop-option,
+.ms-option,
+.stage-chip,
+.phase-bulk,
+.nav-group-toggle,
+.stepper button {
+  height: auto;
 }
 
 button.danger {
@@ -891,7 +917,7 @@ button.danger:hover {
    specificity loses to whichever rule comes later in the file. */
 .ms-actions .button.primary {
   font-size: 0.84rem;
-  padding: 0.48rem 1.4rem;
+  padding: 0 1.4rem;
 }
 
 .char-cards {
@@ -1259,10 +1285,20 @@ button.danger:hover {
   align-items: center;
 }
 
+/* Primary actions: the same size as every other boxed button (size
+   never signals hierarchy — the consistency sweep), filled green
+   instead, wider stance. */
 button.primary,
 .button.primary {
-  font-size: 1.05rem;
-  padding: 0.6rem 1.75rem;
+  padding: 0 1.75rem;
+  background: var(--green);
+  color: var(--bg);
+}
+
+button.primary:hover,
+.button.primary:hover {
+  background: color-mix(in srgb, var(--green) 82%, var(--bg));
+  color: var(--bg);
 }
 
 /* Card rhythm: stacked cards and their subtitles. */
@@ -1629,10 +1665,11 @@ button.primary,
 
 /* Confirmation dialogs (native <dialog>, modal): the structures
    delete confirmation and the planner's unsaved-plan guard share one
-   shape. */
+   shape. The multibuy export dialog widens it for the shopping list. */
 #delete-dialog,
 #unsaved-plan-dialog,
-#abandon-dialog {
+#abandon-dialog,
+#multibuy-dialog {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -1642,23 +1679,49 @@ button.primary,
   max-width: 32rem;
 }
 
+#multibuy-dialog {
+  max-width: 48rem;
+}
+
 #delete-dialog::backdrop,
 #unsaved-plan-dialog::backdrop,
-#abandon-dialog::backdrop {
+#abandon-dialog::backdrop,
+#multibuy-dialog::backdrop {
   background: rgb(0 0 0 / 60%);
 }
 
 #delete-dialog h3,
 #unsaved-plan-dialog h3,
-#abandon-dialog h3 {
+#abandon-dialog h3,
+#multibuy-dialog h3 {
   margin: 0 0 0.75rem;
   font-size: 1.05rem;
 }
 
 #delete-dialog p,
 #unsaved-plan-dialog p,
-#abandon-dialog p {
+#abandon-dialog p,
+#multibuy-dialog p {
   margin: 0 0 0.5rem;
+}
+
+/* The shopping list itself: large, fixed-width, tab-aligned —
+   name<TAB>quantity pastes straight into the in-game multibuy
+   window. */
+.multibuy-text {
+  width: 100%;
+  min-height: 22rem;
+  margin: 0 0 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--text);
+  font-family: ui-monospace, "Cascadia Mono", "Source Code Pro", Menlo,
+    Consolas, monospace;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  resize: vertical;
 }
 
 /* Security chips locked to a selected system's class. */
@@ -1778,6 +1841,72 @@ button.primary,
   color: var(--muted);
 }
 
+/* --- Stage chips: the Purchase⇄Build marking (M6, ported from the
+       mockups — a real <button> per the a11y TODO, so it carries
+       font: inherit and a disabled state) ----------------------------------- */
+
+.stage-chip {
+  padding: 0.05rem 0.55rem;
+  border: 1px solid;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Cyan tint = currently marked for market purchase. */
+.stage-chip.purchase {
+  border-color: var(--cyan);
+  background: color-mix(in srgb, var(--cyan) 10%, transparent);
+  color: var(--cyan);
+}
+
+.stage-chip.purchase:hover {
+  background: color-mix(in srgb, var(--cyan) 20%, transparent);
+}
+
+/* Green filled = planned to build in-corp. */
+.stage-chip.build {
+  border-color: var(--green);
+  background: color-mix(in srgb, var(--green) 15%, transparent);
+  color: var(--green);
+}
+
+.stage-chip.build:hover {
+  background: color-mix(in srgb, var(--green) 25%, transparent);
+}
+
+/* Locked (no blueprint in the pool — Purchase is forced) and chips on
+ * terminal plans: the marking renders but cannot fire. */
+.stage-chip:disabled {
+  border-color: var(--faint);
+  color: var(--muted);
+  background: transparent;
+  cursor: not-allowed;
+}
+
+/* Phase-level bulk toggle on a phase row summary: sets every child
+ * node's Purchase ⇄ Build chip at once — the stage-level ergonomics
+ * over a node-level data model. */
+.phase-bulk {
+  padding: 0.05rem 0.55rem;
+  border: 1px dashed var(--faint);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.68rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.phase-bulk:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
 /* --- Phase tree: expandable stage rows (corp-row shape) -------------------- */
 
 .phase-row {
@@ -1874,6 +2003,34 @@ button.primary,
 
 .node-row.purchased .node-name {
   color: var(--muted);
+}
+
+/* --- Unnecessary chain segments (M6): a later-phase purchase supplies
+       the consumer, so nothing below it gets built — greyed in the
+       phase tree and the chain strip, dashed borders to tell them
+       apart from purchased rows --------------------------------------------- */
+
+.node-row.unnecessary {
+  color: var(--muted);
+}
+
+.node-row.unnecessary .node-name,
+.node-row.unnecessary .node-qty {
+  color: var(--muted);
+}
+
+.phase-row.unnecessary {
+  border-style: dashed;
+}
+
+.phase-row.unnecessary > summary .phase-title,
+.phase-row.unnecessary > summary .phase-count {
+  color: var(--muted);
+}
+
+.chain-phase.unnecessary {
+  border-style: dashed;
+  opacity: 0.55;
 }
 
 /* --- Divider (planner card sections) --------------------------------------- */

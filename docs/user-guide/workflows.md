@@ -7,7 +7,7 @@ figures with the active controls highlighted as the surfaces
 stabilize — one figure slot per section below.
 
 The short version: **everything is set before Calculate, nothing is
-edited after Save.** The planner is a planning surface; the saved plan
+edited after Render.** The planner is a planning surface; the saved plan
 is a document. Changes to a saved plan are either a marking (a small,
 in-place amendment) or a re-plan (a new plan) — never an edit of the
 calculation itself.
@@ -56,9 +56,9 @@ Start at **Industry → Planner**.
 > Target build card with the count stepper and the Calculate bar
 > highlighted.
 
-## Save the plan
+## Render the plan
 
-The **Save plan** button (⭳, green highlight) on the calculated page
+The **Render plan** button (▤, green highlight) on the calculated page
 snapshots the resolved chain as a new plan of record: participants,
 facilities, material sources, every node's quantities and calculation,
 and the acquisition lines, all pinned at export. Roster changes,
@@ -67,10 +67,10 @@ snapshot is what was true at save time.
 
 The plan starts as a **draft**. It activates when its first job
 installs (or when activated manually), and completes when every node
-is delivered.
+is satisfied — build nodes delivered, purchased nodes in the pool.
 
 > **Figure — plan.save** *(pending the screenshot pass)*: the
-> calculated page's header with the Save plan button highlighted.
+> calculated page's header with the Render plan button highlighted.
 
 ## Work with saved plans
 
@@ -100,9 +100,48 @@ questions:
   facilities, and sources are all adjustable there, because a re-plan
   is planning again, not editing: the target and count are
   planning-phase inputs, and changing them recomputes the whole chain.
-  Saving from a re-plan **supersedes** the source plan: the old one is
+  Rendering from a re-plan **supersedes** the source plan: the old one is
   marked abandoned and points at its replacement, so the history reads
   as a line of succession rather than a pile of near-duplicates.
+
+## Mark Purchase⇄Build
+
+Every node row on the plan detail carries a **Build** / **Purchase**
+chip, and every phase summary a **Purchase all** / **Build all**
+toggle. Marking is the one in-place amendment a saved plan allows:
+a purchased node drops out of phase progress and tracks the pool
+instead (it is satisfied when the commodity actually sits in the
+plan's material sources), and everything only it consumed turns
+**unnecessary** — greyed out in the phase tree and the reverse-chain
+strip, its raw-material demands gone from the acquisition table. The
+purchased commodity itself joins that table as a purchase line.
+
+Two rules keep the math honest:
+
+- The amendment recomputes from the snapshot, so un-marking is
+  symmetric — demands return exactly as they were.
+- Suppliers **shared** with still-built nodes keep their full planned
+  quantities in v1: purchasing an intermediate never shrinks a
+  shared parent's requirement (re-deriving a chain around a local
+  change is the wave model's job, M9 — never a local patch). Dead
+  suppliers — the ones nothing still-built consumes — drop out
+  entirely.
+
+A node whose blueprint the pool no longer holds locks to **Purchase**
+(the chip is disabled) — the gate re-derives as the pool changes, and
+**Purchase all** still marks locked nodes. Marking a chip keeps the
+page in place: the viewport does not move, and the phase tree keeps
+its expanded/collapsed state.
+
+## Export the shopping list
+
+The **Export plan** button (↗) on the plan header opens the multibuy
+shopping list in an overlay: the whole list in a large fixed-width
+text box, one `Item Name<TAB>Quantity` line per short acquisition row
+— raw gaps against the marking-amended requirement plus purchase
+lines — sorted by name. **Copy** puts it on the clipboard for the
+in-game multibuy window. (Without scripting, the same button
+downloads the list as a `.txt` file.)
 
 ## Watch progress
 
@@ -121,7 +160,8 @@ never matches, and one job claims into at most one plan (the oldest).
 **Activate** forces a draft active when the matcher missed its jobs —
 the counterweight to a heuristic; **Abandon** closes a plan (terminal
 — its jobs free up for other plans). A plan completes on its own when
-every node is delivered.
+every node is satisfied: build nodes delivered, purchased nodes with
+the commodity sitting in the pool.
 
 > **Figure — plans.progress** *(pending the screenshot pass)*: a plan
 > detail with an In-progress node carrying its matched job, and the
