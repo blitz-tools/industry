@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}soliton — plans{% endblock %}
+{% block content %}
+<h1>Build Plans</h1>
+<p class="meta-line" style="margin-top: 0.5rem;">
+  Exported chain plans — the plan of record. Re-running the planner
+  forks a new plan; markings amend in place, structural changes fork.
+  Progress tracking (job correlation, delivery, activation) lands with
+  the milestone's next slice.
+</p>
+
+<!-- Summary tiles -->
+<div class="stats">
+  <div class="stat">
+    <p class="stat-value">{{ rows | length }}</p>
+    <p class="stat-label">Plans · {{ drafts }} draft{{ 's' if drafts != 1 }}</p>
+  </div>
+  <div class="stat">
+    <p class="stat-value">{{ '{:,}'.format(node_total) }}</p>
+    <p class="stat-label">Buildable nodes across plans</p>
+  </div>
+  <div class="stat">
+    <p class="stat-value">{{ '{:,}'.format(material_total) }}</p>
+    <p class="stat-label">Acquisition types tracked</p>
+  </div>
+</div>
+
+<table class="asset-table">
+  <thead>
+    <tr>
+      <th>Plan</th>
+      <th class="num">Target</th>
+      <th>Pool</th>
+      <th>Status</th>
+      <th class="num">Nodes</th>
+      <th class="num">Phases</th>
+      <th>Exported</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+    {% set plan = row.plan %}
+    <tr>
+      <td><img class="type-icon" src="{{ type_icon_url(plan.target_type_id, 32) }}" alt=""><a href="/plans/{{ plan.id }}">{{ plan.name }}</a></td>
+      <td class="num">{{ '{:,}'.format(plan.units) }}</td>
+      <td><span class="badge" title="The plan's material sources, pinned at export — pool is structural; changing it goes through Re-plan, Branch, or Copy.">{{ pool_badge(plan) }}</span></td>
+      <td><span class="badge {{ status_badge(plan) }}">{{ plan.status | capitalize }}</span></td>
+      <td class="num">{{ '{:,}'.format(row.nodes) }}</td>
+      <td class="num">{{ row.phases }}</td>
+      <td class="muted">{{ plan.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" class="muted">No plans yet — calculate a chain on the <a href="/planner">planner</a> and save it.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+{% block page_scripts %}
+<script src="/static/planner.js?v={{ static_version }}"></script>
+{% endblock %}

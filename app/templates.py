@@ -33,6 +33,35 @@ templates.env.globals["corporation_logo_url"] = corporation_logo_url
 templates.env.globals["type_icon_url"] = type_icon_url
 
 
+def format_duration(seconds: int) -> str:
+    """Seconds → the mockup's compact duration form (h / d)."""
+    if seconds <= 0:
+        return "—"
+    hours = seconds / 3600
+    if hours < 1:
+        return f"{seconds}s"
+    if hours < 48:
+        value = f"{hours:.1f}".rstrip("0").rstrip(".")
+        return f"{value} h"
+    days = hours / 24
+    value = f"{days:.1f}".rstrip("0").rstrip(".")
+    return f"{value} d"
+
+
+def format_isk(value: float | None) -> str:
+    return "—" if value is None else f"{value:,.2f} Ƶ"
+
+
+def format_qty(value: int | None) -> str:
+    return "—" if value is None else f"{value:,}"
+
+
+# Shared display formatters (the planner and plans pages).
+templates.env.globals["format_duration"] = format_duration
+templates.env.globals["format_isk"] = format_isk
+templates.env.globals["format_qty"] = format_qty
+
+
 def _static_version() -> str:
     """Cache-buster for /static assets: the newest file mtime, so edited
     stylesheets and scripts reload instead of serving from browser cache."""

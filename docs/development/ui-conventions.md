@@ -81,6 +81,15 @@ The assets-page pattern, generalized on structures:
   `::backdrop`, Escape/backdrop close) — never the browser
   `confirm()` popup. The pending action is stored; Confirm submits it
   through the swap path.
+- **Departure guards** (unsaved state) use the same native dialog for
+  every interceptable departure — in-main link swaps, back/forward
+  (a declined popstate restores the guarded URL with `pushState`),
+  and sidebar links (Leave navigates for real). No browser popups:
+  `beforeunload` is deliberately unused (the owner's call), so tab
+  close, refresh, and the address bar stay ungoverned — acceptable
+  because guarded pages carry their state in the URL, so history or
+  reopen-tab restores them. The save action clears the guard flag on
+  submit so the intentional departure never prompts.
 - Any fetch failure falls back to full navigation.
 - **Multi-page flows share one JS file** (the planner's entry and plan
   pages): each page's init is a no-op when its elements are absent,

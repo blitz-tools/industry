@@ -2,9 +2,9 @@
 resolved-chain build plan.
 
 Stateless by design — the whole planner input set (target, count,
-participants, facilities, ME/TE overrides) lives in URL query params and
-nothing writes to the DB until M6 persists build plans. Param
-semantics, chosen once:
+participants, facilities, ME/TE overrides) lives in URL query params;
+the one write is M6's export POST (app/routes/plans.py), whose form
+serializes this same state. Param semantics, chosen once:
 
 - `target` (type id) — invalid ids redirect to the bare planner.
 - `qty` — target units, server-clamped to ≥ 1.
@@ -17,11 +17,17 @@ semantics, chosen once:
   default pool (the main's corporation's members); PRESENT — even
   empty (`?p=`) — is an explicit pool. Links never serialize the
   default set, so a roster change re-resolves honestly.
+- `src` — material source refs, repeatable (the Material sources
+  selector); absent means the corp-side default, present-even-empty an
+  explicit set.
 - `manufacturing` / `copying` / `invention` / `reactions` — facility
   registration ids; absent means the registry default (with copying
   falling back to invention's), so a registry edit re-resolves too.
 - `all` (plan page) — the acquisition table's show-all toggle; absent
   means the gaps-only default.
+- `from_plan` (plan page) — the Re-run fork context: the plan id a
+  save from this page supersedes (transient, never serialized into
+  snapshots).
 
 Renders stay DB-pure; the one JSON endpoint is the search type-ahead.
 Both pages swap `<main>` in place (static/planner.js, the structures
@@ -37,8 +43,6 @@ from ..facilities import (
     ACTIVITIES,
     ACTIVITY_LABELS,
     STRUCTURE_TYPES,
-    activity_registrations,
-    default_facilities,
     effective_rig_percent,
 )
 from ..industry import (
@@ -55,106 +59,21 @@ from ..planner import (
     fresh_node_state,
     phase_state,
 )
+from ..plans import (
+    RAW_ACQUIRE,
+    REASON_TEXT,
+    parse_material_sources,
+    planner_state,
+    raw_label,
+    state_pairs,
+    state_qs,
+)
 from ..templates import templates
 
 router = APIRouter()
 
-# Raw-material display labels: SDE category/group names pinned against
-# the live mirror 2026-11-23, mapped to the mockup's tier-3 labels. The
-# name-list fallback covers the SDE's known misfilings (Morphite — the
-# top moon material, which the dump files under 'Mineral'; the
-# reference model's lesson). Anything else falls back to its group or
-# category name — honest to the SDE rather than guessed.
-_RAW_LABELS: dict[tuple[str | None, str | None], str] = {
-    ("Material", "Mineral"): "Minerals",
-    ("Material", "Moon Materials"): "Moon materials",
-    ("Material", "Ice Product"): "Ice products",
-    ("Celestial", "Harvestable Cloud"): "Gas (harvestable clouds)",
-}
-_RAW_NAME_FALLBACK = {"Morphite": "Moon materials"}
-
-# The acquisition-path text per raw label (a curated pin table — the
-# milestone's "via which in-game mechanic"). Price figures stay out
-# until M15's market data.
-_RAW_ACQUIRE: dict[str, str] = {
-    "Minerals": "Mining / reprocessing / market",
-    "Moon materials": "Moon mining / market",
-    "Ice products": "Ice mining / market",
-    "Gas (harvestable clouds)": "Gas site harvesting",
-    "PI commodities": "Planetary industry / market",
-}
-
 # Node activity → the mockup's activity-tag class and text.
 _ACTIVITY_TAGS = {1: ("mfg", "manufacture"), 11: ("rxn", "reaction")}
-
-# Stage-state reason → the static gating text (fixed template, computed
-# slot values only — no scenario-composed sentences).
-_REASON_TEXT = {
-    "cycle": "SDE self-reference — cut",
-    "blueprint-missing": "blueprint not owned",
-    "skill-gated": "no skilled character in the pool",
-    "waiting-upstream": "waiting on phase {phase}",
-    "stock-gap": "input stock short",
-}
-
-
-def _raw_label(category: str | None, group: str | None, name: str) -> str:
-    if name in _RAW_NAME_FALLBACK:
-        return _RAW_NAME_FALLBACK[name]
-    if (category, group) in _RAW_LABELS:
-        return _RAW_LABELS[(category, group)]
-    if category == "Planetary Commodities":
-        return "PI commodities"
-    return group or category or "Other"
-
-
-def _format_duration(seconds: int) -> str:
-    """Seconds → the mockup's compact duration form (h / d)."""
-    if seconds <= 0:
-        return "—"
-    hours = seconds / 3600
-    if hours < 1:
-        return f"{seconds}s"
-    if hours < 48:
-        value = f"{hours:.1f}".rstrip("0").rstrip(".")
-        return f"{value} h"
-    days = hours / 24
-    value = f"{days:.1f}".rstrip("0").rstrip(".")
-    return f"{value} d"
-
-
-def _format_isk(value: float | None) -> str:
-    return "—" if value is None else f"{value:,.2f} Ƶ"
-
-
-def _format_qty(value: int | None) -> str:
-    return "—" if value is None else f"{value:,}"
-
-
-def _parse_participants(request: Request) -> list[int] | None:
-    """`p` semantics: absent = the default pool; present (even empty)
-    = an explicit one. Non-numeric values drop — the server stays
-    authoritative over link construction."""
-    if "p" not in request.query_params:
-        return None
-    return [
-        int(value)
-        for value in request.query_params.getlist("p")
-        if value.strip().isdigit()
-    ]
-
-
-def _parse_material_sources(request: Request) -> list[str] | None:
-    """`src` semantics (the Material sources selector): the source refs
-    the coverage measurement counts from. Absent = all sources (the
-    source-from-all default); present (even empty) = an explicit set —
-    the same absent/empty sentinel `p` uses, because an explicitly
-    empty selection (nothing counts) is a real state."""
-    if "src" not in request.query_params:
-        return None
-    return [
-        value for value in request.query_params.getlist("src") if value.strip()
-    ]
 
 
 async def _labeled_sources(db: DbDep, plan: ChainPlan | None) -> list[dict]:
@@ -272,38 +191,6 @@ def _stock_lines(plan: ChainPlan, labeled: list[dict]) -> dict[int, list[dict]]:
     return lines
 
 
-async def _planner_state(
-    request: Request, db: DbDep
-) -> tuple[list[int] | None, dict[str, list], dict[str, object | None], dict]:
-    """The facility and participant state both pages share: every
-    activity's registration list, the chosen registration (URL override
-    where valid, else the registry default), and the defaults
-    themselves (for serializing only real overrides)."""
-    participants = _parse_participants(request)
-    registrations = {
-        activity: await activity_registrations(db, activity)
-        for activity in ACTIVITIES
-    }
-    defaults = await default_facilities(db)
-    chosen: dict[str, object | None] = {}
-    for activity in ACTIVITIES:
-        raw = request.query_params.get(activity, "")
-        chosen[activity] = None
-        if raw.strip().isdigit():
-            wanted = int(raw)
-            chosen[activity] = next(
-                (
-                    row
-                    for row in registrations[activity]
-                    if row.registration_id == wanted
-                ),
-                None,
-            )
-        if chosen[activity] is None:
-            chosen[activity] = defaults.get(activity)
-    return participants, registrations, chosen, defaults
-
-
 def _phase_views(chain: ChainResult) -> list[dict]:
     """The phase tree's view models: one entry per phase that holds
     buildable nodes (the all-raw level is the acquisition table's
@@ -319,9 +206,9 @@ def _phase_views(chain: ChainResult) -> list[dict]:
             state, reason = fresh_node_state(node)
             gating = None
             if reason == "waiting-upstream":
-                gating = _REASON_TEXT[reason].format(phase=node.phase - 1)
+                gating = REASON_TEXT[reason].format(phase=node.phase - 1)
             elif reason:
-                gating = _REASON_TEXT.get(reason, reason)
+                gating = REASON_TEXT.get(reason, reason)
             nodes.append(
                 {
                     "node": node,
@@ -371,7 +258,7 @@ def _raw_groups(chain: ChainResult) -> list[tuple[str, list[dict]]]:
     hides covered rows)."""
     groups: dict[str, list[dict]] = {}
     for row in chain.raw_totals:
-        label = _raw_label(row.category_name, row.group_name, row.name)
+        label = raw_label(row.category_name, row.group_name, row.name)
         on_hand = row.on_hand or 0
         if on_hand >= row.qty:
             meter = "full"
@@ -387,7 +274,7 @@ def _raw_groups(chain: ChainResult) -> list[tuple[str, list[dict]]]:
                 "pct": min(100, int(100 * on_hand / row.qty)) if row.qty else 0,
                 "meter": meter,
                 "gap": max(0, row.qty - on_hand),
-                "acquire": _RAW_ACQUIRE.get(label, "Market"),
+                "acquire": RAW_ACQUIRE.get(label, "Market"),
             }
         )
     return sorted(groups.items(), key=lambda item: (-len(item[1]), item[0]))
@@ -460,54 +347,6 @@ def _multiplies_lines(
     return lines
 
 
-def _state_qs(
-    target: int | None,
-    qty: int,
-    participants: list[int] | None,
-    chosen: dict[str, object | None],
-    defaults: dict | None = None,
-    me: int | None = None,
-    te: int | None = None,
-    owned: bool = False,
-    material_sources: list[str] | None = None,
-) -> str:
-    """The URL state both pages share, serialized once: target, count,
-    an explicit participant pool, the material-source selection, and
-    facility overrides (only when they differ from the registry
-    default — absence-means-default keeps links honest when the
-    default changes), and ME/TE overrides."""
-    from urllib.parse import urlencode
-
-    params: list[tuple[str, str]] = []
-    if target is not None:
-        params.append(("target", str(target)))
-    if qty != 1:
-        params.append(("qty", str(qty)))
-    if owned:
-        params.append(("owned", "1"))
-    if material_sources is not None:
-        # The present-even-empty sentinel: an explicit empty selection
-        # serializes as a bare src=.
-        if material_sources:
-            params.extend(("src", ref) for ref in material_sources)
-        else:
-            params.append(("src", ""))
-    if participants is not None:
-        params.extend(("p", str(pid)) for pid in participants)
-    for activity in ACTIVITIES:
-        row = chosen.get(activity)
-        default_row = defaults.get(activity) if defaults else None
-        if row is not None and (
-            default_row is None or row.registration_id != default_row.registration_id
-        ):
-            params.append((activity, str(row.registration_id)))
-    if me is not None:
-        params.append(("me", str(me)))
-    if te is not None:
-        params.append(("te", str(te)))
-    return ("?" + urlencode(params)) if params else ""
-
-
 @router.get("/planner")
 async def planner_page(
     request: Request,
@@ -517,12 +356,15 @@ async def planner_page(
     owned: bool = False,
     me: int | None = None,
     te: int | None = None,
+    from_plan: str = "",
 ):
     """The planner entry: search + target + participants + facilities +
     the full-chain requirement tiers (blueprints, intermediates by
     phase, raw terminators by category) + the owned-copies overlay.
     The sell-side market selector is omitted until M15's market manager
-    exists (settled scope)."""
+    exists (settled scope). `from_plan` is the Re-run fork context —
+    carried into Calculate so a save from the visit supersedes that
+    plan."""
     if not is_authenticated(request):
         return RedirectResponse("/", status_code=302)
     qty = max(1, qty or 1)
@@ -549,8 +391,10 @@ async def planner_page(
     corp_members = [c for c in characters if c.corporation_id == corp_id]
     others = [c for c in characters if c.corporation_id != corp_id]
 
-    participants, registrations, chosen, defaults = await _planner_state(request, db)
-    material_sources = _parse_material_sources(request)
+    participants, registrations, chosen, defaults = await planner_state(
+        db, request.query_params
+    )
+    material_sources = parse_material_sources(request.query_params)
 
     # The target: an invalid id bounces to the bare planner (search
     # only offers catalog products, so this is a stale or hand-built
@@ -570,11 +414,16 @@ async def planner_page(
         if plan is None:
             return RedirectResponse("/planner", status_code=302)
 
-    state_qs = _state_qs(
+    state_query = state_qs(
         target, qty, participants, chosen, defaults, me, te, owned,
         material_sources,
     )
     labeled_sources = await _labeled_sources(db, plan)
+    # Calculate carries the fork context so a save from a Re-run visit
+    # supersedes the source plan.
+    calculate_href = "/planner/plan" + state_query
+    if from_plan.strip().isdigit():
+        calculate_href += f"{'&' if state_query else '?'}from_plan={int(from_plan)}"
     return templates.TemplateResponse(
         request,
         "planner.html",
@@ -595,7 +444,7 @@ async def planner_page(
             "raw_groups": _raw_groups(plan.chain) if plan else [],
             "blueprints": _blueprint_views(plan.chain) if plan else None,
             "multiplies": _multiplies_lines(plan, chosen) if plan else [],
-            "calculate_href": "/planner/plan" + state_qs,
+            "calculate_href": calculate_href,
             "main": main,
             "corp_id": corp_id,
             "corp_name": corp_name,
@@ -608,9 +457,6 @@ async def planner_page(
             "activities": ACTIVITIES,
             "activity_labels": ACTIVITY_LABELS,
             "structure_types": STRUCTURE_TYPES,
-            "format_duration": _format_duration,
-            "format_isk": _format_isk,
-            "format_qty": _format_qty,
         },
     )
 
@@ -654,20 +500,25 @@ async def planner_plan_page(
     me: int | None = None,
     te: int | None = None,
     show_all: bool = Query(False, alias="all"),
+    from_plan: str = "",
 ):
     """The calculated chain build plan (Calculate's destination): stat
     tiles, the chain-flow strip, the phase tree with stage states, the
     chain-wide blueprint overlay, the raw-material acquisition table
     with coverage meters (gaps-only by default), per-participant time,
-    and the copy-time readout. Wave bar, copy plan, market panel, and
-    job allocation are their own milestones' surfaces."""
+    and the copy-time readout, and the Save-plan export form (M6).
+    Wave bar, copy plan, market panel, and job allocation are their own
+    milestones' surfaces. `from_plan` is the Re-run fork context: the
+    plan id a save from this page supersedes."""
     if not is_authenticated(request):
         return RedirectResponse("/", status_code=302)
     if target is None:
         return RedirectResponse("/planner", status_code=302)
     qty = max(1, qty or 1)
-    participants, _registrations, chosen, defaults = await _planner_state(request, db)
-    material_sources = _parse_material_sources(request)
+    participants, _registrations, chosen, defaults = await planner_state(
+        db, request.query_params
+    )
+    material_sources = parse_material_sources(request.query_params)
 
     plan = await chain_plan(
         db,
@@ -682,21 +533,26 @@ async def planner_plan_page(
     if plan is None:
         return RedirectResponse("/planner", status_code=302)
 
-    state_qs = _state_qs(
+    state_query = state_qs(
         target, qty, participants, chosen, defaults, me, te,
         material_sources=material_sources,
     )
-    base_href = "/planner/plan" + state_qs
-    # The toggle flips `all`; dropping the param returns to the
-    # gaps-only default (absence-means-default).
+    # The fork context rides every link (the acquisition toggle, the
+    # back-to-planner link, Calculate's round trips) so a save from a
+    # Re-run visit keeps its source plan; a fresh visit never carries
+    # it and never touches siblings.
+    fork_id = int(from_plan) if from_plan.strip().isdigit() else None
+    fork_qs = f"{'&' if state_query else '?'}from_plan={fork_id}" if fork_id else ""
+    base_href = "/planner/plan" + state_query + fork_qs
     toggle_href = (
-        base_href if show_all else base_href + ("&all=1" if state_qs else "?all=1")
+        base_href if show_all else base_href + ("&all=1" if state_query else "?all=1")
     )
     labeled_sources = await _labeled_sources(db, plan)
     raw_groups = _raw_groups(plan.chain)
     covered_count = sum(
         1 for _label, rows in raw_groups for row in rows if row["meter"] == "full"
     )
+    target_node = plan.chain.target_node
     return templates.TemplateResponse(
         request,
         "plan.html",
@@ -711,15 +567,20 @@ async def planner_plan_page(
             "blueprints": _blueprint_views(plan.chain),
             "show_all": show_all,
             "toggle_href": toggle_href,
-            "planner_href": "/planner" + state_qs,
+            "planner_href": "/planner" + state_query + fork_qs,
             "qty": qty,
             "material_sources": material_sources,
             "source_groups": _source_groups(labeled_sources),
             "stock_lines": _stock_lines(plan, labeled_sources),
             "me_override": me,
             "te_override": te,
-            "format_duration": _format_duration,
-            "format_isk": _format_isk,
-            "format_qty": _format_qty,
+            # The export form: the URL state as hidden fields, the
+            # prefilled default name, and the fork context.
+            "export_pairs": state_pairs(
+                target, qty, participants, chosen, defaults, me, te,
+                material_sources=material_sources,
+            ),
+            "default_plan_name": f"{target_node.name} ×{qty:,}",
+            "from_plan": fork_id,
         },
     )

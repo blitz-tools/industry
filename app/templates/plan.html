@@ -6,6 +6,15 @@
   <h1><img class="type-icon" style="width:32px;height:32px;" src="{{ type_icon_url(target.type_id, 32) }}" alt=""> Build Plan — {{ target.name }} ×{{ '{:,}'.format(qty) }}</h1>
   <div class="actions">
     <span class="badge plan-state" title="A plan activates when its first job installs (M6, when plans persist) and completes when every leaf node is delivered.">Draft</span>
+    <form method="post" action="/plans" class="export-form">
+      {% for key, value in export_pairs %}
+      <input type="hidden" name="{{ key }}" value="{{ value }}">
+      {% endfor %}
+      {% if from_plan is not none %}<input type="hidden" name="from_plan" value="{{ from_plan }}">{% endif %}
+      <input type="text" name="name" value="{{ default_plan_name }}" maxlength="200"
+             aria-label="Plan name" title="Plan name">
+      <button class="icon-button save" type="submit" title="Save plan (snapshots this chain as the plan of record)" aria-label="Save plan">⭳</button>
+    </form>
     <a class="icon-button" href="{{ planner_href }}" title="Re-run planner" aria-label="Re-run planner">⟳</a>
   </div>
 </div>
@@ -205,6 +214,18 @@
   milestones' surfaces.
   <a href="{{ planner_href }}">← back to planner</a>
 </p>
+
+<!-- Unsaved-plan guard (an in-app dialog, not the browser popup): the
+     calculated chain is URL state until Save plan snapshots it, so any
+     departure from this page without saving prompts first. -->
+<dialog id="unsaved-plan-dialog" aria-labelledby="unsaved-plan-title">
+  <h3 id="unsaved-plan-title">Leave with an unsaved plan?</h3>
+  <p>The calculated chain is not saved — Save plan (⭳) snapshots it as the plan of record first.</p>
+  <div class="form-actions">
+    <button type="button" id="unsaved-plan-stay">Stay</button>
+    <button type="button" class="danger" id="unsaved-plan-leave">Leave</button>
+  </div>
+</dialog>
 {% endblock %}
 {% block page_scripts %}
 <script src="/static/planner.js?v={{ static_version }}"></script>

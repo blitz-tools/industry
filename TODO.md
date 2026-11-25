@@ -185,6 +185,19 @@ LICENSE**; this item aligns everything around it.
 
 ## Smaller items / ideas
 
+- **Workflow documentation screenshot pass** (owner direction,
+  2026-11-24): `docs/user-guide/workflows.md` carries the intended
+  workflows with per-section figure slots (marked *pending the
+  screenshot pass*); the pass itself needs a capture pipeline — a
+  headless-browser script that walks each workflow, highlights the
+  active control (an outline overlay injected before capture), and
+  writes the figure PNGs into `docs/user-guide/img/` named after the
+  slots (planner.target, plan.save, plans.actions, …). **Constraint**:
+  captures must run against a seeded demo dataset, never the dev
+  deployment — screenshots are published-site material and the dev
+  database carries live character and corporation names (the AGENTS.md
+  rule). Refresh and expand the set at each milestone as surfaces
+  stabilize.
 - **Plan-of-Plans overview** (owner note, M6 schema review 2026-11-24):
   a single overview aligning all rostered characters and job
   requirements across every existing plan — a Gantt-chart style of
@@ -192,7 +205,15 @@ LICENSE**; this item aligns everything around it.
   correlation has pinned jobs to (a job installs against one plan
   only, so the overview reads the pins, never re-matches). Future
   milestone investigation — M9's scheduling surfaces and M11's DAG
-  visualization are the natural homes.
+  visualization are the natural homes. **The stacking scenario of
+  record** (owner note, M6 export review 2026-11-24): repeated
+  deliveries of the same build on a cadence — e.g. the same weekly
+  deliverable planned four times over a one-month horizon, four linear
+  iterations of one chain — plus the copy workflow it composes with
+  (same build re-planned from a different container input/output
+  location in the corp hangars; Copy plan is that workflow's front
+  door). Linear stacking of copied plans is the v1 shape; deeper
+  dependency between the iterations is M9+ material.
 - **Planner UI a11y (accessibility; from mockup iteration, 2026-11-18)** — rides
   M4's planner-entry implementation (2026-11-22 fold-in note): the Purchase ⇄
   Build chip is a `cursor: pointer` span in the wireframes but must ship as

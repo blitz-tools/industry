@@ -1687,6 +1687,52 @@ reality over time.*
   contents belong to their container), only sources holding measured
   types enumerated. Lands as its own PR **before the export PR**, so
   the plan snapshot bakes the source set in once.
+- **Export slice** (landed 2026-11-24, PR 5 of the M6 sequence): POST
+  /plans re-resolves the chain DB-pure and snapshots it as a new draft
+  plan — participants and facilities pinned at export, per-node
+  calc/materials/skills JSON, acquisition rows from the chain
+  terminators, the copy readout, and `source_query` (the Re-run
+  target). The materialized columns (state, available) initialize from
+  the export-time measurement — the same values the planner page
+  showed — until the refresh tick owns them. **Fork rule**: a fresh
+  export never touches sibling plans (concurrent same-target plans
+  stay possible); auto-abandon applies only to the explicit Re-run
+  path (`from_plan` marks that one plan abandoned + superseded).
+  Schema consequence (migration 0012): `build_plans.sources_json`
+  (null = corp-side default; JSON refs = the explicit set,
+  present-even-empty sentinel) replaces 0011's
+  `include_personal_stock` bool, and `build_plan_containers` folds
+  into it — a container is one source kind among the refs. The Plans
+  section (Industry → Structures · Planner · Plans) ships with the
+  list and a read-only draft detail; activation, progress refresh,
+  Purchase⇄Build marking, and multibuy are the milestone's next
+  slices. The shared planner-state helpers (participant/source
+  parsing, facility resolution, URL serialization) moved from the
+  planner routes into `app/plans.py` — the domain layer both routers
+  and the snapshot writer consume.
+- **Re-plan vs Branch vs Copy plan** (owner direction, 2026-11-24
+  review): three distinct buttons off a plan detail, because they
+  answer different questions. **Re-plan** (⟳, purple) goes all the way
+  back to the planner ENTRY with the plan's state — the target is
+  adjustable there, and saving from the visit supersedes the source
+  plan (the fork rule above). **Branch plan** (⎇, yellow) also goes to
+  the entry with the setup loaded but carries NO fork — the same
+  planning setup (target, count, participants, facilities, sources)
+  adjusted in full and saved as a new sibling plan; git semantics,
+  deliberately: a branch diverges and keeps its origin, superseding is
+  Re-plan's job. **Copy plan** (⧉, blue) lands on the calculated page
+  with the same context and NO fork — the quick path, sources
+  adjustable only, the container-bucketing workflow's front door (same
+  chain, different material-source locations). Save plan (⭳)
+  highlights green. **Why targets are immutable on a calculated plan**
+  (the recorded rationale): the target is a planning-phase input in
+  all cases — a saved/calculated chain is never edited in place,
+  because spreading a build's job distribution across multiple jobs
+  introduces an inherent material-input offset against the single-run
+  quantities (per-job material rounding), and re-aligning inputs to a
+  changed target is exactly the waves-and-alignment math M9 owns.
+  Changing the target therefore means re-planning from the entry, not
+  patching the calculation.
 
 **Schema sketch**
 
