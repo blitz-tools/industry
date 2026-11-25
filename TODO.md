@@ -47,6 +47,23 @@ Groundwork that already exists and applies broadly:
 
 ## In queue
 
+- **Blueprint → plan chip** (owner note, 2026-11-24): from the blueprints
+  surfaces, a chip that loads a blueprint into a plan — a **BPC loads at
+  its max target** (remaining runs × products-per-run units), a **BPO
+  loads at 1 target** (unlimited runs, so the count is the owner's to
+  step up). The chip deep-links into the planner with the product
+  target and quantity pre-filled (commodity-first; run math is
+  computed, never asked). Pickup calls: which surface carries the chip
+  (the character/corp blueprints pages, the planner's owned-copies
+  overlay, or both) and whether it targets the bare planner or the
+  M6 export flow. Once M15's market data lands, the same rows gain
+  **estimated price per unit at `<market_hub>` sell** and **estimated
+  profit/loss** computed against the hub's buy / split / sell rates
+  (M10's build-vs-buy math supplies the verdict shape). A companion
+  chip **builds a skill plan for the blueprint** (M13's calculator) or
+  states that **all required skills are already held** — the
+  eligibility check the planner's skill gate already computes, surfaced
+  per blueprint.
 - **Ancient Relics acquisition sources** (owner note, M5 review
   2026-11-24): the acquisition table's "Acquire via" column pins each
   terminator category to its in-game mechanic; the relic category
