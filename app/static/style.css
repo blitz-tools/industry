@@ -443,9 +443,14 @@ a:hover {
   color: var(--muted);
 }
 
+/* Danger icon buttons fill pink on hover with a WHITE glyph — the
+   generic button.danger:hover also fills pink, and without the
+   explicit background/color here the higher-specificity icon rule
+   painted the glyph pink too (pink-on-pink, the X vanished). */
 .icon-button.danger:hover {
   border-color: var(--pink);
-  color: var(--pink);
+  background: var(--pink);
+  color: var(--text);
 }
 
 /* --- Buttons ------------------------------------------------------------ */
