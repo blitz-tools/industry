@@ -235,7 +235,10 @@ async def plan_activate(request: Request, db: DbDep, plan_id: int):
         await refresh_job_claims(db)
         await refresh_plan(db, plan)
         await db.commit()
-    return RedirectResponse(f"/plans/{plan_id}", status_code=303)
+    # The DB row's id, never the raw path parameter — the url-redirection
+    # hygiene every redirect follows (the param is int-coerced by FastAPI,
+    # but the loaded row is provably server-side data).
+    return RedirectResponse(f"/plans/{plan.id}", status_code=303)
 
 
 @router.post("/plans/{plan_id}/abandon")
@@ -257,7 +260,7 @@ async def plan_abandon(request: Request, db: DbDep, plan_id: int):
             delete(BuildPlanJob).where(BuildPlanJob.plan_id == plan_id)
         )
         await db.commit()
-    return RedirectResponse(f"/plans/{plan_id}", status_code=303)
+    return RedirectResponse(f"/plans/{plan.id}", status_code=303)
 
 
 @router.get("/plans/{plan_id}/rerun")
