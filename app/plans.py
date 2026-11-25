@@ -16,10 +16,11 @@ owns plan semantics, not chain math:
 """
 
 import json
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
+from datetime import datetime
 from urllib.parse import urlencode
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .db import utc_now
@@ -30,8 +31,16 @@ from .facilities import (
     default_facilities,
 )
 from .industry import activity_skills
-from .models import BuildPlan, BuildPlanMaterial, BuildPlanNode, Character
-from .planner import ChainPlan, fresh_node_state
+from .models import (
+    BuildPlan,
+    BuildPlanJob,
+    BuildPlanMaterial,
+    BuildPlanNode,
+    Character,
+    IndustryJob,
+    Structure,
+)
+from .planner import SDE_ACTIVITY_KEYS, ChainPlan, fresh_node_state
 
 # Raw-material display labels: SDE category/group names pinned against
 # the live mirror 2026-11-23, mapped to the mockup's tier-3 labels. The
@@ -559,3 +568,208 @@ def status_badge(plan: BuildPlan) -> str:
         "complete": "owned",
         "abandoned": "missing",
     }.get(plan.status, "plan-state")
+
+
+# --- Job correlation (M6 PR 6: the pure matcher + build_plan_jobs writes) --------
+
+# ESI industry-job activity ids → the SDE recipe activity ids plan
+# nodes carry. ESI reports reaction jobs under 9 (the ramActivities
+# label) while the SDE dump files reaction recipes under 11 — this is
+# the reconcile map the matcher joins across, verified against live
+# corp jobs on the dev deployment 2026-11-25. Any other activity
+# (copying, research, invention) matches nothing: build-plan nodes
+# only ever carry 1 or 11.
+ACTIVITY_RECONCILE: dict[int, int] = {1: 1, 9: 11, 11: 11}
+
+# The job statuses that can carry a claim. cancelled/reverted are
+# terminal failures; delivered still counts (delivery is the point).
+CLAIMABLE_STATUSES = frozenset({"active", "paused", "ready", "delivered"})
+
+
+@dataclass(frozen=True)
+class PlanNodeRef:
+    """One build_plan_nodes row as the matcher sees it: the identity
+    keys plus the pinned facility's resolved sighting location — None
+    when the structure is hand-entered (no location) or no facility is
+    registered for the activity, in which case jobs at any location
+    match (loosely — the documented failure mode)."""
+
+    node_id: int
+    phase: int
+    blueprint_type_id: int
+    activity_id: int
+    facility_location_id: int | None
+
+
+@dataclass(frozen=True)
+class PlanRef:
+    """One non-terminal plan as the matcher sees it."""
+
+    plan_id: int
+    created_at: datetime
+    nodes: tuple[PlanNodeRef, ...]
+
+
+@dataclass(frozen=True)
+class JobClaim:
+    """One job→node claim: the industry_jobs key plus the plan node it
+    belongs to (the build_plan_jobs row's shape)."""
+
+    plan_id: int
+    node_id: int
+    owner_type: str
+    owner_id: int
+    job_id: int
+
+
+def correlate_jobs(plans: list[PlanRef], jobs: list[IndustryJob]) -> list[JobClaim]:
+    """The heuristic matcher (PURE): which synced industry jobs belong
+    to which plan nodes. The jobs endpoint carries no plan reference,
+    so a job claims a node when its blueprint type and its ESI activity
+    (reconciled to the SDE id) equal the node's, it started at or after
+    the plan was exported (pre-export installs belong to a previous
+    effort), and — only when the node's pinned facility resolved to a
+    sighting location — it runs at that location. One claim per job
+    GLOBALLY: plans walk oldest-first and nodes phase-ascending (build
+    order), so a job matching several nodes lands on the oldest plan's
+    earliest phase. False positives are accepted by design; there is no
+    un-match UI in v1."""
+    candidates = {
+        blueprint_id: []
+        for blueprint_id in (job.blueprint_type_id for job in jobs)
+    }
+    for job in jobs:
+        if job.status in CLAIMABLE_STATUSES and job.start_date is not None:
+            candidates[job.blueprint_type_id].append(job)
+
+    claims: list[JobClaim] = []
+    claimed: set[tuple[str, int, int]] = set()
+    for plan in sorted(plans, key=lambda p: (p.created_at, p.plan_id)):
+        for node in sorted(plan.nodes, key=lambda n: (n.phase, n.node_id)):
+            for job in candidates.get(node.blueprint_type_id, ()):
+                key = (job.owner_type, job.owner_id, job.job_id)
+                if key in claimed:
+                    continue
+                if ACTIVITY_RECONCILE.get(job.activity_id) != node.activity_id:
+                    continue
+                if job.start_date < plan.created_at:
+                    continue
+                if (
+                    node.facility_location_id is not None
+                    and job.station_id != node.facility_location_id
+                ):
+                    continue
+                claimed.add(key)
+                claims.append(
+                    JobClaim(
+                        plan_id=plan.plan_id,
+                        node_id=node.node_id,
+                        owner_type=job.owner_type,
+                        owner_id=job.owner_id,
+                        job_id=job.job_id,
+                    )
+                )
+    return claims
+
+
+async def refresh_job_claims(db: AsyncSession) -> list[JobClaim]:
+    """One global correlation pass: load every non-terminal plan's
+    nodes (their pinned facilities resolved to sighting locations) and
+    every synced industry job, run the pure matcher, and rewrite
+    build_plan_jobs wholesale. The pass is global so the one-claim rule
+    holds across concurrent plans. The refresh tick (M6 PR 7) owns the
+    cadence; nothing here mutates plans or nodes. The caller commits."""
+    plans = (
+        (
+            await db.execute(
+                select(BuildPlan)
+                .where(BuildPlan.status.in_(("draft", "active")))
+                .order_by(BuildPlan.created_at, BuildPlan.id)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    nodes: list[BuildPlanNode] = []
+    if plans:
+        nodes = (
+            (
+                await db.execute(
+                    select(BuildPlanNode)
+                    .where(
+                        BuildPlanNode.plan_id.in_([plan.id for plan in plans])
+                    )
+                    .order_by(BuildPlanNode.phase, BuildPlanNode.id)
+                )
+            )
+            .scalars()
+            .all()
+        )
+
+    # The pinned facilities' structure ids → sighting locations. A
+    # structure without one (hand-entered, or since deleted) leaves its
+    # nodes matching loosely.
+    facilities_by_plan = {
+        plan.id: json.loads(plan.facilities_json) for plan in plans
+    }
+    structure_ids = {
+        pin["structure_id"]
+        for pins in facilities_by_plan.values()
+        for pin in pins.values()
+        if pin
+    }
+    locations: dict[int, int | None] = {}
+    if structure_ids:
+        locations = dict(
+            (
+                await db.execute(
+                    select(Structure.id, Structure.location_id).where(
+                        Structure.id.in_(structure_ids)
+                    )
+                )
+            ).all()
+        )
+
+    nodes_by_plan: dict[int, list[BuildPlanNode]] = {}
+    for node in nodes:
+        nodes_by_plan.setdefault(node.plan_id, []).append(node)
+    refs = []
+    for plan in plans:
+        pins = facilities_by_plan[plan.id]
+        plan_nodes = []
+        for node in nodes_by_plan.get(plan.id, []):
+            pin = pins.get(SDE_ACTIVITY_KEYS.get(node.activity_id, ""))
+            plan_nodes.append(
+                PlanNodeRef(
+                    node_id=node.id,
+                    phase=node.phase,
+                    blueprint_type_id=node.blueprint_type_id,
+                    activity_id=node.activity_id,
+                    facility_location_id=(
+                        locations.get(pin["structure_id"]) if pin else None
+                    ),
+                )
+            )
+        refs.append(
+            PlanRef(
+                plan_id=plan.id,
+                created_at=plan.created_at,
+                nodes=tuple(plan_nodes),
+            )
+        )
+
+    jobs = (await db.execute(select(IndustryJob))).scalars().all()
+    claims = correlate_jobs(refs, jobs)
+
+    await db.execute(delete(BuildPlanJob))
+    for claim in claims:
+        db.add(
+            BuildPlanJob(
+                plan_id=claim.plan_id,
+                node_id=claim.node_id,
+                owner_type=claim.owner_type,
+                owner_id=claim.owner_id,
+                job_id=claim.job_id,
+            )
+        )
+    return claims
