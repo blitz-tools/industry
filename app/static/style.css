@@ -494,8 +494,9 @@ button:hover,
 }
 
 /* Chip-scale controls (pills, menu triggers, panel rows, stepper
-   keys, the nav group toggle) keep their content height — the 2rem
-   control height is for boxed action buttons only. */
+   keys, the nav group toggle) and the autocomplete's multi-line rows
+   keep their content height — the 2rem control height is for boxed
+   action buttons only. */
 .chip-button,
 .corp-toggle,
 .drop-chip,
@@ -504,7 +505,8 @@ button:hover,
 .stage-chip,
 .phase-bulk,
 .nav-group-toggle,
-.stepper button {
+.stepper button,
+.autocomplete-row {
   height: auto;
 }
 
