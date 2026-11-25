@@ -432,7 +432,12 @@ async def _sync_character_loyalty(
     balances: list[dict[str, Any]] = []
 
     async def replace() -> int:
-        rows = await esi.get(character, "/characters/{character_id}/loyalty/")
+        # The loyalty route is /loyalty/points/ — the bare /loyalty/
+        # path 404s (the live failure this fixed, 2026-11-25; the
+        # tests had mocked the wrong route faithfully).
+        rows = await esi.get(
+            character, "/characters/{character_id}/loyalty/points/"
+        )
         balances.extend(rows if isinstance(rows, list) else [])
         values = [
             {

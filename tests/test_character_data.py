@@ -27,7 +27,7 @@ SSO_TOKEN_URL = "https://sso.test/v2/oauth/token"
 ASSETS_URL = "https://esi.test/latest/characters/1234/assets/"
 BLUEPRINTS_URL = "https://esi.test/latest/characters/1234/blueprints/"
 SKILLS_URL = "https://esi.test/latest/characters/1234/skills/"
-LOYALTY_URL = "https://esi.test/latest/characters/1234/loyalty/"
+LOYALTY_URL = "https://esi.test/latest/characters/1234/loyalty/points/"
 JOBS_URL = "https://esi.test/latest/characters/1234/industry/jobs/"
 
 ALPHA = 1234

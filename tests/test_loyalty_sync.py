@@ -17,7 +17,7 @@ from tests.conftest import TEST_SETTINGS
 
 ALPHA = 1234
 ASSETS_URL = f"https://esi.test/latest/characters/{ALPHA}/assets/"
-LOYALTY_URL = f"https://esi.test/latest/characters/{ALPHA}/loyalty/"
+LOYALTY_URL = f"https://esi.test/latest/characters/{ALPHA}/loyalty/points/"
 LP_CORP = 1000001
 LP_OTHER_CORP = 1000003
 
