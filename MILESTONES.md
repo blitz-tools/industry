@@ -1796,8 +1796,9 @@ reality over time.*
   under materialized availability). Marking chips keep the page in
   place: a scripted in-place POST swap (viewport fixed, phase
   expanded/collapsed state restored, history at the final detail
-  URL), with the native 303-to-?open anchor as the no-script
-  fallback. **Multibuy export**: the header's ↗ opens an on-page
+  URL), with the native 303 anchor as the no-script fallback (all
+  phase rows expanded by default — amended 2026-11-25, the first-two
+  open default was never a decision of record). **Multibuy export**: the header's ↗ opens an on-page
   dialog (the unsaved-guard shape) holding the whole shopping list in
   a large fixed-width text box with a Copy button — one `Item
   Name<TAB>Quantity` line per short acquisition row (raw gaps against

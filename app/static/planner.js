@@ -559,14 +559,15 @@ if (!window.initPlannerPageWired) {
 
   // Purchase⇄Build markings (chips and phase-bulk) POST to
   // /plans/{id}/sourcing. Scripting off: the native POST 303s back to
-  // the detail (landing at ?open={phase}#phase-row-{phase}). Scripting
+  // the detail (landing at #phase-row-{phase} — every phase row is
+  // open by default). Scripting
   // on: the POST swaps the page in place instead — the viewport never
   // moves (the no-JS anchor would snap it), and the phase tree's
   // expanded/collapsed rows are restored over the fresh markup so
   // flipping a chip deep in the tree doesn't collapse context. The
   // history entry is the FINAL detail URL from the redirect, never the
   // action URL (the /plans/{id}/{action} pin), with the no-JS landing
-  // params stripped — scripting already restored the state they carry.
+  // anchor stripped — scripting already restored the state.
   document.addEventListener("submit", (event) => {
     const form = event.target.closest("form[action$='/sourcing']");
     if (!form) return;

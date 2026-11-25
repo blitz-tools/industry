@@ -30,7 +30,7 @@
     <p class="stat-label">Chain time, serial · target job {{ format_duration(target.calc.job_seconds) }}</p>
   </div>
   <div class="stat">
-    <p class="stat-value">{{ format_isk(chain.install_total) }}</p>
+    <p class="stat-value" title="{{ format_isk(chain.install_total) }}">{{ format_isk_compact(chain.install_total) }}</p>
     <p class="stat-label">Install cost, chain total{% if chain.install_missing_nodes %} · {{ chain.install_missing_nodes }} node{{ 's' if chain.install_missing_nodes != 1 }} missing price data{% endif %}</p>
   </div>
   <div class="stat">

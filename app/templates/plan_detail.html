@@ -72,7 +72,7 @@
     <p class="stat-label">Chain time, serial · target job {{ format_duration(target_node.job_seconds) }}</p>
   </div>
   <div class="stat">
-    <p class="stat-value">{{ format_isk(totals.install_total) }}</p>
+    <p class="stat-value" title="{{ format_isk(totals.install_total) }}">{{ format_isk_compact(totals.install_total) }}</p>
     <p class="stat-label">Install cost, chain total{% if totals.install_missing %} · {{ totals.install_missing }} node{{ 's' if totals.install_missing != 1 }} missing price data{% endif %}</p>
   </div>
   <div class="stat">
@@ -117,7 +117,7 @@
 <p class="meta-line" style="margin: 0 0 0.75rem;">Purchase⇄Build chips amend nodes in place: a purchased node drops out of phase progress and tracks the pool instead, and everything only it consumed turns unnecessary (greyed, its raw demands leave the acquisition table). Suppliers shared with still-built nodes keep their full planned quantities in v1 — quantities never shrink locally (full re-derivation is the waves model, M9).</p>
 
 {% for view in phase_views %}
-<details class="phase-row{{ ' unnecessary' if view.dead }}" id="phase-row-{{ view.phase }}"{{ ' open' if loop.index <= 2 or view.phase == open_phase }}>
+<details class="phase-row{{ ' unnecessary' if view.dead }}" id="phase-row-{{ view.phase }}" open>
   <summary>
     <span class="phase-title">Phase {{ view.phase }} — {{ view.name }}</span>
     {% for activity_id in view.activity_ids %}<span class="activity-tag {{ 'mfg' if activity_id == 1 else 'rxn' }}">{{ 'manufacture' if activity_id == 1 else 'reaction' }}</span>{% endfor %}
