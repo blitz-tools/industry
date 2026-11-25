@@ -521,6 +521,30 @@ async def test_purchased_nodes_complete_on_availability(chain_db):  # noqa: F811
     assert view["build_count"] == 0 and view["purchased_count"] == 1
 
 
+async def test_deactivated_plans_stay_draft_under_the_tick(chain_db):  # noqa: F811
+    """Owner activation control is sticky: the tick's draft→active flip
+    fires only for NEVER-activated plans, so a deactivated plan stays
+    draft while its jobs still correlate (the false-positive escape
+    hatch) — while a never-activated draft with the same job activates
+    on its own."""
+    deactivated = await _export(chain_db)
+    never_activated = await _export(chain_db)
+    for plan in (deactivated, never_activated):
+        plan.status = "active"
+        plan.activated_at = utc_now()
+    deactivated.status = "draft"  # the owner's Deactivate
+    await chain_db.commit()
+
+    chain_db.add(
+        _job(runs=4, end_date=utc_now() + timedelta(hours=2))
+    )
+    await _refresh(chain_db, deactivated)
+    await _refresh(chain_db, never_activated)
+
+    assert (await _reload(chain_db, deactivated.id)).status == "draft"
+    assert (await _reload(chain_db, never_activated.id)).status == "active"
+
+
 async def test_purchased_target_completes_on_availability(chain_db):  # noqa: F811
     """Purchasing the target makes the whole chain unnecessary: the
     plan tracks only the target's pool availability — every other node

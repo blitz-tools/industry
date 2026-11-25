@@ -18,12 +18,12 @@ import pytest
 import pytest_asyncio
 import respx
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app import models  # noqa: F401  (register models)
 from app.config import Settings
-from app.db import Base, utc_now
+from app.db import Base, make_engine, utc_now
 from app.esi.limiter import ESILimiter
 from app.main import create_app
 
@@ -163,7 +163,7 @@ async def app():
     limiter keeps limiter pauses and retry backoff instant and observable.
     """
     application = create_app(TEST_SETTINGS)
-    engine = create_async_engine(
+    engine = make_engine(
         "sqlite+aiosqlite://",
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,  # keeps the shared :memory: database alive

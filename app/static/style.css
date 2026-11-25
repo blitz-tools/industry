@@ -1671,7 +1671,9 @@ button.primary:hover,
 #delete-dialog,
 #unsaved-plan-dialog,
 #abandon-dialog,
-#multibuy-dialog {
+#multibuy-dialog,
+#bulk-abandon-dialog,
+#bulk-delete-dialog {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -1688,14 +1690,18 @@ button.primary:hover,
 #delete-dialog::backdrop,
 #unsaved-plan-dialog::backdrop,
 #abandon-dialog::backdrop,
-#multibuy-dialog::backdrop {
+#multibuy-dialog::backdrop,
+#bulk-abandon-dialog::backdrop,
+#bulk-delete-dialog::backdrop {
   background: rgb(0 0 0 / 60%);
 }
 
 #delete-dialog h3,
 #unsaved-plan-dialog h3,
 #abandon-dialog h3,
-#multibuy-dialog h3 {
+#multibuy-dialog h3,
+#bulk-abandon-dialog h3,
+#bulk-delete-dialog h3 {
   margin: 0 0 0.75rem;
   font-size: 1.05rem;
 }
@@ -1703,13 +1709,34 @@ button.primary:hover,
 #delete-dialog p,
 #unsaved-plan-dialog p,
 #abandon-dialog p,
-#multibuy-dialog p {
+#multibuy-dialog p,
+#bulk-abandon-dialog p,
+#bulk-delete-dialog p {
   margin: 0 0 0.5rem;
 }
 
 /* The shopping list itself: large, fixed-width, tab-aligned —
    name<TAB>quantity pastes straight into the in-game multibuy
    window. */
+/* Plans-list bulk management: the action cluster above the table
+   (the page-header actions shape) and the selection column. */
+.bulk-bar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0 0 0.75rem;
+}
+
+.bulk-bar .bulk-hint {
+  margin-right: auto;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.asset-table .bulk-col {
+  width: 2rem;
+}
+
 .multibuy-text {
   width: 100%;
   min-height: 22rem;

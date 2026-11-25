@@ -255,7 +255,8 @@ async def plan_activate(request: Request, db: DbDep, plan_id: int):
     correlation misses (a plan whose jobs the heuristic didn't catch
     still tracks). Runs one synchronous refresh so the redirect lands
     with the plan's correlated jobs materialized. Non-draft plans are
-    a no-op redirect (activation is one-way; completion is computed)."""
+    a no-op redirect (the reverse is Deactivate; completion is
+    computed)."""
     if not is_authenticated(request):
         return RedirectResponse("/", status_code=303)
     plan = await db.get(BuildPlan, plan_id)
@@ -270,6 +271,27 @@ async def plan_activate(request: Request, db: DbDep, plan_id: int):
     # The DB row's id, never the raw path parameter — the url-redirection
     # hygiene every redirect follows (the param is int-coerced by FastAPI,
     # but the loaded row is provably server-side data).
+    return RedirectResponse(f"/plans/{plan.id}", status_code=303)
+
+
+@router.post("/plans/{plan_id}/deactivate")
+async def plan_deactivate(request: Request, db: DbDep, plan_id: int):
+    """Deactivate: the owner pulling active→draft — the escape hatch
+    for a correlation false-positive that flipped a plan early (the
+    handoff's open pin, resolved: owner activation control is
+    reversible). The tick's auto-activate only fires for never-
+    activated plans, so a deactivated plan stays draft while its jobs
+    still correlate; activated_at keeps its historical value (it is
+    the never-activated marker). Re-activation is the Activate button.
+    Non-active plans are a no-op redirect."""
+    if not is_authenticated(request):
+        return RedirectResponse("/", status_code=303)
+    plan = await db.get(BuildPlan, plan_id)
+    if plan is None:
+        return RedirectResponse("/plans", status_code=303)
+    if plan.status == "active":
+        plan.status = "draft"
+        await db.commit()
     return RedirectResponse(f"/plans/{plan.id}", status_code=303)
 
 
@@ -293,6 +315,57 @@ async def plan_abandon(request: Request, db: DbDep, plan_id: int):
         )
         await db.commit()
     return RedirectResponse(f"/plans/{plan.id}", status_code=303)
+
+
+@router.post("/plans/bulk")
+async def plans_bulk(request: Request, db: DbDep):
+    """List-screen plan management: Activate, Deactivate, Abandon, or
+    Delete the selected plans. Each action applies to the applicable
+    subset of the selection — Activate: drafts; Deactivate: active
+    plans (the false-positive escape hatch — the tick never re-activates
+    a previously activated plan); Abandon: drafts and active plans;
+    Delete: abandoned plans only, permanently (the snapshot rows
+    cascade away; a superseded-by pointer to a deleted plan nulls out,
+    never dangles). One claims pass plus a synchronous refresh per
+    activation, matching the detail page's Activate; abandonment clears
+    claims immediately. Terminal plans reject every action, and the
+    server never trusts form construction."""
+    if not is_authenticated(request):
+        return RedirectResponse("/", status_code=303)
+    form = await request.form()
+    action = (form.get("action") or "").strip()
+    if action not in ("activate", "deactivate", "abandon", "delete"):
+        return RedirectResponse("/plans", status_code=303)
+    plan_ids = [
+        int(value)
+        for value in form.getlist("plan_id")
+        if value.strip().isdigit()
+    ]
+    activated: list[BuildPlan] = []
+    for plan_id in plan_ids:
+        plan = await db.get(BuildPlan, plan_id)
+        if plan is None:
+            continue
+        if action == "activate" and plan.status == "draft":
+            plan.status = "active"
+            plan.activated_at = utc_now()
+            activated.append(plan)
+        elif action == "deactivate" and plan.status == "active":
+            plan.status = "draft"
+        elif action == "abandon" and plan.status in ("draft", "active"):
+            plan.status = "abandoned"
+            plan.abandoned_at = utc_now()
+            await db.execute(
+                delete(BuildPlanJob).where(BuildPlanJob.plan_id == plan.id)
+            )
+        elif action == "delete" and plan.status == "abandoned":
+            await db.delete(plan)
+    if activated:
+        await refresh_job_claims(db)
+        for plan in activated:
+            await refresh_plan(db, plan)
+    await db.commit()
+    return RedirectResponse("/plans", status_code=303)
 
 
 @router.post("/plans/{plan_id}/sourcing")

@@ -25,9 +25,24 @@
   </div>
 </div>
 
+<form method="post" action="/plans/bulk" id="plans-bulk-form">
+{% if rows %}
+<!-- Bulk management: selection + Activate / Abandon / Delete. Abandon
+     and Delete confirm through the dialogs below (their bar buttons
+     carry data-confirm; the dialog confirms submit the same form
+     without it, so the scripting layer lets them through). -->
+<div class="bulk-bar">
+  <span class="bulk-hint">Select plans to activate, deactivate, abandon, or delete them</span>
+  <button type="submit" name="action" value="activate" class="primary" title="Activate the selected drafts — the correlation-miss counterweight. Plans also activate on their own when their first job correlates.">Activate</button>
+  <button type="submit" name="action" value="deactivate" title="Deactivate the selected active plans — back to draft, the correlation false-positive escape hatch. They stay draft while their jobs still correlate.">Deactivate</button>
+  <button type="submit" name="action" value="abandon" data-confirm="abandon" class="danger" title="Abandon the selected draft and active plans — terminal.">Abandon</button>
+  <button type="submit" name="action" value="delete" data-confirm="delete" class="danger" title="Delete the selected abandoned plans — permanent.">Delete</button>
+</div>
+{% endif %}
 <table class="asset-table">
   <thead>
     <tr>
+      <th class="bulk-col"><input type="checkbox" id="bulk-select-all" aria-label="Select all plans"></th>
       <th>Plan</th>
       <th class="num">Target</th>
       <th>Pool</th>
@@ -43,6 +58,7 @@
     {% set plan = row.plan %}
     {% set pct = (100 * row.delivered / row.build) | round | int if row.build else 0 %}
     <tr>
+      <td class="bulk-col"><input type="checkbox" name="plan_id" value="{{ plan.id }}" aria-label="Select {{ plan.name }}"></td>
       <td><img class="type-icon" src="{{ type_icon_url(plan.target_type_id, 32) }}" alt=""><a href="/plans/{{ plan.id }}">{{ plan.name }}</a></td>
       <td class="num">{{ '{:,}'.format(plan.units) }}</td>
       <td><span class="badge" title="The plan's material sources, pinned at export — pool is structural; changing it goes through Re-plan, Branch, or Copy.">{{ pool_badge(plan) }}</span></td>
@@ -58,10 +74,33 @@
       <td class="muted">{{ plan.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
     </tr>
     {% else %}
-    <tr><td colspan="8" class="muted">No plans yet — calculate a chain on the <a href="/planner">planner</a> and save it.</td></tr>
+    <tr><td colspan="9" class="muted">No plans yet — calculate a chain on the <a href="/planner">planner</a> and render it.</td></tr>
     {% endfor %}
   </tbody>
 </table>
+</form>
+
+<!-- Bulk confirmations (the structures delete-dialog pattern: in-app
+     dialogs, never browser popups; the confirms submit the bulk form
+     natively — action POSTs never swap in place) -->
+<dialog id="bulk-abandon-dialog" aria-labelledby="bulk-abandon-title">
+  <h3 id="bulk-abandon-title">Abandon plans</h3>
+  <p>Abandon the selected plans?</p>
+  <p class="field-hint">Terminal — the plans stop tracking and their jobs free up for other plans. Draft and active plans in the selection only.</p>
+  <div class="form-actions">
+    <button type="button" data-cancel>Cancel</button>
+    <button type="submit" form="plans-bulk-form" name="action" value="abandon" class="danger">Abandon</button>
+  </div>
+</dialog>
+<dialog id="bulk-delete-dialog" aria-labelledby="bulk-delete-title">
+  <h3 id="bulk-delete-title">Delete plans</h3>
+  <p>Delete the selected abandoned plans?</p>
+  <p class="field-hint">Permanent — the plans and their snapshots are removed. Draft and active plans in the selection are untouched.</p>
+  <div class="form-actions">
+    <button type="button" data-cancel>Cancel</button>
+    <button type="submit" form="plans-bulk-form" name="action" value="delete" class="danger">Delete</button>
+  </div>
+</dialog>
 {% endblock %}
 {% block page_scripts %}
 <script src="/static/planner.js?v={{ static_version }}"></script>

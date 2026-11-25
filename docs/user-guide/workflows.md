@@ -75,7 +75,13 @@ is satisfied — build nodes delivered, purchased nodes in the pool.
 ## Work with saved plans
 
 **Industry → Plans** lists every plan with its pool, status, and
-snapshot counts. The detail page is the read-only plan of record.
+snapshot counts, and manages them in bulk: select any rows (the header
+checkbox selects all) and **Activate** the drafts, **Deactivate** the
+active plans, **Abandon** the drafts and active plans (confirm
+dialog), or **Delete** the abandoned plans (permanent — confirm
+dialog; the snapshot rows go with the plan). Each action applies to
+the applicable part of the selection, so mixed selections are safe.
+The detail page is the read-only plan of record.
 
 Two buttons change the plan's shape, and they answer different
 questions:
@@ -158,10 +164,13 @@ installer, runs, and time to delivery — and the node moves through
 matching is a heuristic: a job started before the plan was exported
 never matches, and one job claims into at most one plan (the oldest).
 **Activate** forces a draft active when the matcher missed its jobs —
-the counterweight to a heuristic; **Abandon** closes a plan (terminal
-— its jobs free up for other plans). A plan completes on its own when
-every node is satisfied: build nodes delivered, purchased nodes with
-the commodity sitting in the pool.
+the counterweight to a heuristic; **Deactivate** pulls an active plan
+back to draft (the escape hatch when a false positive flipped it
+early — it stays draft while its jobs still correlate, until activated
+again); **Abandon** closes a plan (terminal — its jobs free up for
+other plans). A plan completes on its own when every node is
+satisfied: build nodes delivered, purchased nodes with the commodity
+sitting in the pool.
 
 > **Figure — plans.progress** *(pending the screenshot pass)*: a plan
 > detail with an In-progress node carrying its matched job, and the

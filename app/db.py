@@ -3,7 +3,7 @@
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime
 
-from sqlalchemy import DateTime
+from sqlalchemy import DateTime, event
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -33,8 +33,22 @@ class TimestampMixin:
     )
 
 
-def make_engine(database_url: str) -> AsyncEngine:
-    return create_async_engine(database_url, echo=False)
+def make_engine(database_url: str, **engine_kwargs) -> AsyncEngine:
+    """The one engine factory (the app and the test fixtures share it,
+    so behavior like the SQLite pragma below can never drift between
+    them). Extra kwargs pass straight through to create_async_engine."""
+    engine = create_async_engine(database_url, echo=False, **engine_kwargs)
+    if database_url.startswith("sqlite"):
+        # SQLite does not enforce foreign keys unless told to — without
+        # this, every ON DELETE rule in the models (the plan snapshots'
+        # CASCADE, the superseded-by pointer's SET NULL) is dead DDL and
+        # deleting a parent row orphans its children.
+        @event.listens_for(engine.sync_engine, "connect")
+        def _enforce_foreign_keys(dbapi_connection, _connection_record):
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA foreign_keys=ON")
+            cursor.close()
+    return engine
 
 
 def make_session_factory(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:

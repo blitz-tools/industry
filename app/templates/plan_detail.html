@@ -10,6 +10,10 @@
     <form method="post" action="/plans/{{ plan.id }}/activate" class="inline-form">
       <button type="submit" class="primary" title="Activate now — the counterweight to correlation misses: a plan whose jobs the matcher didn't catch still tracks. Plans also activate on their own when the first job correlates.">Activate</button>
     </form>
+    {% elif plan.status == 'active' %}
+    <form method="post" action="/plans/{{ plan.id }}/deactivate" class="inline-form">
+      <button type="submit" title="Deactivate — back to draft, the escape hatch for a correlation false-positive that flipped the plan early. It stays draft while its jobs still correlate; Activate brings it back.">Deactivate</button>
+    </form>
     {% endif %}
     {% if plan.status in ('draft', 'active') %}
     <form method="post" action="/plans/{{ plan.id }}/abandon" id="abandon-form" class="inline-form">

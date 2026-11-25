@@ -24,6 +24,14 @@ Two consequences worth stating outright:
   manufacturing + reaction chain; invention/T2 and T3 land incrementally
   without migrations that retrofit activity types.
 
+The user-state layer runs on SQLite with foreign-key enforcement
+switched on at the engine factory (`make_engine` sets
+`PRAGMA foreign_keys=ON` per connection) — the models' ON DELETE rules
+(the plan snapshots' CASCADE, the superseded-by pointer's SET NULL) are
+live semantics, not decorative DDL. The test fixtures build their
+engines through the same factory, so enforcement can't drift between
+the app and the suite.
+
 ## The SDE mirror
 
 The `sde_*` namespace is a verbatim mirror of the fuzzwork SQLite dump —

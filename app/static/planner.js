@@ -422,6 +422,57 @@ function guardUnsavedPlanLeave(destination, onLeave, onStay) {
   dialog.showModal();
 }
 
+window.initPlansPage = () => {
+  // Plans list: bulk management (Activate / Abandon / Delete over the
+  // checkbox selection). Abandon and Delete confirm through on-page
+  // dialogs (the structures pattern); their bar buttons are real
+  // submits carrying data-confirm, so the no-script path still works —
+  // and the dialog confirms submit the same form WITHOUT data-confirm,
+  // which is how the interception lets them through (no loop).
+  const form = document.getElementById("plans-bulk-form");
+  if (!form) return;
+  const dialogs = {
+    abandon: document.getElementById("bulk-abandon-dialog"),
+    delete: document.getElementById("bulk-delete-dialog"),
+  };
+
+  // Header checkbox: selects/deselects every row, and reflects the
+  // rows back (checked when all are, indeterminate on a partial
+  // selection).
+  const selectAll = document.getElementById("bulk-select-all");
+  if (selectAll) {
+    const rowBoxes = () => form.querySelectorAll('input[name="plan_id"]');
+    const syncSelectAll = () => {
+      const boxes = Array.from(rowBoxes());
+      selectAll.checked = boxes.length > 0 && boxes.every((box) => box.checked);
+      selectAll.indeterminate =
+        boxes.some((box) => box.checked) && !selectAll.checked;
+    };
+    selectAll.addEventListener("change", () => {
+      rowBoxes().forEach((box) => { box.checked = selectAll.checked; });
+      syncSelectAll();
+    });
+    form.addEventListener("change", (event) => {
+      if (event.target.name === "plan_id") syncSelectAll();
+    });
+    syncSelectAll();
+  }
+  form.addEventListener("submit", (event) => {
+    const kind = event.submitter?.dataset?.confirm;
+    if (!kind || !dialogs[kind]) return;
+    event.preventDefault();
+    dialogs[kind].showModal();
+  });
+  Object.values(dialogs).forEach((dialog) => {
+    if (!dialog) return;
+    dialog.addEventListener("click", (event) => {
+      if (event.target.closest("[data-cancel]") || event.target === dialog) {
+        dialog.close();
+      }
+    });
+  });
+};
+
 // --- In-place page swaps (no full refreshes) ----------------------------------
 
 function swapMain(url, push = true, keepScroll = true) {
@@ -441,6 +492,7 @@ function swapMain(url, push = true, keepScroll = true) {
       refreshUnsavedPlan();
       window.initPlannerPage();
       window.initPlanPage();
+      window.initPlansPage();
       // Interactions keep the viewport where it was (the owner's
       // standing call: a control deep in the page must never bounce the
       // reader to the top); only cross-page navigations (Calculate,
@@ -547,6 +599,7 @@ if (!window.initPlannerPageWired) {
         refreshUnsavedPlan();
         window.initPlannerPage();
         window.initPlanPage();
+        window.initPlansPage();
         document.querySelectorAll("details.phase-row").forEach((row) => {
           row.open = openRows.includes(row.id);
         });
@@ -618,4 +671,5 @@ if (!window.initPlannerPageWired) {
 
 window.initPlannerPage();
 window.initPlanPage();
+window.initPlansPage();
 refreshUnsavedPlan();

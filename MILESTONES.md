@@ -68,7 +68,7 @@ paid contracts), or **pick a better target**.
 | M3 — structure manager | ✅ **Complete** (PR #86) — registry, multipliers pinned from live dogma, Build Planner nav (2026-11-23) |
 | M4 — planner: single-BP calc | ✅ **Complete** (PR #88) — depth-1 planner + build plan, M15 sync slice soaking |
 | M5 — chain resolution | ✅ **Complete** (2026-11-24) — recursive resolver + phase view, ten-anchor diff proof + census parity |
-| M6 — build plans | 🚧 **In progress** (PRs #90–#98 + PR 8, 2026-11-24/25) — schema, material sources, export + Plans list/detail, job correlation, refresh tick + active surface, Purchase⇄Build markings + multibuy landed (8 of 9 slices); **remaining**: LP acquisition node + roster eligibility (PR 9) |
+| M6 — build plans | 🚧 **In progress** (PRs #90–#98 + PR 8, 2026-11-24/25) — schema, material sources, export + Plans list/detail, job correlation, refresh tick + active surface, Purchase⇄Build markings + multibuy landed (8 of 9 slices), plus the owner-directed Plans-list bulk management (activate / abandon / delete); **remaining**: LP acquisition node + roster eligibility (PR 9) |
 | M7+ | Not started |
 
 **Pick up at**: **M6 — the last slice** (PR 9: the LP acquisition
@@ -1809,6 +1809,31 @@ reality over time.*
   data out of the tool (the multibuy ↗). The asset_names companion
   (container custom names + ESIClient.post) stayed out — the
   milestone's one loose end.
+- **Plans-list bulk management** (owner-directed 2026-11-25, after
+  the markings PR): checkbox selection on the list with a bulk bar and
+  a header select-all — **Activate** (drafts; one claims pass +
+  synchronous refresh, matching the detail page's), **Deactivate**
+  (active; see the state-machine revision below), **Abandon**
+  (drafts + active, claims cleared immediately), **Delete**
+  (abandoned only, PERMANENT — the snapshot rows cascade away). Each action applies to the applicable subset of
+  the selection, so mixed selections are safe; abandon/delete confirm
+  through on-page dialogs (the bar buttons are real submits carrying
+  data-confirm, so the no-script path works and the dialog confirms
+  re-submit without it). **Enabling prerequisite**: `make_engine` now
+  sets `PRAGMA foreign_keys=ON` per SQLite connection — the models'
+  ON DELETE rules (snapshot CASCADE, superseded-by SET NULL) were dead
+  DDL without it; the test fixtures route through the same factory so
+  enforcement can't drift.
+- **Activation is owner-reversible** (owner decision 2026-11-25,
+  resolving the PR 7 open pin "consider whether auto-activate should
+  also be reversible"): **Deactivate** (active→draft) exists on the
+  detail header and the bulk bar — the correlation false-positive
+  escape hatch. The enabling rule change: the tick's draft→active
+  auto-flip fires only for NEVER-activated plans (`activated_at` is
+  null), so owner control is sticky after the first activation — a
+  deactivated plan stays draft while its jobs still correlate, until
+  activated again. `activated_at` keeps its value through deactivate
+  (it is the never-activated marker, not a current-state flag).
 
 **Schema sketch**
 
