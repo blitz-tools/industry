@@ -42,6 +42,16 @@ ids the dump lacks; and a product's producer is its first
 `industryActivityProducts` row preferring published blueprints (the
 dump carries unpublished CCP test artifacts that can sit first).
 
+The same seam runs through job correlation (M6): ESI reports reaction
+jobs under activity 9 while the mirror files reaction recipes under
+11, so the matcher reconciles 9→11 (pinned in `app/plans.py`) when
+claiming synced jobs into build plans. The claim itself is heuristic —
+blueprint type plus reconciled activity, filtered by the node's pinned
+facility location only when that structure has a sighting location
+(hand-entered structures match loosely), and floored at the plan's
+creation time. One job claims into at most one plan across all plans;
+false positives are accepted by design.
+
 ## Sync machinery
 
 - **Owner-keyed tables**: `assets`, `blueprints`, `industry_jobs`, and
