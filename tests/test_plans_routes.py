@@ -14,6 +14,7 @@ from sqlalchemy import select
 from app.models import (
     Asset,
     Blueprint,
+    BuildPlan,
     BuildPlanMaterial,
     BuildPlanNode,
 )
@@ -650,3 +651,240 @@ async def test_purchasing_the_target_greys_the_chain(client, chain_db):  # noqa:
     assert html.count('class="phase-row unnecessary"') == 3  # phases 1–3
     # Every raw row covered (required 0) — hidden in the gaps-only view.
     assert "types fully covered — hidden in this view" in html
+
+
+# --- List-screen plan management (bulk activate / abandon / delete) --------------
+
+
+async def _reload_plan(db, plan_id) -> BuildPlan | None:
+    return (
+        await db.execute(
+            select(BuildPlan)
+            .where(BuildPlan.id == plan_id)
+            .execution_options(populate_existing=True)
+        )
+    ).scalar_one_or_none()
+
+
+async def _plan_rows(db, plan_id, model):
+    return (
+        (
+            await db.execute(
+                select(model).where(model.plan_id == plan_id)
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+
+async def test_plans_bulk_requires_auth(client):
+    response = await client.post(
+        "/plans/bulk",
+        data={"plan_id": ["1"], "action": "delete"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    assert response.headers["location"] == "/"
+
+
+@respx.mock
+async def test_plans_list_renders_the_management_surfaces(client, chain_db):  # noqa: F811
+    """The list page carries the selection column, the bulk action bar
+    (Activate / Abandon / Delete), and the abandon/delete confirm
+    dialogs; with no plans the bar stays out of the empty state."""
+    await _login(client)
+    empty = (await client.get("/plans")).text
+    assert 'class="bulk-bar"' not in empty  # no plans: no action bar
+
+    await _export(client)
+    html = (await client.get("/plans")).text
+    assert 'id="plans-bulk-form"' in html
+    assert 'id="bulk-select-all"' in html
+    assert 'name="plan_id"' in html
+    assert 'value="activate"' in html
+    assert 'value="deactivate"' in html
+    assert 'value="abandon"' in html and 'data-confirm="abandon"' in html
+    assert 'value="delete"' in html and 'data-confirm="delete"' in html
+    assert 'id="bulk-abandon-dialog"' in html
+    assert 'id="bulk-delete-dialog"' in html
+
+
+@respx.mock
+async def test_bulk_activate_and_abandon_apply_to_the_applicable_subset(
+    client, chain_db  # noqa: F811
+):
+    """Activate forces the selected drafts active (one refresh so the
+    meter lands materialized); Abandon applies to drafts and active
+    plans only — terminal plans in the selection are untouched, and
+    claims clear immediately."""
+    await _login(client)
+    first_id = await _export(client)
+    second_id = await _export(client)
+
+    response = await client.post(
+        "/plans/bulk",
+        data={
+            "plan_id": [str(first_id), str(second_id)],
+            "action": "activate",
+        },
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    assert response.headers["location"] == "/plans"
+    for plan_id in (first_id, second_id):
+        plan = await _reload_plan(chain_db, plan_id)
+        assert plan.status == "active" and plan.activated_at is not None
+
+    # Abandon: the active plan and a fresh draft flip; an already-
+    # abandoned plan in the same selection is untouched.
+    third_id = await _export(client)
+    await client.post(
+        f"/plans/{third_id}/abandon", follow_redirects=False
+    )
+    terminal_before = (await _reload_plan(chain_db, third_id)).abandoned_at
+    await client.post(
+        "/plans/bulk",
+        data={
+            "plan_id": [str(first_id), str(third_id), "999999"],
+            "action": "abandon",
+        },
+        follow_redirects=False,
+    )
+    assert (await _reload_plan(chain_db, first_id)).status == "abandoned"
+    third = await _reload_plan(chain_db, third_id)
+    assert third.status == "abandoned" and third.abandoned_at == terminal_before
+    # Activating a terminal plan changes nothing.
+    await client.post(
+        "/plans/bulk",
+        data={"plan_id": [str(first_id)], "action": "activate"},
+        follow_redirects=False,
+    )
+    assert (await _reload_plan(chain_db, first_id)).status == "abandoned"
+
+
+@respx.mock
+async def test_bulk_delete_removes_abandoned_plans_and_cascades(
+    client, chain_db  # noqa: F811
+):
+    """Delete removes the selected ABANDONED plans permanently — the
+    snapshot rows cascade away (the FK rules, enforced now that the
+    engine enables SQLite foreign keys) — while drafts in the same
+    selection survive. A superseded-by pointer to a deleted plan nulls
+    out, never dangles."""
+    await _login(client)
+    keep_id = await _export(client)
+    gone_id = await _export(client)
+    assert (await _plan_rows(chain_db, gone_id, BuildPlanNode))
+    assert (await _plan_rows(chain_db, gone_id, BuildPlanMaterial))
+    await client.post(f"/plans/{gone_id}/abandon", follow_redirects=False)
+
+    response = await client.post(
+        "/plans/bulk",
+        data={
+            "plan_id": [str(gone_id), str(keep_id), "999999", "smuggle"],
+            "action": "delete",
+        },
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    assert response.headers["location"] == "/plans"
+    assert await _reload_plan(chain_db, gone_id) is None
+    assert not (await _plan_rows(chain_db, gone_id, BuildPlanNode))
+    assert not (await _plan_rows(chain_db, gone_id, BuildPlanMaterial))
+    assert (await _reload_plan(chain_db, keep_id)).status == "draft"
+
+    # The superseded-by pointer: a re-plan fork makes the source point
+    # at its replacement; deleting the replacement nulls the pointer.
+    source_id = await _export(client)
+    fork = await client.post(
+        "/plans",
+        data={"target": 644, "qty": 10, "from_plan": source_id},
+        follow_redirects=False,
+    )
+    fork_id = int(fork.headers["location"].rsplit("/", 1)[1])
+    source = await _reload_plan(chain_db, source_id)
+    assert source.superseded_by_plan_id == fork_id
+    await client.post(f"/plans/{fork_id}/abandon", follow_redirects=False)
+    await client.post(
+        "/plans/bulk",
+        data={"plan_id": [str(fork_id)], "action": "delete"},
+        follow_redirects=False,
+    )
+    source = await _reload_plan(chain_db, source.id)
+    assert source is not None and source.superseded_by_plan_id is None
+
+
+@respx.mock
+async def test_deactivate_returns_active_plans_to_draft(client, chain_db):  # noqa: F811
+    """Deactivate is the false-positive escape hatch: active→draft with
+    activated_at preserved (it is the tick's never-activated marker, so
+    the plan stays draft while its jobs correlate), non-active plans are
+    a no-op, and the detail renders the button only where it applies."""
+    await _login(client)
+    plan_id = await _export(client)
+    await client.post(f"/plans/{plan_id}/activate", follow_redirects=False)
+    plan = await _reload_plan(chain_db, plan_id)
+    activated_at = plan.activated_at
+    assert plan.status == "active"
+
+    html = (await client.get(f"/plans/{plan_id}")).text
+    assert f'action="/plans/{plan_id}/deactivate"' in html
+
+    response = await client.post(
+        f"/plans/{plan_id}/deactivate", follow_redirects=False
+    )
+    assert response.status_code == 303
+    assert response.headers["location"] == f"/plans/{plan_id}"
+    plan = await _reload_plan(chain_db, plan_id)
+    assert plan.status == "draft" and plan.activated_at == activated_at
+
+    # A draft (or terminal) plan is a no-op; the button is absent.
+    response = await client.post(
+        f"/plans/{plan_id}/deactivate", follow_redirects=False
+    )
+    assert response.status_code == 303
+    assert (await _reload_plan(chain_db, plan_id)).status == "draft"
+    html = (await client.get(f"/plans/{plan_id}")).text
+    assert f'action="/plans/{plan_id}/deactivate"' not in html
+
+
+@respx.mock
+async def test_bulk_deactivate_applies_to_active_plans(client, chain_db):  # noqa: F811
+    """The bulk bar's Deactivate flips the selected active plans back to
+    draft; drafts in the same selection are untouched."""
+    await _login(client)
+    active_id = await _export(client)
+    draft_id = await _export(client)
+    await client.post(f"/plans/{active_id}/activate", follow_redirects=False)
+
+    response = await client.post(
+        "/plans/bulk",
+        data={
+            "plan_id": [str(active_id), str(draft_id)],
+            "action": "deactivate",
+        },
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    assert (await _reload_plan(chain_db, active_id)).status == "draft"
+    assert (await _reload_plan(chain_db, draft_id)).status == "draft"
+
+
+@respx.mock
+async def test_plans_bulk_validates(client, chain_db):  # noqa: F811
+    """A bad action, no selection, or non-numeric plan ids are no-op
+    redirects — the server never trusts form construction."""
+    await _login(client)
+    plan_id = await _export(client)
+    for data in (
+        {"plan_id": [str(plan_id)], "action": "smuggle"},
+        {"action": "delete"},
+        {"plan_id": ["not-a-number"], "action": "delete"},
+    ):
+        response = await client.post(
+            "/plans/bulk", data=data, follow_redirects=False
+        )
+        assert response.status_code == 303
+        assert response.headers["location"] == "/plans"
+    assert (await _reload_plan(chain_db, plan_id)).status == "draft"

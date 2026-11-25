@@ -1163,7 +1163,11 @@ async def refresh_plan(db: AsyncSession, plan: BuildPlan) -> BuildPlan:
         node.state_reason = reason
 
     # 5. Plan rollups + the state machine. draft→active flips the first
-    # time a job correlates (the export tooltip of record); active→
+    # time a job correlates (the export tooltip of record) — but only
+    # for NEVER-activated plans: once the owner has activated (or
+    # deactivated) a plan, their control is sticky and the tick never
+    # overrides it, so a deactivated plan stays draft while its jobs
+    # still correlate (the false-positive escape hatch). active→
     # complete when every still-needed node is satisfied — build nodes
     # delivered, purchased nodes with the commodity actually sitting in
     # the pool (available ≥ qty); dead nodes (a purchase upstream
@@ -1171,7 +1175,7 @@ async def refresh_plan(db: AsyncSession, plan: BuildPlan) -> BuildPlan:
     # touches snapshot columns; abandoned is an owner action or the
     # Re-plan fork, never computed here.
     now = utc_now()
-    if plan.status == "draft" and claims:
+    if plan.status == "draft" and plan.activated_at is None and claims:
         plan.status = "active"
         plan.activated_at = now
     needed = necessary_nodes(nodes)
