@@ -41,7 +41,7 @@
   <tbody>
     {% for row in rows %}
     {% set plan = row.plan %}
-    {% set pct = (100 * row.delivered / row.nodes) | round | int if row.nodes else 0 %}
+    {% set pct = (100 * row.delivered / row.build) | round | int if row.build else 0 %}
     <tr>
       <td><img class="type-icon" src="{{ type_icon_url(plan.target_type_id, 32) }}" alt=""><a href="/plans/{{ plan.id }}">{{ plan.name }}</a></td>
       <td class="num">{{ '{:,}'.format(plan.units) }}</td>
@@ -50,7 +50,7 @@
       <td>
         <div class="meter-cell">
           <div class="meter"><div class="meter-fill{{ '' if pct >= 100 else ' low' if pct < 50 else ' warn' }}" style="width: {{ pct }}%"></div></div>
-          <span class="meter-pct">{{ row.delivered }} / {{ row.nodes }}</span>
+          <span class="meter-pct">{{ row.delivered }} / {{ row.build }}</span>
         </div>
       </td>
       <td class="num">{{ '{:,}'.format(row.nodes) }}</td>

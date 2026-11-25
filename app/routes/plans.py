@@ -1,25 +1,29 @@
 """Plans section (M6): the plan of record's surfaces — the list, the
 detail with live progress (the refresh tick materializes availability,
 correlation, and delivery; renders stay DB-pure), the export POST, the
-state-machine controls (Activate, Abandon), and the plan-shaping
-redirects. Conventions follow the structures routes (one form, 303
-redirects, the server validates everything). Purchase⇄Build marking
-and the multibuy export are the milestone's next slices."""
+state-machine controls (Activate, Abandon), the Purchase⇄Build
+markings (chips, phase-bulk, the fresh-gate lock), the multibuy export,
+and the plan-shaping redirects. Conventions follow the structures
+routes (one form, 303 redirects, the server validates everything)."""
 
 import json
 
 from fastapi import APIRouter, Query, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 from sqlalchemy import delete
 
 from ..db import utc_now
 from ..deps import DbDep, is_authenticated
+from ..industry import owned_blueprints_for_types
 from ..models import BuildPlan, BuildPlanJob
 from ..planner import chain_plan
 from ..plans import (
+    apply_sourcing_math,
     assets_synced_at,
     gating_text,
     material_groups,
+    multibuy_body,
+    necessary_nodes,
     parse_material_sources,
     phase_views,
     plan_job_views,
@@ -33,6 +37,7 @@ from ..plans import (
     stage_text,
     state_qs,
     status_badge,
+    stock_gap_meters,
 )
 from ..templates import templates
 
@@ -76,12 +81,17 @@ async def plan_detail_page(
     db: DbDep,
     plan_id: int,
     show_all: bool = Query(False, alias="all"),
+    open_phase: int | None = Query(None, alias="open"),
 ):
     """The plan of record: snapshot tiles, the chain-flow strip, the
     phase tree with live stage states (materialized by the refresh
-    tick), the matched-jobs summaries, the draft-only blueprint and
-    time sections, and the acquisition table (gaps-only by default,
-    availability as last materialized)."""
+    tick) and the Purchase⇄Build chips (locked where the FRESH
+    blueprint gate is missing — pool blueprint existence, the same read
+    the refresh runs), the matched-jobs summaries, the draft-only
+    blueprint and time sections, and the acquisition table (gaps-only
+    by default, availability as last materialized). `open` lands the
+    page at one phase's tree row — the marking POSTs redirect back to
+    the phase they changed."""
     if not is_authenticated(request):
         return RedirectResponse("/", status_code=302)
     read = await plan_read(db, plan_id)
@@ -109,8 +119,24 @@ async def plan_detail_page(
         if facility
     )
     job_views = await plan_job_views(db, plan_id)
+    # The fresh-gate lock (pool blueprint existence, never the
+    # export-time calc snapshot) and the stock-gap meters — both DB
+    # reads, so page-render purity holds. The necessity set (what the
+    # current markings still need) drives the greying and the counts.
+    owned = await owned_blueprints_for_types(
+        db, list({node.blueprint_type_id for node in nodes})
+    )
+    locked_nodes = {
+        node.id for node in nodes if not owned.get(node.blueprint_type_id)
+    }
+    needed = necessary_nodes(nodes)
+    build_nodes = [
+        node
+        for node in nodes
+        if node.id in needed and node.sourcing != "purchase"
+    ]
     delivered_nodes = sum(
-        1 for node in nodes if node.qty and node.delivered_qty >= node.qty
+        1 for node in build_nodes if node.qty and node.delivered_qty >= node.qty
     )
     return templates.TemplateResponse(
         request,
@@ -122,19 +148,25 @@ async def plan_detail_page(
             "target_node": target_node,
             "nodes": nodes,
             "materials": materials,
-            "phase_views": phase_views(nodes),
+            "needed": needed,
+            "phase_views": phase_views(nodes, needed),
+            "multibuy_text": multibuy_body(materials),
             "material_groups": groups,
             "covered_count": covered_count,
             "show_all": show_all,
             "toggle_href": toggle_href,
+            "open_phase": open_phase,
             "pool_badge": pool_badge(plan),
             "status_badge": status_badge(plan),
             "gating_text": gating_text,
             "stage_text": stage_text,
             "job_views": job_views,
+            "locked_nodes": locked_nodes,
+            "stock_meters": stock_gap_meters(nodes, materials),
             "correlated_jobs": sum(
                 len(view["jobs"]) for view in job_views.values()
             ),
+            "build_count": len(build_nodes),
             "delivered_nodes": delivered_nodes,
             "assets_synced": await assets_synced_at(db),
             "totals": {
@@ -159,7 +191,7 @@ async def plan_detail_page(
 
 @router.post("/plans")
 async def plans_export(request: Request, db: DbDep):
-    """Save plan: re-resolve the chain from the form's planner state
+    """Render plan: re-resolve the chain from the form's planner state
     (DB-pure, no ESI), snapshot it as a new draft, and land on its
     detail page. A `from_plan` id is the Re-run fork — the one path
     that abandons another plan; fresh exports never touch siblings."""
@@ -263,6 +295,88 @@ async def plan_abandon(request: Request, db: DbDep, plan_id: int):
     return RedirectResponse(f"/plans/{plan.id}", status_code=303)
 
 
+@router.post("/plans/{plan_id}/sourcing")
+async def plan_sourcing(request: Request, db: DbDep, plan_id: int):
+    """The Purchase⇄Build marking (per-node chips and phase-bulk
+    toggles): amends node rows in place — structural changes go through
+    Re-plan. The acquisition math amends BY RECOMPUTE (snapshot total
+    minus the purchase-marked demands — idempotent, symmetric on
+    un-mark), a purchase line joins the acquisition table per marked
+    type, and one synchronous refresh lands the redirect materialized
+    at the phase that changed. The fresh-gate lock: a node whose
+    blueprint the pool no longer holds cannot be marked Build (missing
+    blueprint forces Purchase); Purchase markings always land. Terminal
+    plans reject markings."""
+    if not is_authenticated(request):
+        return RedirectResponse("/", status_code=303)
+    plan = await db.get(BuildPlan, plan_id)
+    if plan is None:
+        return RedirectResponse("/plans", status_code=303)
+    if plan.status not in ("draft", "active"):
+        return RedirectResponse(f"/plans/{plan.id}", status_code=303)
+    form = await request.form()
+    target = (form.get("sourcing") or "").strip()
+    if target not in ("build", "purchase"):
+        return RedirectResponse(f"/plans/{plan.id}", status_code=303)
+    read = await plan_read(db, plan.id)
+    assert read is not None  # the row loaded above
+    _plan, nodes, materials = read
+    if "node" in form:
+        node_id = _int_field(form, "node")
+        selected = [node for node in nodes if node.id == node_id]
+    else:
+        phase = _int_field(form, "phase")
+        selected = [node for node in nodes if node.phase == phase]
+    if not selected:
+        return RedirectResponse(f"/plans/{plan.id}", status_code=303)
+    if target == "build":
+        # The lock consults the FRESH gate — pool blueprint existence
+        # as the refresh computes it — so a node whose blueprint left
+        # the pool keeps its forced Purchase. Locked nodes drop out of
+        # a Build-all bulk silently: they cannot be built.
+        owned = await owned_blueprints_for_types(
+            db, list({node.blueprint_type_id for node in selected})
+        )
+        selected = [
+            node for node in selected if owned.get(node.blueprint_type_id)
+        ]
+        if not selected:
+            return RedirectResponse(f"/plans/{plan.id}", status_code=303)
+    for node in selected:
+        node.sourcing = target
+    await apply_sourcing_math(db, nodes, materials)
+    await refresh_plan(db, plan)
+    await db.commit()
+    phase = selected[0].phase
+    return RedirectResponse(
+        f"/plans/{plan.id}?open={phase}#phase-row-{phase}", status_code=303
+    )
+
+
+@router.get("/plans/{plan_id}/multibuy")
+async def plan_multibuy(request: Request, db: DbDep, plan_id: int):
+    """The multibuy export: the acquisition table as a shopping list —
+    one `Item Name<TAB>Quantity` line per short row (raw gaps against
+    the marking-amended requirement plus purchase lines), name-sorted,
+    no header or footer — pastes straight into the in-game multibuy
+    window."""
+    if not is_authenticated(request):
+        return RedirectResponse("/", status_code=302)
+    read = await plan_read(db, plan_id)
+    if read is None:
+        return RedirectResponse("/plans", status_code=302)
+    plan, _nodes, materials = read
+    return Response(
+        multibuy_body(materials),
+        media_type="text/plain",
+        headers={
+            "Content-Disposition": (
+                f'attachment; filename="plan-{plan.id}-multibuy.txt"'
+            )
+        },
+    )
+
+
 @router.get("/plans/{plan_id}/rerun")
 async def plan_rerun(request: Request, db: DbDep, plan_id: int):
     """The Re-run fork's front door: all the way back to the planner
@@ -270,7 +384,7 @@ async def plan_rerun(request: Request, db: DbDep, plan_id: int):
     target is adjustable there (targets are a planning-phase input; the
     calculated chain is never edited in place, because spreading a
     build across jobs realigns material inputs — M9's waves own that
-    math). Saving from a re-run visit supersedes this plan."""
+    math). Rendering from a re-run visit supersedes this plan."""
     if not is_authenticated(request):
         return RedirectResponse("/", status_code=302)
     plan = await db.get(BuildPlan, plan_id)

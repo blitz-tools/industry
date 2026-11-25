@@ -22,7 +22,13 @@ from app.models import (
     IndustryJob,
     Skill,
 )
-from app.plans import refresh_job_claims, refresh_plan, refresh_plans_tick
+from app.plans import (
+    apply_sourcing_math,
+    phase_views,
+    refresh_job_claims,
+    refresh_plan,
+    refresh_plans_tick,
+)
 from tests.conftest import token_response
 from tests.test_planner_chain import (  # noqa: F401  (fixture)
     CARBIDE,
@@ -424,3 +430,135 @@ async def test_detail_renders_progress_surfaces(client, chain_db):  # noqa: F811
 
     list_html = (await client.get("/plans")).text
     assert "Progress" in list_html
+
+
+async def _plan_nodes(db, plan_id) -> list[BuildPlanNode]:
+    return (
+        (
+            await db.execute(
+                select(BuildPlanNode)
+                .where(BuildPlanNode.plan_id == plan_id)
+                .order_by(BuildPlanNode.phase, BuildPlanNode.id)
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+
+async def _plan_materials(db, plan_id) -> list[BuildPlanMaterial]:
+    return (
+        (
+            await db.execute(
+                select(BuildPlanMaterial).where(
+                    BuildPlanMaterial.plan_id == plan_id
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+
+async def test_purchased_nodes_complete_on_availability(chain_db):  # noqa: F811
+    """Purchased nodes measure the pool, not delivery: the plan
+    completes when every build node is delivered AND every purchased
+    node's commodity actually sits in the plan's sources (available ≥
+    qty) — and a fully-purchased phase drops out of the rollup (the
+    split line renders instead of a stage state)."""
+    plan = await _export(chain_db)
+    fuel = await _node(chain_db, plan.id, FUEL)
+    fuel.sourcing = "purchase"
+    await apply_sourcing_math(
+        chain_db, await _plan_nodes(chain_db, plan.id),
+        await _plan_materials(chain_db, plan.id),
+    )
+    await chain_db.commit()
+    # The office's fuel stock leaves, so the purchase starts short.
+    stock = (
+        await chain_db.execute(select(Asset).where(Asset.item_id == 9102))
+    ).scalar_one()
+    await chain_db.delete(stock)
+    await chain_db.commit()
+
+    # Every build node delivered by a generous job; the purchased fuel
+    # sits nowhere in the pool, so the plan stays active.
+    for type_id, (blueprint, activity, _ppr) in NODE_BLUEPRINTS.items():
+        if type_id == FUEL:
+            continue
+        chain_db.add(
+            _job(
+                blueprint_type_id=blueprint, activity_id=activity,
+                status="delivered", runs=1, successful_runs=100_000,
+            )
+        )
+    await _refresh(chain_db, plan)
+    assert (await _reload(chain_db, plan.id)).status == "active"
+
+    # The pool tops up to the requirement: the plan completes.
+    chain_db.add(
+        Asset(
+            owner_type="corporation", owner_id=CORP, item_id=9200,
+            type_id=FUEL, quantity=fuel.qty, location_id=8000,
+            location_flag="CorpSAG1", location_type="item",
+            parent_location_id=8000, is_blueprint_copy=False,
+            is_singleton=False,
+        )
+    )
+    await chain_db.commit()
+    await _refresh(chain_db, plan)
+    plan = await _reload(chain_db, plan.id)
+    assert plan.status == "complete" and plan.completed_at is not None
+
+    # The rollup: the fuel node's phase has no build child — its
+    # summary is the purchased split, not a stage state.
+    view = next(
+        view
+        for view in phase_views(await _plan_nodes(chain_db, plan.id))
+        if view["phase"] == fuel.phase
+    )
+    assert view["state"] is None
+    assert view["build_count"] == 0 and view["purchased_count"] == 1
+
+
+async def test_purchased_target_completes_on_availability(chain_db):  # noqa: F811
+    """Purchasing the target makes the whole chain unnecessary: the
+    plan tracks only the target's pool availability — every other node
+    is dead, so nothing else (not even an undelivered fuel job) blocks
+    completion."""
+    plan = await _export(chain_db)
+    target = await _node(chain_db, plan.id, TYPHOON)
+    target.sourcing = "purchase"
+    await apply_sourcing_math(
+        chain_db, await _plan_nodes(chain_db, plan.id),
+        await _plan_materials(chain_db, plan.id),
+    )
+    await chain_db.commit()
+    # Every raw requirement dropped: only the target is acquired.
+    for row in await _plan_materials(chain_db, plan.id):
+        if row.type_id != TYPHOON:
+            assert row.required_qty == 0
+    line = await _material(chain_db, plan.id, TYPHOON)
+    assert line.is_purchase_line and line.required_qty == target.qty
+
+    # A correlated job flips the draft active; the target absent from
+    # the pool keeps it active (the dead fuel job delivers nothing that
+    # matters).
+    chain_db.add(_job(status="delivered", runs=1, successful_runs=1))
+    await _refresh(chain_db, plan)
+    assert (await _reload(chain_db, plan.id)).status == "active"
+
+    # The target lands in the pool: the plan completes.
+    chain_db.add(
+        Asset(
+            owner_type="corporation", owner_id=CORP, item_id=9201,
+            type_id=TYPHOON, quantity=target.qty, location_id=8000,
+            location_flag="CorpSAG1", location_type="item",
+            parent_location_id=8000, is_blueprint_copy=False,
+            is_singleton=False,
+        )
+    )
+    await chain_db.commit()
+    await _refresh(chain_db, plan)
+    plan = await _reload(chain_db, plan.id)
+    assert plan.status == "complete" and plan.completed_at is not None

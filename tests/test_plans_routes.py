@@ -1,16 +1,34 @@
-"""Plans route tests (M6 PR 5): the Plans section's list and read-only
-draft detail — auth gates, the nav link, the export form on the planner
-plan page, the detail render (snapshot-faithful: phase tree with
-export-time stage states, acquisition table with the gaps-only
-default), and the Re-run redirect."""
+"""Plans route tests (M6 PR 5 + PR 8): the Plans section's list and
+detail — auth gates, the nav link, the export form on the planner plan
+page, the detail render (snapshot-faithful: phase tree with export-time
+stage states, acquisition table with the gaps-only default), the
+Re-run redirect, the Purchase⇄Build markings (chips, phase-bulk, the
+fresh-gate lock), and the multibuy export."""
 
+import json
 from urllib.parse import parse_qs, urlparse
 
 import respx
+from sqlalchemy import select
 
+from app.models import (
+    Asset,
+    Blueprint,
+    BuildPlanMaterial,
+    BuildPlanNode,
+)
 from tests.conftest import token_response
-from tests.test_planner_chain import chain_db  # noqa: F401  (fixture)
+from tests.test_planner_chain import (  # noqa: F401  (fixture)
+    CARBIDE,
+    CPG,
+    FUEL,
+    TYPHOON,
+    chain_db,
+)
 from tests.test_planner_plan import planner_db  # noqa: F401  (fixture)
+
+ICE = 4102
+TRITANIUM = 34
 
 SSO_TOKEN_URL = "https://sso.test/v2/oauth/token"
 
@@ -227,7 +245,7 @@ async def test_plan_page_renders_the_export_form(client, chain_db):  # noqa: F81
     assert '<input type="hidden" name="target" value="644">' in response.text
     assert '<input type="hidden" name="qty" value="10">' in response.text
     assert 'value="Typhoon ×10"' in response.text
-    assert 'title="Save plan' in response.text
+    assert 'title="Render plan' in response.text
     # No fork context on a direct visit.
     assert 'name="from_plan"' not in response.text
 
@@ -260,3 +278,375 @@ async def test_plan_detail_pool_badge_reads_the_sources(client, chain_db):  # no
     assert "Corp + personal" in detail.text
     listing = await client.get("/plans")
     assert "Corp + personal" in listing.text
+
+
+# --- Purchase⇄Build markings + multibuy (M6 PR 8) -------------------------------
+
+
+async def _reload_node(db, plan_id, type_id) -> BuildPlanNode:
+    # populate_existing, not expiry + get: a cached identity-map row
+    # refreshes through a sync path on async sessions (MissingGreenlet).
+    return (
+        await db.execute(
+            select(BuildPlanNode)
+            .where(
+                BuildPlanNode.plan_id == plan_id,
+                BuildPlanNode.type_id == type_id,
+            )
+            .execution_options(populate_existing=True)
+        )
+    ).scalar_one()
+
+
+async def _reload_material(db, plan_id, type_id) -> BuildPlanMaterial | None:
+    return (
+        await db.execute(
+            select(BuildPlanMaterial)
+            .where(
+                BuildPlanMaterial.plan_id == plan_id,
+                BuildPlanMaterial.type_id == type_id,
+            )
+            .execution_options(populate_existing=True)
+        )
+    ).scalar_one_or_none()
+
+
+async def test_sourcing_and_multibuy_require_auth(client):
+    response = await client.post(
+        "/plans/1/sourcing", data={"node": 1}, follow_redirects=False
+    )
+    assert response.status_code == 303
+    assert response.headers["location"] == "/"
+    response = await client.get("/plans/1/multibuy", follow_redirects=False)
+    assert response.status_code == 302
+
+
+@respx.mock
+async def test_chip_post_marks_purchase_and_amends_raw_math(client, chain_db):  # noqa: F811
+    """The chip POST flips a node's sourcing in place and amends the
+    acquisition table BY RECOMPUTE: the node's raw demands leave the raw
+    rows (ice — the fuel node is its only consumer — drops to zero), a
+    purchase line appears for the node's own type, and the detail
+    renders the purchased row with the phase split. Un-marking is
+    symmetric."""
+    await _login(client)
+    plan_id = await _export(client)
+    fuel = await _reload_node(chain_db, plan_id, FUEL)
+    demands = {
+        material["type_id"]: material["required_qty"]
+        for material in json.loads(fuel.materials_json)
+    }
+    trit_before = (await _reload_material(
+        chain_db, plan_id, TRITANIUM
+    )).required_qty
+
+    response = await client.post(
+        f"/plans/{plan_id}/sourcing",
+        data={"node": fuel.id, "sourcing": "purchase"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    assert response.headers["location"] == (
+        f"/plans/{plan_id}?open={fuel.phase}#phase-row-{fuel.phase}"
+    )
+
+    fuel = await _reload_node(chain_db, plan_id, FUEL)
+    assert fuel.sourcing == "purchase"
+    trit = await _reload_material(chain_db, plan_id, TRITANIUM)
+    assert trit.required_qty == trit_before - demands[TRITANIUM]
+    assert (await _reload_material(
+        chain_db, plan_id, ICE
+    )).required_qty == 0
+    line = await _reload_material(chain_db, plan_id, FUEL)
+    assert line is not None and line.is_purchase_line
+    assert line.required_qty == fuel.qty
+
+    html = (await client.get(f"/plans/{plan_id}")).text
+    assert 'class="node-row purchased"' in html
+    assert "0 build · 1 purchased" in html
+    assert "Purchase all" in html
+
+    # Un-marking restores the pristine raw math and drops the line.
+    await client.post(
+        f"/plans/{plan_id}/sourcing",
+        data={"node": fuel.id, "sourcing": "build"},
+        follow_redirects=False,
+    )
+    fuel = await _reload_node(chain_db, plan_id, FUEL)
+    assert fuel.sourcing == "build"
+    assert (await _reload_material(
+        chain_db, plan_id, TRITANIUM
+    )).required_qty == trit_before
+    assert (await _reload_material(
+        chain_db, plan_id, ICE
+    )).required_qty == demands[ICE]
+    assert await _reload_material(chain_db, plan_id, FUEL) is None
+
+
+@respx.mock
+async def test_phase_bulk_toggles_both_directions(client, chain_db):  # noqa: F811
+    """The phase summary's bulk toggle: Purchase-all marks every node in
+    the phase (the summary flips to the split line and the toggle reads
+    Build all); Build-all marks them back."""
+    await _login(client)
+    plan_id = await _export(client)
+    response = await client.post(
+        f"/plans/{plan_id}/sourcing",
+        data={"phase": 1, "sourcing": "purchase"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    assert (await _reload_node(chain_db, plan_id, FUEL)).sourcing == "purchase"
+    html = (await client.get(f"/plans/{plan_id}")).text
+    assert "Build all" in html  # the phase-1 toggle flipped
+
+    await client.post(
+        f"/plans/{plan_id}/sourcing",
+        data={"phase": 1, "sourcing": "build"},
+        follow_redirects=False,
+    )
+    assert (await _reload_node(chain_db, plan_id, FUEL)).sourcing == "build"
+    html = (await client.get(f"/plans/{plan_id}")).text
+    assert "Purchase all" in html
+    # The marking redirects land at the changed phase: ?open=N renders
+    # that phase's tree row expanded (phases past the first two default
+    # collapsed).
+    assert 'id="phase-row-3"' in html and 'id="phase-row-3" open' not in html
+    html = (await client.get(
+        f"/plans/{plan_id}", params={"open": 3}
+    )).text
+    assert 'id="phase-row-3" open' in html
+
+
+@respx.mock
+async def test_locked_chip_on_blueprint_missing(client, chain_db):  # noqa: F811
+    """Missing blueprint forces Purchase: the chip consults the FRESH
+    gate (pool blueprint existence, as the refresh computes it — never
+    the export snapshot), renders a disabled Purchase chip, and the
+    handler rejects Build markings for the locked node while Purchase
+    markings still land (the Purchase-all workflow)."""
+    await _login(client)
+    plan_id = await _export(client)
+    # The pool's CPG BPCs leave (both copies, by exact item id).
+    for item_id in (3001, 3002):
+        bp = (
+            await chain_db.execute(
+                select(Blueprint).where(Blueprint.item_id == item_id)
+            )
+        ).scalar_one()
+        await chain_db.delete(bp)
+    await chain_db.commit()
+
+    html = (await client.get(f"/plans/{plan_id}")).text
+    assert 'class="stage-chip purchase" disabled' in html
+    assert "Purchase is forced" in html
+
+    cpg = await _reload_node(chain_db, plan_id, CPG)
+    await client.post(
+        f"/plans/{plan_id}/sourcing",
+        data={"node": cpg.id, "sourcing": "build"},
+        follow_redirects=False,
+    )
+    assert (await _reload_node(chain_db, plan_id, CPG)).sourcing == "build"
+
+    await client.post(
+        f"/plans/{plan_id}/sourcing",
+        data={"node": cpg.id, "sourcing": "purchase"},
+        follow_redirects=False,
+    )
+    assert (await _reload_node(chain_db, plan_id, CPG)).sourcing == "purchase"
+
+
+@respx.mock
+async def test_multibuy_export_format(client, chain_db):  # noqa: F811
+    """The multibuy export: the header's ↗ opens an on-page dialog whose
+    fixed-width text box carries the shopping list (one line per short
+    acquisition row `Item Name<TAB>Quantity` — raw gaps against the
+    marking-amended requirement plus purchase lines — sorted by name,
+    no header or footer); GET /plans/{id}/multibuy serves the same
+    body as a text/plain attachment (the no-script fallback)."""
+    await _login(client)
+    plan_id = await _export(client)
+    html = (await client.get(f"/plans/{plan_id}")).text
+    assert f'href="/plans/{plan_id}/multibuy"' in html
+    assert 'id="multibuy-dialog"' in html
+    assert 'class="multibuy-text"' in html
+
+    # Unmarked: the raw gap only (ice is covered by office stock).
+    response = await client.get(f"/plans/{plan_id}/multibuy")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/plain")
+    assert "attachment" in response.headers["content-disposition"]
+    trit = await _reload_material(chain_db, plan_id, TRITANIUM)
+    assert response.text == (
+        f"Tritanium\t{trit.required_qty - trit.available_qty}\n"
+    )
+    # The dialog's text box carries the same body as the page render.
+    assert f"Tritanium\t{trit.required_qty - trit.available_qty}\n" in html
+
+    # Fuel marked Purchase with its office stock gone: the purchase
+    # line's gap joins the amended Tritanium gap; ice drops out (its
+    # requirement went to zero with the marking).
+    stock = (
+        await chain_db.execute(select(Asset).where(Asset.item_id == 9102))
+    ).scalar_one()
+    await chain_db.delete(stock)
+    await chain_db.commit()
+    fuel = await _reload_node(chain_db, plan_id, FUEL)
+    await client.post(
+        f"/plans/{plan_id}/sourcing",
+        data={"node": fuel.id, "sourcing": "purchase"},
+        follow_redirects=False,
+    )
+    fuel = await _reload_node(chain_db, plan_id, FUEL)
+    trit = await _reload_material(chain_db, plan_id, TRITANIUM)
+    response = await client.get(f"/plans/{plan_id}/multibuy")
+    assert response.text == (
+        f"Test Fuel Block\t{fuel.qty}\n"
+        f"Tritanium\t{trit.required_qty - trit.available_qty}\n"
+    )
+    # The re-rendered detail carries the amended list in its dialog.
+    html = (await client.get(f"/plans/{plan_id}")).text
+    assert f"Test Fuel Block\t{fuel.qty}\n" in html
+
+
+@respx.mock
+async def test_abandoned_plan_rejects_markings(client, chain_db):  # noqa: F811
+    """Terminal plans reject markings: the POST is a no-op redirect and
+    the node rows never move."""
+    await _login(client)
+    plan_id = await _export(client)
+    await client.post(f"/plans/{plan_id}/abandon", follow_redirects=False)
+    fuel = await _reload_node(chain_db, plan_id, FUEL)
+    response = await client.post(
+        f"/plans/{plan_id}/sourcing",
+        data={"node": fuel.id, "sourcing": "purchase"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    assert (await _reload_node(chain_db, plan_id, FUEL)).sourcing == "build"
+
+
+@respx.mock
+async def test_sourcing_post_validates(client, chain_db):  # noqa: F811
+    """Unknown plan, unknown node, unknown phase, and a bad target value
+    are no-op redirects — the server never trusts form construction."""
+    await _login(client)
+    plan_id = await _export(client)
+    response = await client.post(
+        "/plans/999/sourcing",
+        data={"node": 1, "sourcing": "purchase"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    assert response.headers["location"] == "/plans"
+    for data in (
+        {"node": 999_999, "sourcing": "purchase"},
+        {"phase": 99, "sourcing": "purchase"},
+        {"node": 1, "sourcing": "smuggle"},
+    ):
+        response = await client.post(
+            f"/plans/{plan_id}/sourcing", data=data, follow_redirects=False
+        )
+        assert response.status_code == 303
+        assert response.headers["location"] == f"/plans/{plan_id}"
+    assert (await _reload_node(chain_db, plan_id, FUEL)).sourcing == "build"
+
+
+@respx.mock
+async def test_purchasing_a_later_phase_greys_upstream(client, chain_db):  # noqa: F811
+    """Purchasing a later-phase node turns everything only it consumed
+    unnecessary: the fuel node (the carbide's only supplier) greys out
+    in the tree and the chain strip, and ITS raw demands leave the
+    acquisition table too — not just the purchased node's own. Shared
+    suppliers (Tritanium, still demanded by the target and the CPG)
+    keep their quantities. Un-marking restores all of it."""
+    await _login(client)
+    plan_id = await _export(client)
+    fuel = await _reload_node(chain_db, plan_id, FUEL)
+    fuel_demands = {
+        material["type_id"]: material["required_qty"]
+        for material in json.loads(fuel.materials_json)
+    }
+    trit_before = (await _reload_material(
+        chain_db, plan_id, TRITANIUM
+    )).required_qty
+
+    carbide = await _reload_node(chain_db, plan_id, CARBIDE)
+    carbide_demands = {
+        material["type_id"]: material["required_qty"]
+        for material in json.loads(carbide.materials_json)
+    }
+    response = await client.post(
+        f"/plans/{plan_id}/sourcing",
+        data={"node": carbide.id, "sourcing": "purchase"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+
+    # The fuel node stays build-marked but is dead: its demands (the
+    # ice, and its Tritanium share) left with it, alongside the
+    # purchased carbide's own direct Tritanium demand.
+    fuel = await _reload_node(chain_db, plan_id, FUEL)
+    assert fuel.sourcing == "build"
+    assert (await _reload_material(
+        chain_db, plan_id, ICE
+    )).required_qty == 0
+    trit = await _reload_material(chain_db, plan_id, TRITANIUM)
+    assert trit.required_qty == (
+        trit_before - fuel_demands[TRITANIUM] - carbide_demands[TRITANIUM]
+    )
+    # No fuel purchase line: the fuel node is dead, not acquired.
+    assert await _reload_material(chain_db, plan_id, FUEL) is None
+    # The carbide purchase line is there instead.
+    line = await _reload_material(chain_db, plan_id, CARBIDE)
+    assert line is not None and line.is_purchase_line
+
+    html = (await client.get(f"/plans/{plan_id}")).text
+    assert 'class="node-row unnecessary"' in html
+    assert "unnecessary — a later-phase purchase supplies its consumer" in html
+    assert "1 node · 0 runs · unnecessary" in html  # the dead phase summary
+    assert html.count("unnecessary") >= 3  # node, phase, chain strip
+
+    # Un-marking the carbide revives the whole upstream chain.
+    await client.post(
+        f"/plans/{plan_id}/sourcing",
+        data={"node": carbide.id, "sourcing": "build"},
+        follow_redirects=False,
+    )
+    assert (await _reload_material(
+        chain_db, plan_id, ICE
+    )).required_qty == fuel_demands[ICE]
+    assert (await _reload_material(
+        chain_db, plan_id, TRITANIUM
+    )).required_qty == trit_before
+    html = (await client.get(f"/plans/{plan_id}")).text
+    assert 'class="node-row unnecessary"' not in html
+
+
+@respx.mock
+async def test_purchasing_the_target_greys_the_chain(client, chain_db):  # noqa: F811
+    """Purchasing the target makes the entire chain unnecessary: every
+    other phase greys out, every raw requirement drops to zero (the
+    gaps-only acquisition table empties), and the target itself becomes
+    the one purchase line."""
+    await _login(client)
+    plan_id = await _export(client)
+    target = await _reload_node(chain_db, plan_id, TYPHOON)
+    await client.post(
+        f"/plans/{plan_id}/sourcing",
+        data={"node": target.id, "sourcing": "purchase"},
+        follow_redirects=False,
+    )
+    for type_id in (TRITANIUM, ICE):
+        assert (await _reload_material(
+            chain_db, plan_id, type_id
+        )).required_qty == 0
+    line = await _reload_material(chain_db, plan_id, TYPHOON)
+    assert line is not None and line.is_purchase_line
+    assert line.required_qty == target.qty
+
+    html = (await client.get(f"/plans/{plan_id}")).text
+    assert html.count('class="phase-row unnecessary"') == 3  # phases 1–3
+    # Every raw row covered (required 0) — hidden in the gaps-only view.
+    assert "types fully covered — hidden in this view" in html

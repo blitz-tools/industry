@@ -52,6 +52,19 @@ facility location only when that structure has a sighting location
 creation time. One job claims into at most one plan across all plans;
 false positives are accepted by design.
 
+The Purchase⇄Build marking (M6) leans on a plan-domain invariant
+instead: a plan's raw-material totals are always recomputable from its
+nodes' snapshotted demands (`materials_json`), so marking a node
+Purchase amends the acquisition table by recompute — the demands of
+the nodes the current markings still need, per a backward
+reachability walk from the target (`necessary_nodes`) — which makes
+un-marking symmetric and the amendment idempotent. Suppliers only a
+purchased node consumed turn unnecessary and drop out entirely
+(greyed in the tree and chain strip, never blocking completion);
+suppliers shared with still-built nodes keep their full planned
+quantities in v1, because re-deriving a chain around a local change
+is the wave model's job (M9), never a local patch.
+
 ## Sync machinery
 
 - **Owner-keyed tables**: `assets`, `blueprints`, `industry_jobs`, and
