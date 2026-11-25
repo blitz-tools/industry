@@ -66,9 +66,8 @@ registry edits, and stock movements never move a saved plan — the
 snapshot is what was true at save time.
 
 The plan starts as a **draft**. It activates when its first job
-installs (or is activated manually), and completes when every node is
-delivered — progress tracking is landing with the milestone's
-remaining slices.
+installs (or when activated manually), and completes when every node
+is delivered.
 
 > **Figure — plan.save** *(pending the screenshot pass)*: the
 > calculated page's header with the Save plan button highlighted.
@@ -104,6 +103,29 @@ questions:
   Saving from a re-plan **supersedes** the source plan: the old one is
   marked abandoned and points at its replacement, so the history reads
   as a line of succession rather than a pile of near-duplicates.
+
+## Watch progress
+
+Once saved, a plan tracks itself. A background refresh re-measures
+material availability against the plan's pinned sources, matches the
+corporation's synced industry jobs to plan nodes (by blueprint,
+activity, and facility location), and rolls delivery forward from the
+jobs' completed runs — no page load ever waits on ESI.
+
+Jobs install in-game as usual; nothing needs to be filed anywhere.
+When a job's blueprint matches a node, it shows on that node —
+installer, runs, and time to delivery — and the node moves through
+**In progress** and **Ready to deliver** to **Stage complete**. The
+matching is a heuristic: a job started before the plan was exported
+never matches, and one job claims into at most one plan (the oldest).
+**Activate** forces a draft active when the matcher missed its jobs —
+the counterweight to a heuristic; **Abandon** closes a plan (terminal
+— its jobs free up for other plans). A plan completes on its own when
+every node is delivered.
+
+> **Figure — plans.progress** *(pending the screenshot pass)*: a plan
+> detail with an In-progress node carrying its matched job, and the
+> plans list's progress column.
 
 > **Figure — plans.actions** *(pending the screenshot pass)*: a plan
 > detail header with the Copy plan, Branch plan, and Re-plan buttons

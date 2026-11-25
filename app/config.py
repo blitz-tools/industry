@@ -38,6 +38,10 @@ class Settings(BaseSettings):
     # roster, and public data must sync regardless. ETag revalidation
     # makes frequent ticks near-free.
     world_sync_interval_minutes: int = 60
+    # Build-plan progress refresh (M6): the materialization tick over
+    # non-abandoned plans — DB-only reads (availability, correlation,
+    # delivery), so a shorter cadence than the asset sync is cheap.
+    plans_refresh_interval_minutes: int = 5
     # SDE import source (python -m app.sde import): fuzzwork's gzipped
     # SQLite dump of the latest Tranquility release, at a stable URL.
     sde_dump_url: str = "https://www.fuzzwork.co.uk/dump/latest-sqlite.db.gz"

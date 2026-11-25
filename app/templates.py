@@ -1,9 +1,12 @@
 """Jinja2 template rendering."""
 
 import hashlib
+from datetime import datetime
 from pathlib import Path
 
 from fastapi.templating import Jinja2Templates
+
+from .db import utc_now
 
 _package_dir = Path(__file__).parent
 templates = Jinja2Templates(directory=str(_package_dir / "templates"))
@@ -56,10 +59,26 @@ def format_qty(value: int | None) -> str:
     return "—" if value is None else f"{value:,}"
 
 
+def format_age(then: datetime | None) -> str:
+    """A timestamp → the freshness form ("8 min ago") — sync and refresh
+    stamps on the plans surfaces. None renders "never"."""
+    if then is None:
+        return "never"
+    seconds = (utc_now() - then).total_seconds()
+    if seconds < 60:
+        return "just now"
+    if seconds < 3600:
+        return f"{int(seconds // 60)} min ago"
+    if seconds < 48 * 3600:
+        return f"{seconds / 3600:.1f}".rstrip("0").rstrip(".") + " h ago"
+    return f"{seconds / 86400:.1f}".rstrip("0").rstrip(".") + " d ago"
+
+
 # Shared display formatters (the planner and plans pages).
 templates.env.globals["format_duration"] = format_duration
 templates.env.globals["format_isk"] = format_isk
 templates.env.globals["format_qty"] = format_qty
+templates.env.globals["format_age"] = format_age
 
 
 def _static_version() -> str:

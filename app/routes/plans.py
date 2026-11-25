@@ -1,29 +1,36 @@
 """Plans section (M6): the plan of record's surfaces — the list, the
-read-only draft detail, the export POST, and the Re-run fork redirect.
-Conventions follow the structures routes (one form, 303 redirects, the
-server validates everything); renders stay DB-pure — the detail reads
-snapshot rows, never re-runs the resolver. Activation, progress
-materialization, and Purchase⇄Build marking are the milestone's next
-slices; this PR ships the snapshot and its read-only surfaces."""
+detail with live progress (the refresh tick materializes availability,
+correlation, and delivery; renders stay DB-pure), the export POST, the
+state-machine controls (Activate, Abandon), and the plan-shaping
+redirects. Conventions follow the structures routes (one form, 303
+redirects, the server validates everything). Purchase⇄Build marking
+and the multibuy export are the milestone's next slices."""
 
 import json
 
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import RedirectResponse
+from sqlalchemy import delete
 
+from ..db import utc_now
 from ..deps import DbDep, is_authenticated
-from ..models import BuildPlan
+from ..models import BuildPlan, BuildPlanJob
 from ..planner import chain_plan
 from ..plans import (
+    assets_synced_at,
     gating_text,
     material_groups,
     parse_material_sources,
     phase_views,
+    plan_job_views,
     plan_read,
     planner_state,
     plans_overview,
     pool_badge,
+    refresh_job_claims,
+    refresh_plan,
     snapshot_plan,
+    stage_text,
     state_qs,
     status_badge,
 )
@@ -41,9 +48,9 @@ def _int_field(form, key: str) -> int | None:
 
 @router.get("/plans")
 async def plans_page(request: Request, db: DbDep):
-    """The plan home: stat tiles over the snapshots and the plan table,
-    newest first. The active-surface tiles (correlated jobs, delivered
-    nodes) land with the progress refresh."""
+    """The plan home: stat tiles over the snapshots and the plan table
+    with per-plan progress meters (delivered / buildable nodes),
+    newest first."""
     if not is_authenticated(request):
         return RedirectResponse("/", status_code=302)
     rows = await plans_overview(db)
@@ -70,10 +77,11 @@ async def plan_detail_page(
     plan_id: int,
     show_all: bool = Query(False, alias="all"),
 ):
-    """The plan of record, read-only while draft: snapshot tiles, the
-    chain-flow strip, the phase tree with export-time stage states, the
-    draft-only blueprint and time sections, and the acquisition table
-    (gaps-only by default, availability as measured at export)."""
+    """The plan of record: snapshot tiles, the chain-flow strip, the
+    phase tree with live stage states (materialized by the refresh
+    tick), the matched-jobs summaries, the draft-only blueprint and
+    time sections, and the acquisition table (gaps-only by default,
+    availability as last materialized)."""
     if not is_authenticated(request):
         return RedirectResponse("/", status_code=302)
     read = await plan_read(db, plan_id)
@@ -100,6 +108,10 @@ async def plan_detail_page(
         for activity, facility in facilities.items()
         if facility
     )
+    job_views = await plan_job_views(db, plan_id)
+    delivered_nodes = sum(
+        1 for node in nodes if node.qty and node.delivered_qty >= node.qty
+    )
     return templates.TemplateResponse(
         request,
         "plan_detail.html",
@@ -118,6 +130,13 @@ async def plan_detail_page(
             "pool_badge": pool_badge(plan),
             "status_badge": status_badge(plan),
             "gating_text": gating_text,
+            "stage_text": stage_text,
+            "job_views": job_views,
+            "correlated_jobs": sum(
+                len(view["jobs"]) for view in job_views.values()
+            ),
+            "delivered_nodes": delivered_nodes,
+            "assets_synced": await assets_synced_at(db),
             "totals": {
                 "runs": sum(node.runs for node in nodes),
                 "jobs": sum(node.jobs for node in nodes),
@@ -189,8 +208,56 @@ async def plans_export(request: Request, db: DbDep):
         te_override=te,
         from_plan_id=_int_field(form, "from_plan"),
     )
+    # One synchronous refresh so the redirect lands materialized —
+    # availability re-measured, refreshed_at set (the claims pass stays
+    # the tick's: a plan created this second can correlate nothing the
+    # sync table doesn't already show, and the tick catches that).
+    await refresh_plan(db, plan)
     await db.commit()
     return RedirectResponse(f"/plans/{plan.id}", status_code=303)
+
+
+@router.post("/plans/{plan_id}/activate")
+async def plan_activate(request: Request, db: DbDep, plan_id: int):
+    """Activate: the owner forcing draft→active — the counterweight to
+    correlation misses (a plan whose jobs the heuristic didn't catch
+    still tracks). Runs one synchronous refresh so the redirect lands
+    with the plan's correlated jobs materialized. Non-draft plans are
+    a no-op redirect (activation is one-way; completion is computed)."""
+    if not is_authenticated(request):
+        return RedirectResponse("/", status_code=303)
+    plan = await db.get(BuildPlan, plan_id)
+    if plan is None:
+        return RedirectResponse("/plans", status_code=303)
+    if plan.status == "draft":
+        plan.status = "active"
+        plan.activated_at = utc_now()
+        await refresh_job_claims(db)
+        await refresh_plan(db, plan)
+        await db.commit()
+    return RedirectResponse(f"/plans/{plan_id}", status_code=303)
+
+
+@router.post("/plans/{plan_id}/abandon")
+async def plan_abandon(request: Request, db: DbDep, plan_id: int):
+    """Abandon: the owner closing a plan (terminal). Its claims drop
+    immediately so the jobs free up for a sibling plan — the tick's
+    correlation pass excludes terminal plans, so the rows would go on
+    the next pass anyway; clearing here keeps the one-claim rule honest
+    at once. Terminal plans are a no-op redirect."""
+    if not is_authenticated(request):
+        return RedirectResponse("/", status_code=303)
+    plan = await db.get(BuildPlan, plan_id)
+    if plan is None:
+        return RedirectResponse("/plans", status_code=303)
+    if plan.status in ("draft", "active"):
+        plan.status = "abandoned"
+        plan.abandoned_at = utc_now()
+        await db.execute(
+            delete(BuildPlanJob).where(BuildPlanJob.plan_id == plan_id)
+        )
+        await db.commit()
+    return RedirectResponse(f"/plans/{plan_id}", status_code=303)
 
 
 @router.get("/plans/{plan_id}/rerun")

@@ -5,8 +5,8 @@
 <p class="meta-line" style="margin-top: 0.5rem;">
   Exported chain plans — the plan of record. Re-running the planner
   forks a new plan; markings amend in place, structural changes fork.
-  Progress tracking (job correlation, delivery, activation) lands with
-  the milestone's next slice.
+  Progress materializes from the asset and job syncs on the refresh
+  tick.
 </p>
 
 <!-- Summary tiles -->
@@ -32,6 +32,7 @@
       <th class="num">Target</th>
       <th>Pool</th>
       <th>Status</th>
+      <th>Progress</th>
       <th class="num">Nodes</th>
       <th class="num">Phases</th>
       <th>Exported</th>
@@ -40,17 +41,24 @@
   <tbody>
     {% for row in rows %}
     {% set plan = row.plan %}
+    {% set pct = (100 * row.delivered / row.nodes) | round | int if row.nodes else 0 %}
     <tr>
       <td><img class="type-icon" src="{{ type_icon_url(plan.target_type_id, 32) }}" alt=""><a href="/plans/{{ plan.id }}">{{ plan.name }}</a></td>
       <td class="num">{{ '{:,}'.format(plan.units) }}</td>
       <td><span class="badge" title="The plan's material sources, pinned at export — pool is structural; changing it goes through Re-plan, Branch, or Copy.">{{ pool_badge(plan) }}</span></td>
       <td><span class="badge {{ status_badge(plan) }}">{{ plan.status | capitalize }}</span></td>
+      <td>
+        <div class="meter-cell">
+          <div class="meter"><div class="meter-fill{{ '' if pct >= 100 else ' low' if pct < 50 else ' warn' }}" style="width: {{ pct }}%"></div></div>
+          <span class="meter-pct">{{ row.delivered }} / {{ row.nodes }}</span>
+        </div>
+      </td>
       <td class="num">{{ '{:,}'.format(row.nodes) }}</td>
       <td class="num">{{ row.phases }}</td>
       <td class="muted">{{ plan.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
     </tr>
     {% else %}
-    <tr><td colspan="7" class="muted">No plans yet — calculate a chain on the <a href="/planner">planner</a> and save it.</td></tr>
+    <tr><td colspan="8" class="muted">No plans yet — calculate a chain on the <a href="/planner">planner</a> and save it.</td></tr>
     {% endfor %}
   </tbody>
 </table>

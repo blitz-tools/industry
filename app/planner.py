@@ -34,6 +34,7 @@ pattern — a CCP balance pass is a table edit, never a code change):
   time rounds to the second at the end of its chain.
 """
 
+import json
 import math
 from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Decimal
@@ -62,7 +63,7 @@ from .industry import (
     recipe_headers,
     type_names,
 )
-from .models import Character
+from .models import BuildPlanNode, Character
 
 # --- Skill→time multipliers (the M4 data table) -------------------------------
 
@@ -805,6 +806,58 @@ def phase_state(phase: ChainPhase) -> str:
     if any(fresh_node_state(node)[0] == "missing" for node in buildables):
         return "missing"
     return "ready" if buildables else "ready"
+
+
+def active_node_state(
+    node: BuildPlanNode,
+    available_by_type: dict[int, int],
+    job_ready: bool,
+    has_blueprint: bool,
+    holds_gate: bool,
+) -> tuple[str, str | None]:
+    """(state, reason) for a node of an exported plan, per the
+    stage-state model's progress ladder — BESIDE fresh_node_state, never
+    a change to it: M5's function answers the fresh-plan question from
+    live chain facts; this one answers the plan-of-record question from
+    materialized progress. The ladder: complete (delivered) → deliver
+    (a correlated job is ready) → running (correlated jobs in flight) →
+    the fresh-state fallback — EVERY rung re-derives from fresh world
+    state (the owner's 2026-11-25 call: gating is a measured readiness
+    fact, not a planning input): `has_blueprint` and `holds_gate` are
+    the refresh's fresh reads (pool blueprint existence, the pinned
+    participants' current skill levels vs the snapshotted requirements
+    — a later-acquired BPO or trained skill un-gates without a re-plan;
+    the calc itself stays pinned, so mid-flight acquisitions with
+    different ME/TE don't re-derive the planned math), and
+    waiting-upstream / stock-gap re-derive from the node's snapshotted
+    demands against materialized availability (delivered intermediates
+    sit in the pool, so an arrived input stops gating). The fallback
+    facts arrive as parameters — this function stays pure and
+    session-free. `available_by_type` covers both node and material
+    types; `job_ready` is any correlated job in ESI's ready state."""
+    if node.qty and node.delivered_qty >= node.qty:
+        return ("complete", None)
+    if job_ready:
+        return ("deliver", None)
+    if node.running_qty > 0:
+        return ("running", None)
+    if not has_blueprint:
+        return ("missing", "blueprint-missing")
+    if not holds_gate:
+        return ("missing", "skill-gated")
+    buildable_short = raw_short = False
+    for demand in json.loads(node.materials_json):
+        if available_by_type.get(demand["type_id"], 0) >= demand["required_qty"]:
+            continue
+        if demand["buildable"]:
+            buildable_short = True
+        else:
+            raw_short = True
+    if buildable_short:
+        return ("missing", "waiting-upstream")
+    if raw_short:
+        return ("missing", "stock-gap")
+    return ("ready", None)
 
 
 @dataclass

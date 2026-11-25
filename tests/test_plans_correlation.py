@@ -67,12 +67,17 @@ def _job(**fields):
     return IndustryJob(**defaults)
 
 
-async def _export(db, units=10) -> BuildPlan:
+async def _export(db, units=10, sources=None) -> BuildPlan:
     """A real exported plan over the golden chain — the route handler's
-    chain_plan + snapshot_plan pair, minus the HTTP layer."""
+    chain_plan + snapshot_plan pair, minus the HTTP layer. `sources`
+    pins the material-source selection (None = the default set)."""
     facilities = await _facilities(db)
     resolved = await chain_plan(
-        db, target_type_id=TYPHOON, units=units, facilities=facilities
+        db,
+        target_type_id=TYPHOON,
+        units=units,
+        facilities=facilities,
+        material_sources=sources,
     )
     plan = await snapshot_plan(
         db,
@@ -80,7 +85,7 @@ async def _export(db, units=10) -> BuildPlan:
         facilities=facilities,
         name=f"Correlation ×{units}",
         source_query="",
-        sources=None,
+        sources=sources,
     )
     await db.commit()
     return plan
