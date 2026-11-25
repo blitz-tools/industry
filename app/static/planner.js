@@ -84,6 +84,11 @@ window.initPlannerPage = () => {
     const next = new URLSearchParams();
     next.set("target", String(entry.type_id));
     if (searchInput.dataset.owned) next.set("owned", "1");
+    // A Re-run visit keeps its fork context across a target change —
+    // the re-plan is still the re-plan (the old plan is superseded on
+    // save). Everything else resets: a new target is a new plan shape.
+    const fork = params().get("from_plan");
+    if (fork) next.set("from_plan", fork);
     swapMain("/planner?" + next.toString());
   }
 
@@ -144,6 +149,53 @@ window.initPlannerPage = () => {
       next.set("qty", String(next_qty));
       swapMain("/planner?" + next.toString());
     });
+  });
+
+  // Direct count entry: type a number into the stepper value and press
+  // Enter (or leave the field). Anything that isn't a number resets to
+  // the current count — the server stays authoritative and clamps to ≥1.
+  // A typed count commits QUIETLY — the URL and the Calculate link pick
+  // it up without a re-resolve — because navigating on blur races a
+  // Calculate click fired on the same blur (two swaps, and the stale
+  // Calculate href could win, silently dropping the typed count). The
+  // +/− buttons keep their live re-resolve.
+  const qtyInput = document.querySelector("#qty-stepper .stepper-value");
+  const resetQtyInput = () => {
+    qtyInput.value = Number(
+      document.getElementById("qty-stepper").dataset.qty
+    ).toLocaleString("en-US");
+  };
+  qtyInput?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      qtyInput.blur();
+    }
+  });
+  qtyInput?.addEventListener("change", () => {
+    const raw = qtyInput.value.replace(/,/g, "").trim();
+    if (!/^\d+$/.test(raw)) {
+      resetQtyInput();
+      return;
+    }
+    const next_qty = Math.max(1, parseInt(raw, 10));
+    const stepper = document.getElementById("qty-stepper");
+    if (next_qty === Number(stepper.dataset.qty)) {
+      resetQtyInput();
+      return;
+    }
+    stepper.dataset.qty = String(next_qty);
+    const next = params();
+    next.set("qty", String(next_qty));
+    const query = next.toString();
+    history.replaceState(
+      {}, "", "/planner" + (query ? "?" + query : "")
+    );
+    const calculate = document.getElementById("calculate-link");
+    if (calculate) {
+      const url = new URL(calculate.href);
+      url.searchParams.set("qty", String(next_qty));
+      calculate.href = url.toString();
+    }
   });
 
   // --- Participant toggles ------------------------------------------------------
@@ -207,6 +259,11 @@ window.initPlanPage = () => {
   // on both; initPlannerPage early-returns wherever the search box is
   // absent). Checkbox state is local until Apply constructs the next
   // URL; the swap keeps the viewport.
+  // Saving is an intentional departure: clear the unsaved-plan flag on
+  // submit so the export POST navigates without the guard.
+  document.querySelector("main .export-form")?.addEventListener(
+    "submit", () => { unsavedPlanUrl = null; }
+  );
   const select = document.getElementById("material-source-select");
   if (select) {
     const button = select.querySelector(".drop-chip");
@@ -265,6 +322,52 @@ window.initPlanPage = () => {
   }
 };
 
+// --- Unsaved-plan guard (M6) ---------------------------------------------------
+// The calculated chain is URL state until Save plan snapshots it, so
+// leaving /planner/plan without saving loses the work-in-progress.
+// Departures covered: in-main link swaps (back to planner), back/forward,
+// and sidebar navigation — all through the on-page dialog (the
+// structures delete-dialog pattern; no browser popups). Tab close,
+// refresh, and the address bar stay ungoverned: the calculation is URL
+// state, so history or reopen-tab restores it. Same-page control
+// rebuilds (the source selector, the acquisition toggle) never prompt,
+// and the save form clears the flag on submit so the export POST
+// navigates freely.
+
+let unsavedPlanUrl = null;
+let pendingLeave = null;
+let pendingStay = null;
+
+function refreshUnsavedPlan() {
+  unsavedPlanUrl = document.querySelector("main .export-form")
+    ? window.location.href
+    : null;
+}
+
+function guardUnsavedPlanLeave(destination, onLeave, onStay) {
+  if (unsavedPlanUrl === null) {
+    onLeave();
+    return;
+  }
+  const target = new URL(destination, window.location.origin);
+  if (target.pathname === new URL(unsavedPlanUrl).pathname) {
+    onLeave();
+    return;
+  }
+  const dialog = document.getElementById("unsaved-plan-dialog");
+  if (!dialog) {
+    onLeave();  // no dialog in the markup: proceed
+    return;
+  }
+  pendingLeave = onLeave;
+  pendingStay = onStay;
+  dialog.onclose = () => {  // any close without Leave = stay
+    if (pendingStay) pendingStay();
+    pendingLeave = pendingStay = null;
+  };
+  dialog.showModal();
+}
+
 // --- In-place page swaps (no full refreshes) ----------------------------------
 
 function swapMain(url, push = true, keepScroll = true) {
@@ -281,6 +384,7 @@ function swapMain(url, push = true, keepScroll = true) {
       if (!current || !next) throw new Error("unexpected page shape");
       current.replaceChildren(...next.childNodes);
       if (push) history.pushState({}, "", url);
+      refreshUnsavedPlan();
       window.initPlannerPage();
       window.initPlanPage();
       // Interactions keep the viewport where it was (the owner's
@@ -314,28 +418,98 @@ if (!window.initPlannerPageWired) {
     });
   });
 
-  // In-main planner links (Calculate, back to planner) swap in place;
-  // modified clicks keep their native behavior. Cross-page links land
-  // at the top of the arriving page; same-page links (the acquisition
-  // table's view toggle) and anything carrying data-keep-scroll keep
-  // the viewport where it was.
+  // In-main planner and plans links (Calculate, back to planner, plan
+  // detail, list) swap in place; modified clicks keep their native
+  // behavior. Cross-page links land at the top of the arriving page;
+  // same-page links (the acquisition table's view toggle) and anything
+  // carrying data-keep-scroll keep the viewport where it was.
   document.addEventListener("click", (event) => {
-    const link = event.target.closest("main a[href^='/planner']");
+    const link = event.target.closest(
+      "main a[href^='/planner'], main a[href^='/plans']"
+    );
     if (!link) return;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    // Plan action links (/plans/{id}/copy, /rerun — later /multibuy)
+    // are one-shot redirects and must NOT swap in place: the swap
+    // pushStates the action URL, whose empty query strip wipes the
+    // planner state on the next control click (the target stepper
+    // rebuilt /planner?qty=11 with no target — the whole selection
+    // cleared). Let the browser follow the redirect natively so the
+    // address bar lands on the real URL.
+    const path = new URL(link.href).pathname;
+    if (/^\/plans\/\d+\/[a-z]+$/.test(path)) return;
     event.preventDefault();
-    const samePage =
-      new URL(link.href).pathname === window.location.pathname;
-    swapMain(link.href, true, link.hasAttribute("data-keep-scroll") || samePage);
+    // Leaving an unsaved calculation prompts first (Stay keeps this
+    // page — the default was already prevented).
+    guardUnsavedPlanLeave(link.href, () => {
+      const samePage =
+        new URL(link.href).pathname === window.location.pathname;
+      swapMain(
+        link.href, true,
+        link.hasAttribute("data-keep-scroll") || samePage
+      );
+    }, null);
   });
 
   window.addEventListener("popstate", () => {
-    if (document.getElementById("target-search") ||
-        document.querySelector("main a[href^='/planner']")) {
-      swapMain(window.location.href, false);
+    const run = () => {
+      if (document.getElementById("target-search") ||
+          document.querySelector(
+            "main a[href^='/planner'], main a[href^='/plans']"
+          )) {
+        swapMain(window.location.href, false);
+      }
+    };
+    // Back/forward off an unsaved plan page prompts; staying restores
+    // the plan URL on top of the history (the DOM never left).
+    guardUnsavedPlanLeave(
+      window.location.href,
+      run,
+      () => history.pushState({}, "", unsavedPlanUrl)
+    );
+  });
+
+  // Sidebar navigation is a departure too, but it leaves the page
+  // entirely (no swap): while a plan is unsaved, route it through the
+  // same on-page dialog — Leave navigates for real. Re-queried at
+  // event time so it survives main swaps. Tab close, refresh, and the
+  // address bar stay ungoverned by design: no browser popups (the
+  // owner's call — the structures delete-dialog is the confirmation
+  // pattern of record), and the calculation is URL state, so history
+  // or reopen-tab restores it.
+  document.addEventListener("click", (event) => {
+    if (unsavedPlanUrl === null) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const link = event.target.closest("aside a[href]");
+    if (!link) return;
+    const href = link.getAttribute("href") || "";
+    if (!href || href.startsWith("#")) return;
+    event.preventDefault();
+    guardUnsavedPlanLeave(link.href, () => {
+      window.location.assign(link.href);
+    }, null);
+  });
+
+  // The guard dialog's buttons (the structures delete-dialog pattern:
+  // the pending action is stored; Leave submits through the swap path;
+  // Cancel/Escape/backdrop just close). Re-queried at event time so it
+  // survives main swaps.
+  document.addEventListener("click", (event) => {
+    const dialog = document.getElementById("unsaved-plan-dialog");
+    if (!dialog || !dialog.open) return;
+    if (event.target.id === "unsaved-plan-leave") {
+      const leave = pendingLeave;
+      pendingLeave = pendingStay = null;
+      unsavedPlanUrl = null;  // leaving intentionally — prompt once
+      dialog.close();
+      if (leave) leave();
+    } else if (event.target.id === "unsaved-plan-stay" ||
+               event.target === dialog) {  // backdrop click
+      dialog.close();
     }
   });
 }
 
 window.initPlannerPage();
 window.initPlanPage();
+refreshUnsavedPlan();

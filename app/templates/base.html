@@ -19,7 +19,7 @@
     <a class="brand" href="/">soliton</a>
     <nav aria-label="Sections">
       <a href="/dashboard"{% if active == 'dashboard' %} class="active" aria-current="page"{% endif %}>Dashboard</a>
-      {% set planner_active = active is defined and active.startswith('planner') or active == 'structures' %}
+      {% set planner_active = active is defined and (active.startswith('planner') or active in ('structures', 'plans')) %}
       <div class="nav-group" id="nav-planner-group">
         <button class="nav-group-toggle" type="button" aria-controls="nav-planner"
                 aria-expanded="{{ 'true' if planner_active else 'false' }}">
@@ -28,6 +28,7 @@
         <div class="nav-group-items" id="nav-planner"{% if not planner_active %} hidden{% endif %}>
           <a href="/structures"{% if active == 'structures' %} class="active" aria-current="page"{% endif %}>Structures</a>
           <a href="/planner"{% if active == 'planner' %} class="active" aria-current="page"{% endif %}>Planner</a>
+          <a href="/plans"{% if active == 'plans' %} class="active" aria-current="page"{% endif %}>Plans</a>
         </div>
       </div>
       {% set char_active = active is defined and active in ('characters', 'assets', 'blueprints', 'skills', 'jobs') %}

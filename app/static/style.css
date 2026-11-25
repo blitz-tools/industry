@@ -402,6 +402,9 @@ a:hover {
   background: transparent;
   color: var(--muted);
   font: inherit;
+  /* The glyph fills more of the box (the owner's call — box size
+     stays 32px, the icon reads bigger). */
+  font-size: 1.25rem;
   cursor: pointer;
 }
 
@@ -410,6 +413,29 @@ a:hover {
   background: transparent;
   color: var(--green);
   text-decoration: none;
+}
+
+/* Plan-header action colors (M6, the owner's call): Save plan
+   highlights green (the default), Copy plan blue, Branch plan yellow,
+   Re-plan purple — the plan-shaping actions read apart at a glance. */
+.icon-button.save:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.icon-button.copy:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.icon-button.branch:hover {
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+
+.icon-button.replan:hover {
+  border-color: var(--purple);
+  color: var(--purple);
 }
 
 .icon-button.danger {
@@ -1285,6 +1311,35 @@ button.primary,
 .badge.capability { border-color: var(--purple); color: var(--purple); }
 .badge.missing { border-color: var(--muted); color: var(--muted); }
 
+/* Plan-state badge (M6, ported from the mockups' shared sheet):
+   draft reads yellow, active green. */
+.badge.plan-state { border-color: var(--yellow); color: var(--yellow); }
+.badge.plan-state.active { border-color: var(--green); color: var(--green); }
+
+/* The Save-plan form in the plan header (M6): a name input beside the
+   export icon button, chip-scaled so the header row stays one line. */
+.export-form {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.export-form input[type="text"] {
+  width: 16rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.export-form input[type="text"]:focus {
+  border-color: var(--cyan);
+  outline: none;
+}
+
 /* Responsive field grid for registry CRUD forms. Wide layout: the
    first column is wide enough for all four activity chips on one line
    and the rig column is narrow; narrower viewports fall back to the
@@ -1561,8 +1616,11 @@ button.primary,
   border-style: dashed;
 }
 
-/* Delete-confirmation dialog (native <dialog>, modal). */
-#delete-dialog {
+/* Confirmation dialogs (native <dialog>, modal): the structures
+   delete confirmation and the planner's unsaved-plan guard share one
+   shape. */
+#delete-dialog,
+#unsaved-plan-dialog {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -1572,16 +1630,19 @@ button.primary,
   max-width: 32rem;
 }
 
-#delete-dialog::backdrop {
+#delete-dialog::backdrop,
+#unsaved-plan-dialog::backdrop {
   background: rgb(0 0 0 / 60%);
 }
 
-#delete-dialog h3 {
+#delete-dialog h3,
+#unsaved-plan-dialog h3 {
   margin: 0 0 0.75rem;
   font-size: 1.05rem;
 }
 
-#delete-dialog p {
+#delete-dialog p,
+#unsaved-plan-dialog p {
   margin: 0 0 0.5rem;
 }
 
@@ -1652,6 +1713,18 @@ button.primary,
   font-size: 1.1rem;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
+  /* The value is directly editable (typed counts, not just +/-): read
+     as part of the stepper, not a form field. */
+  border-top: none;
+  border-bottom: none;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+}
+
+.stepper .stepper-value:focus {
+  outline: none;
+  color: var(--green);
 }
 
 /* --- Stage state: where a chain stage sits right now ---------------------- */

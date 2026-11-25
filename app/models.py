@@ -395,11 +395,16 @@ class BuildPlan(Base, TimestampMixin):
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="draft")
     # The main's corporation at export — the office-pool key.
     corporation_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    # Resolved participant character ids at export (JSON list).
+    # Resolved participants at export (JSON rows: ids plus the time
+    # readouts the draft detail renders) — roster changes never move a
+    # plan.
     participants_json: Mapped[str] = mapped_column(Text, nullable=False)
-    include_personal_stock: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False
-    )
+    # The Material sources selection at export: null = the corp-side
+    # default (every office hangar and container — personal hangars
+    # out); a JSON list = the explicit source refs, the present-even-
+    # empty sentinel included. Subsumes the old build_plan_containers
+    # table: a container is one source kind among the refs.
+    sources_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Activity key → pinned registration facts (JSON; null values where
     # no facility is registered for the activity).
     facilities_json: Mapped[str] = mapped_column(Text, nullable=False)
@@ -539,24 +544,6 @@ class BuildPlanJob(Base, TimestampMixin):
     owner_type: Mapped[str] = mapped_column(String(16), nullable=False)
     owner_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     job_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
-
-
-class BuildPlanContainer(Base, TimestampMixin):
-    """One station container a plan is scoped to (M6): availability and
-    delivery measure through `assets WHERE location_id IN (the plan's
-    container item_ids)` instead of the shared corp hangars (the PR #52
-    zero-data-layer-change join). No rows = the shared-hangar fallback.
-    Moves in and out of containers stay manual in-game steps."""
-
-    __tablename__ = "build_plan_containers"
-
-    plan_id: Mapped[int] = mapped_column(
-        ForeignKey("build_plans.id", ondelete="CASCADE"), primary_key=True
-    )
-    item_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    owner_type: Mapped[str] = mapped_column(String(16), nullable=False)
-    owner_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    name: Mapped[str | None] = mapped_column(String(200), nullable=True)
 
 
 class AssetName(Base, TimestampMixin):

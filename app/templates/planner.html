@@ -48,7 +48,9 @@
         <span class="meta-line">Target count</span>
         <div class="stepper" id="qty-stepper" data-qty="{{ qty }}">
           <button type="button" aria-label="Decrease" data-delta="-1">−</button>
-          <span class="stepper-value">{{ '{:,}'.format(qty) }}</span>
+          <input class="stepper-value" type="text" inputmode="numeric"
+                 value="{{ '{:,}'.format(qty) }}" aria-label="Target count"
+                 title="Type a count and press Enter">
           <button type="button" aria-label="Increase" data-delta="1">+</button>
         </div>
       </div>

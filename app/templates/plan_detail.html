@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% block title %}soliton — {{ plan.name }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><img class="type-icon" style="width:32px;height:32px;" src="{{ type_icon_url(plan.target_type_id, 32) }}" alt=""> {{ plan.name }}</h1>
+  <div class="actions">
+    <span class="badge {{ status_badge }}" title="A plan activates when its first job installs and completes when every node is delivered.">{{ plan.status | capitalize }}</span>
+    <span class="badge" title="The plan's material sources, pinned at export — pool is structural; changing it goes through Re-plan or Copy.">{{ pool_badge }}</span>
+    <a class="icon-button copy" href="/plans/{{ plan.id }}/copy" title="Copy plan — the same chain back on the calculated page; adjust the material sources and save as a new, concurrent plan (this plan is untouched)" aria-label="Copy plan">⧉</a>
+    <a class="icon-button branch" href="/plans/{{ plan.id }}/branch" title="Branch plan — the same planning setup back on the planner entry; adjust anything (target, count, participants, facilities, sources) and save as a new sibling plan. This plan is untouched — a branch diverges, it never replaces its origin." aria-label="Branch plan">⎇</a>
+    <a class="icon-button replan" href="/plans/{{ plan.id }}/rerun" title="Re-plan — back to the planner entry, where the target is adjustable. Targets are a planning-phase input: the calculated chain is never edited in place, because spreading a build across multiple jobs offsets material inputs against a single-run plan (the waves and alignment model, M9). Saving from a re-plan supersedes this plan." aria-label="Re-plan">⟳</a>
+  </div>
+</div>
+
+<p class="meta-line" style="margin: 0 0 1rem;">
+  Exported {{ plan.created_at.strftime('%Y-%m-%d %H:%M') }} · availability as measured at export · progress tracking (job correlation, delivery, activation) lands with the milestone's next slice.
+  <a href="/plans">← all plans</a>
+</p>
+
+<!-- Summary tiles -->
+<div class="stats">
+  <div class="stat">
+    <p class="stat-value">{{ '{:,}'.format(totals.runs) }}</p>
+    <p class="stat-label">Runs · {{ totals.jobs }} job{{ 's' if totals.jobs != 1 }} across the chain</p>
+  </div>
+  <div class="stat">
+    <p class="stat-value">{{ format_duration(totals.seconds) }}</p>
+    <p class="stat-label">Chain time, serial · target job {{ format_duration(target_node.job_seconds) }}</p>
+  </div>
+  <div class="stat">
+    <p class="stat-value">{{ format_isk(totals.install_total) }}</p>
+    <p class="stat-label">Install cost, chain total{% if totals.install_missing %} · {{ totals.install_missing }} node{{ 's' if totals.install_missing != 1 }} missing price data{% endif %}</p>
+  </div>
+  <div class="stat">
+    <p class="stat-value">{{ totals.phases }}</p>
+    <p class="stat-label">Phases · {{ nodes | length }} nodes · {{ materials | length }} raw types</p>
+  </div>
+</div>
+
+<p class="meta-line" style="margin: 0 0 0.75rem;">Facilities pinned at export: {{ facilities_line or '— station baselines' }}</p>
+
+<!-- Reverse chain -->
+<h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Reverse chain</h2>
+<p class="meta-line" style="margin: 0 0 0.75rem;">The snapshotted chain from raw terminators to the target — runs and quantities frozen at export; ME {{ target_node.me }} / TE {{ target_node.te }} on the target.</p>
+
+<div class="chain-flow">
+  {% for view in phase_views %}
+  <div class="chain-phase">
+    <span class="phase-label">Phase {{ view.phase }}</span>
+    <span class="phase-name">{{ view.name }}</span>
+    <span class="phase-meta">{{ view.nodes | length }} nodes</span>
+    <div class="phase-tags">
+      {% for activity_id in view.activity_ids %}<span class="activity-tag {{ 'mfg' if activity_id == 1 else 'rxn' }}">{{ 'manufacture' if activity_id == 1 else 'reaction' }}</span>{% endfor %}
+      <span class="stage-state {{ view.state }}">{{ 'Ready to build' if view.state == 'ready' else 'Missing inputs' }}</span>
+    </div>
+  </div>
+  {% if not loop.last %}<span class="chain-arrow">→</span>{% endif %}
+  {% endfor %}
+</div>
+
+{% if cycles %}
+<p class="meta-line" style="margin: 0 0 0.75rem;"><span class="badge missing">{{ cycles | length }} SDE self-reference{{ 's' if cycles | length != 1 }} cut</span> <span class="muted">{% for cut in cycles %}{{ cut.material_name or cut.material_type_id }} demanded by {{ cut.consumer_name or cut.consumer_type_id }} at phase {{ cut.phase }}{% if not loop.last %} · {% endif %}{% endfor %} — the producer graph's structure-array cycles, treated as terminal and never built.</span></p>
+{% endif %}
+
+{% for view in phase_views %}
+<details class="phase-row"{{ ' open' if loop.index <= 2 }}>
+  <summary>
+    <span class="phase-title">Phase {{ view.phase }} — {{ view.name }}</span>
+    {% for activity_id in view.activity_ids %}<span class="activity-tag {{ 'mfg' if activity_id == 1 else 'rxn' }}">{{ 'manufacture' if activity_id == 1 else 'reaction' }}</span>{% endfor %}
+    <span class="phase-count">{{ view.nodes | length }} nodes · {{ '{:,}'.format(view.nodes | sum(attribute='runs')) }} runs</span>
+    <span class="summary-right">
+      <span class="stage-state {{ view.state }}">{{ 'Ready to build' if view.state == 'ready' else 'Missing inputs' }}</span>
+    </span>
+  </summary>
+  <div class="phase-body">
+    {% for node in view.nodes %}
+    <div class="node-row">
+      <img class="type-icon" src="{{ type_icon_url(node.type_id, 32) }}" alt="">
+      <span class="node-name">{{ node.name }}</span>
+      <span class="node-qty">×{{ '{:,}'.format(node.qty) }}</span>
+      <span class="node-runs">{{ '{:,}'.format(node.runs) }} run{{ 's' if node.runs != 1 }} · {{ node.jobs }} job{{ 's' if node.jobs != 1 }}</span>
+      <span class="node-right">
+        {% if node.has_original %}<span class="badge owned">BPO{% if node.blueprint_owner_name %} · {{ node.blueprint_owner_name }}{% endif %}</span>
+        {% elif node.bpc_pool_runs %}<span class="badge owned">BPC ×{{ '{:,}'.format(node.bpc_pool_runs) }} runs</span>
+        {% else %}<span class="badge missing">no blueprint</span>{% endif %}
+        <span class="stage-state {{ node.state }}">{{ 'Ready to build' if node.state == 'ready' else 'Missing inputs' }}</span>
+        {% if gating_text(node) %}<span class="node-gating">{{ gating_text(node) }}</span>{% endif %}
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+</details>
+{% endfor %}
+
+{% if plan.status == 'draft' %}
+<!-- Required blueprints (draft only — blueprint availability is plan-time) -->
+<h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Required blueprints</h2>
+{% set owned = nodes | selectattr('has_original') | list | length %}
+{% set with_blueprints = nodes | rejectattr('has_original') | selectattr('bpc_pool_runs') | list | length %}
+<p class="meta-line" style="margin: 0 0 0.75rem;">{% if owned + with_blueprints == nodes | length %}<span style="color: var(--green);">✓ {{ owned + with_blueprints }} / {{ nodes | length }} blueprints owned</span> — nothing to acquire.{% else %}<span style="color: var(--pink);">{{ owned + with_blueprints }} / {{ nodes | length }} blueprints owned</span> — missing blueprints default to acquiring BPCs off contract (the contract scan is M15).{% endif %}</p>
+
+{% set exceptions = nodes | rejectattr('has_original') | list %}
+{% if exceptions %}
+<table class="asset-table">
+  <thead>
+    <tr>
+      <th>Blueprint</th>
+      <th>Activity</th>
+      <th>Status</th>
+      <th>Best owned</th>
+      <th>Location</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="group-row"><td colspan="5">Exceptions — no original in the pool</td></tr>
+    {% for node in exceptions %}
+    <tr>
+      <td><img class="type-icon" src="{{ type_icon_url(node.blueprint_type_id, 32, 'bpc') }}" alt="">{{ node.blueprint_name }}</td>
+      <td><span class="activity-tag {{ 'mfg' if node.activity_id == 1 else 'rxn' }}">{{ 'manufacture' if node.activity_id == 1 else 'reaction' }}</span></td>
+      <td>{% if node.bpc_pool_runs %}<span class="badge owned">Owned · BPC only</span>{% else %}<span class="badge missing">Missing</span>{% endif %}</td>
+      <td class="muted">{% if node.bpc_pool_runs %}{{ '{:,}'.format(node.bpc_pool_runs) }} BPC runs{% if node.bpc_pool_runs < node.runs %} — short of the {{ '{:,}'.format(node.runs) }}-run need by {{ '{:,}'.format(node.runs - node.bpc_pool_runs) }}{% endif %}{% else %}—{% endif %}</td>
+      <td class="muted">{{ node.blueprint_location_name or '—' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<!-- Time (draft only — the active page omits plan-time sections) -->
+<h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Time</h2>
+<p class="meta-line" style="margin: 0 0 0.75rem;">Participants pinned at export: time multipliers by activity, the nodes their skills gate them onto, and their solo serial time over those nodes — assignment is M9's.</p>
+
+<table class="asset-table">
+  <thead>
+    <tr>
+      <th>Participant</th>
+      <th>Target gate</th>
+      <th class="num">Mfg ×</th>
+      <th class="num">Rxn ×</th>
+      <th class="num">Nodes gated</th>
+      <th class="num">Solo chain time</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in participants %}
+    <tr>
+      <td><img class="type-icon" src="{{ portrait_url(row.character_id, 32) }}" alt="">{{ row.name }}</td>
+      <td>{% if row.holds_target_gate %}<span class="badge owned">holds</span>{% else %}<span class="badge missing">missing {{ row.missing_target_skills | join(', ') }}</span>{% endif %}</td>
+      <td class="num">{{ '{:.3f}'.format(row.multipliers['manufacturing']) }}</td>
+      <td class="num">{{ '{:.3f}'.format(row.multipliers['reactions']) }}</td>
+      <td class="num">{{ row.nodes_gated }} / {{ nodes | length }}</td>
+      <td class="num">{{ format_duration(row.gated_total_seconds) }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" class="muted">No participants in the pool at export.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<p class="meta-line" style="margin: 0.5rem 0 0;">
+  Copy time for {{ target_node.blueprint_name }}: {% if plan.copy_seconds_per_run %}{{ format_duration(plan.copy_seconds_per_run) }} per run · {{ format_duration(plan.copy_total_seconds) }} for {{ '{:,}'.format(target_node.runs) }} runs at the {{ copy_facility.structure_name if copy_facility else 'station baseline' }}{% if not target_node.has_original %} — no original owned, so copying is unavailable for this type (the plan draws from owned BPCs){% endif %}.{% else %}no copy duration in the SDE for this blueprint.{% endif %}
+</p>
+{% endif %}
+
+<!-- Raw materials — acquisition -->
+<h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">Raw materials — acquisition</h2>
+<p class="meta-line" style="margin: 0 0 0.75rem;">Chain terminators summed across all phases, measured against {{ pool_badge | lower }} at export. Bars fill from asset syncs once the progress refresh lands; green = covered, yellow = partial, pink = under half. Defaults to gaps only so blockers stand out — stock is measured, not depleted, across phases.</p>
+
+<div style="margin-bottom: 0.75rem;">
+  <a class="chip-button{{ ' selected' if show_all }}" data-keep-scroll href="{{ toggle_href }}">{{ 'Gaps only' if show_all else 'Show all ' + (materials | length | string) + ' types' }}</a>
+</div>
+
+<table class="asset-table">
+  <thead>
+    <tr>
+      <th>Material</th>
+      <th class="num">Required</th>
+      <th class="num">Available</th>
+      <th>Coverage</th>
+      <th>Acquire via</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for label, rows in material_groups %}
+    {% set visible = rows | rejectattr('meter', 'equalto', 'full') | list %}
+    {% if show_all or visible %}
+    <tr class="group-row"><td colspan="5">{{ label }}</td></tr>
+    {% for row in rows %}
+    {% if show_all or row.meter != 'full' %}
+    <tr>
+      <td><img class="type-icon" src="{{ type_icon_url(row.row.type_id, 32) }}" alt="">{{ row.row.name }}</td>
+      <td class="num qty">{{ '{:,}'.format(row.row.required_qty) }}</td>
+      <td class="num">{{ '{:,}'.format(row.on_hand) }}</td>
+      <td>
+        <div class="meter-cell">
+          <div class="meter"><div class="meter-fill{{ '' if row.meter == 'full' else ' ' + row.meter }}" style="width: {{ row.pct }}%"></div></div>
+          <span class="meter-pct">{{ row.pct }}%{% if row.gap %} — short {{ '{:,}'.format(row.gap) }}{% endif %}</span>
+        </div>
+      </td>
+      <td class="muted">{{ row.row.acquire_via or 'Market' }}</td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if not show_all and covered_count %}
+<p class="meta-line" style="margin: 0.5rem 0 0;">{{ covered_count }} type{{ 's' if covered_count != 1 }} fully covered — hidden in this view.</p>
+{% endif %}
+
+<p class="meta-line" style="margin-top: 1.25rem;">
+  Activation, progress refresh, Purchase⇄Build marking, and the multibuy
+  export are the milestone's next slices.
+  <a href="/plans">← all plans</a>
+</p>
+{% endblock %}
+{% block page_scripts %}
+<script src="/static/planner.js?v={{ static_version }}"></script>
+{% endblock %}
