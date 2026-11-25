@@ -15,6 +15,7 @@ from .config import Settings, get_settings
 from .db import make_engine, make_session_factory
 from .esi.assets import asset_sync_loop
 from .esi.world import world_sync_loop
+from .plans import plans_refresh_loop
 from .routes import (
     admin,
     assets,
@@ -57,14 +58,21 @@ async def lifespan(app: FastAPI):
     world_task = asyncio.create_task(
         world_sync_loop(app.state.session_factory, app.state.http, settings)
     )
+    # Background build-plan progress refresh (M6): DB-only
+    # materialization of availability, correlation, and delivery.
+    plans_task = asyncio.create_task(
+        plans_refresh_loop(app.state.session_factory, settings)
+    )
     yield
     sync_task.cancel()
     sde_task.cancel()
     world_task.cancel()
+    plans_task.cancel()
     with contextlib.suppress(asyncio.CancelledError):
         await sync_task
         await sde_task
         await world_task
+        await plans_task
     # Disposing the engine is critical under --reload, otherwise SQLite
     # connections outlive their event loop.
     await app.state.http.aclose()

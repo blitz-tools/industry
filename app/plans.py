@@ -15,13 +15,15 @@ owns plan semantics, not chain math:
   plan; only status, timestamps, and materialized columns ever move.
 """
 
+import asyncio
 import json
+import logging
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from urllib.parse import urlencode
 
 from sqlalchemy import delete, func, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from .db import utc_now
 from .facilities import (
@@ -30,8 +32,14 @@ from .facilities import (
     activity_registrations,
     default_facilities,
 )
-from .industry import activity_skills
+from .industry import (
+    active_skill_levels,
+    activity_skills,
+    material_source_stock,
+    owned_blueprints_for_types,
+)
 from .models import (
+    AssetSync,
     BuildPlan,
     BuildPlanJob,
     BuildPlanMaterial,
@@ -40,7 +48,9 @@ from .models import (
     IndustryJob,
     Structure,
 )
-from .planner import SDE_ACTIVITY_KEYS, ChainPlan, fresh_node_state
+from .planner import SDE_ACTIVITY_KEYS, ChainPlan, active_node_state, fresh_node_state
+
+logger = logging.getLogger(__name__)
 
 # Raw-material display labels: SDE category/group names pinned against
 # the live mirror 2026-11-23, mapped to the mockup's tier-3 labels. The
@@ -76,6 +86,25 @@ REASON_TEXT: dict[str, str] = {
     "waiting-upstream": "waiting on phase {phase}",
     "stock-gap": "input stock short",
 }
+
+# The stage-state model's chip labels (static scaffolding — computed
+# slots only, never scenario-composed sentences) and the worst-child
+# rollup order for phase summaries: least advanced wins.
+STAGE_TEXT: dict[str, str] = {
+    "missing": "Missing inputs",
+    "ready": "Ready to build",
+    "running": "In progress",
+    "deliver": "Ready to deliver",
+    "complete": "Stage complete",
+}
+STAGE_ORDER: tuple[str, ...] = (
+    "missing", "ready", "running", "deliver", "complete",
+)
+
+
+def stage_text(state: str) -> str:
+    """A stage state's chip label."""
+    return STAGE_TEXT.get(state, state)
 
 
 def raw_label(category: str | None, group: str | None, name: str) -> str:
@@ -416,6 +445,17 @@ async def plans_overview(db: AsyncSession) -> list[dict]:
             )
         ).all()
     }
+    delivered_counts: dict[int, int] = {
+        plan_id: count
+        for plan_id, count in (
+            await db.execute(
+                select(
+                    BuildPlanNode.plan_id, func.count()
+                ).where(BuildPlanNode.delivered_qty >= BuildPlanNode.qty)
+                .group_by(BuildPlanNode.plan_id)
+            )
+        ).all()
+    }
     material_counts: dict[int, int] = {
         plan_id: count
         for plan_id, count in (
@@ -432,6 +472,7 @@ async def plans_overview(db: AsyncSession) -> list[dict]:
             "nodes": node_counts.get(plan.id, (0, 0))[0],
             "phases": node_counts.get(plan.id, (0, 0))[1],
             "materials": material_counts.get(plan.id, 0),
+            "delivered": delivered_counts.get(plan.id, 0),
         }
         for plan in plans
     ]
@@ -474,7 +515,8 @@ def phase_views(nodes: list[BuildPlanNode]) -> list[dict]:
     """The detail page's phase tree: one entry per phase holding nodes,
     the modal invGroups display name (the planner's rule — ties break to
     the larger requirement, then the name; groupless phases fall back to
-    the largest node's own name), and the worst-child state rollup."""
+    the largest node's own name), and the worst-child state rollup over
+    the full stage-state ladder (least advanced wins)."""
     by_phase: dict[int, list[BuildPlanNode]] = {}
     for node in nodes:
         by_phase.setdefault(node.phase, []).append(node)
@@ -498,10 +540,13 @@ def phase_views(nodes: list[BuildPlanNode]) -> list[dict]:
                 "phase": phase,
                 "nodes": phase_nodes,
                 "name": name,
-                "state": (
-                    "ready"
-                    if all(node.state == "ready" for node in phase_nodes)
-                    else "missing"
+                "state": min(
+                    (node.state for node in phase_nodes),
+                    key=lambda state: (
+                        STAGE_ORDER.index(state)
+                        if state in STAGE_ORDER
+                        else 0
+                    ),
                 ),
                 "activity_ids": activity_ids,
             }
@@ -672,6 +717,12 @@ def correlate_jobs(plans: list[PlanRef], jobs: list[IndustryJob]) -> list[JobCla
     return claims
 
 
+# The claims rewrite is serialized process-wide (the _sync_lock
+# pattern): the tick's pass and a request-path refresh must never
+# interleave their delete/insert cycles against the same unique key.
+_claims_lock = asyncio.Lock()
+
+
 async def refresh_job_claims(db: AsyncSession) -> list[JobClaim]:
     """One global correlation pass: load every non-terminal plan's
     nodes (their pinned facilities resolved to sighting locations) and
@@ -679,6 +730,11 @@ async def refresh_job_claims(db: AsyncSession) -> list[JobClaim]:
     build_plan_jobs wholesale. The pass is global so the one-claim rule
     holds across concurrent plans. The refresh tick (M6 PR 7) owns the
     cadence; nothing here mutates plans or nodes. The caller commits."""
+    async with _claims_lock:
+        return await _rewrite_job_claims(db)
+
+
+async def _rewrite_job_claims(db: AsyncSession) -> list[JobClaim]:
     plans = (
         (
             await db.execute(
@@ -773,3 +829,294 @@ async def refresh_job_claims(db: AsyncSession) -> list[JobClaim]:
             )
         )
     return claims
+
+
+# --- Progress refresh (M6 PR 7: the materialization tick + state machine) --------
+
+
+async def plan_pool_on_hand(
+    db: AsyncSession,
+    plan: BuildPlan,
+    nodes: list[BuildPlanNode],
+    materials: list[BuildPlanMaterial],
+) -> dict[int, int]:
+    """Availability over the plan's pinned source set — the same
+    measurement the planner page ran at export (material_source_stock
+    plus the sources_json selection), re-run by the refresh tick
+    against live assets. Reuses the M6 read rather than forking it;
+    unheld types key zero, not absence."""
+    participant_ids = [
+        row["character_id"] for row in json.loads(plan.participants_json)
+    ]
+    measured = list(
+        {node.type_id for node in nodes} | {row.type_id for row in materials}
+    )
+    sources = await material_source_stock(
+        db,
+        measured,
+        corporation_id=plan.corporation_id,
+        participant_ids=participant_ids,
+    )
+    if plan.sources_json is None:
+        # The default: corp-side sources only (offices + containers);
+        # personal hangars stayed out at export and stay out.
+        counted = [source for source in sources if source.kind != "hangar"]
+    else:
+        selected = set(json.loads(plan.sources_json))
+        counted = [source for source in sources if source.ref in selected]
+    on_hand = {type_id: 0 for type_id in measured}
+    for source in counted:
+        for type_id, quantity in source.quantities.items():
+            on_hand[type_id] += quantity
+    return on_hand
+
+
+async def refresh_plan(db: AsyncSession, plan: BuildPlan) -> BuildPlan:
+    """Materialize one plan's progress (the tick's five steps): fresh
+    availability over the pinned source set, delivery and running
+    counts from the correlated jobs, node states through the
+    active-state ladder, then the plan rollups and state machine.
+    Assumes the correlation pass has already run — delivery reads the
+    claims it wrote. Delivery is STICKY (recomputed, never lowered): a
+    complete plan's claims drop out of the correlation pool, so its
+    delivered ledger must not decay underneath it. The caller commits.
+    """
+    nodes = (
+        (
+            await db.execute(
+                select(BuildPlanNode)
+                .where(BuildPlanNode.plan_id == plan.id)
+                .order_by(BuildPlanNode.phase, BuildPlanNode.id)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    materials = (
+        (
+            await db.execute(
+                select(BuildPlanMaterial).where(
+                    BuildPlanMaterial.plan_id == plan.id
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+    # 1. Availability over the pinned source set, node and material
+    # types together (delivered intermediates sit in the pool, so an
+    # arrived input stops gating its consumer).
+    on_hand = await plan_pool_on_hand(db, plan, nodes, materials)
+    for row in nodes:
+        row.available_qty = on_hand.get(row.type_id, 0)
+    for row in materials:
+        row.available_qty = on_hand.get(row.type_id, 0)
+
+    # 2-4. Delivery, running, and the active-state ladder per node,
+    # from the correlated jobs. delivered = min(qty, Σ successful_runs
+    # × products_per_run over delivered jobs), never lowered (sticky);
+    # running = Σ runs over active/paused jobs. The ladder's gating
+    # rungs re-derive from fresh world state (the owner's 2026-11-25
+    # call): pool blueprint existence for the node's blueprint type —
+    # binary in v1, run-pool coverage arithmetic is the M8/M9 invention
+    # layer — and the pinned participants' current skill levels against
+    # the snapshotted requirements. The calc stays pinned: a mid-flight
+    # acquisition with different ME/TE doesn't re-derive planned math.
+    claims = (
+        (
+            await db.execute(
+                select(BuildPlanJob).where(BuildPlanJob.plan_id == plan.id)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    jobs_by_node: dict[int, list[IndustryJob]] = {}
+    for claim in claims:
+        job = await db.get(
+            IndustryJob, (claim.owner_type, claim.owner_id, claim.job_id)
+        )
+        if job is not None:
+            jobs_by_node.setdefault(claim.node_id, []).append(job)
+    participant_ids = [
+        row["character_id"] for row in json.loads(plan.participants_json)
+    ]
+    owned = await owned_blueprints_for_types(
+        db, list({node.blueprint_type_id for node in nodes})
+    )
+    skill_levels = await active_skill_levels(db, participant_ids)
+    for node in nodes:
+        node_jobs = jobs_by_node.get(node.id, [])
+        delivered = sum(
+            (job.successful_runs or 0)
+            for job in node_jobs
+            if job.status == "delivered"
+        )
+        node.delivered_qty = max(
+            node.delivered_qty, min(node.qty, delivered * node.products_per_run)
+        )
+        node.running_qty = sum(
+            job.runs
+            for job in node_jobs
+            if job.status in ("active", "paused")
+        )
+        requirements = json.loads(node.skills_json)
+        state, reason = active_node_state(
+            node,
+            on_hand,
+            any(job.status == "ready" for job in node_jobs),
+            has_blueprint=bool(owned.get(node.blueprint_type_id)),
+            holds_gate=any(
+                all(
+                    levels.get(skill["skill_id"], 0) >= skill["level"]
+                    for skill in requirements
+                )
+                for levels in skill_levels.values()
+            ),
+        )
+        node.state = state
+        node.state_reason = reason
+
+    # 5. Plan rollups + the state machine. draft→active flips the first
+    # time a job correlates (the export tooltip of record); active→
+    # complete when every node is delivered (purchased nodes measure
+    # availability instead — PR 8's markings). No transition touches
+    # snapshot columns; abandoned is an owner action or the Re-plan
+    # fork, never computed here.
+    now = utc_now()
+    if plan.status == "draft" and claims:
+        plan.status = "active"
+        plan.activated_at = now
+    if plan.status == "active" and nodes and all(
+        node.delivered_qty >= node.qty for node in nodes
+    ):
+        plan.status = "complete"
+        plan.completed_at = now
+    plan.refreshed_at = now
+    plan.refresh_error = None
+    return plan
+
+
+async def refresh_plans_tick(
+    session_factory: async_sessionmaker[AsyncSession],
+) -> None:
+    """One progress pass over every non-abandoned plan. Never raises:
+    a plan the pass cannot refresh records refresh_error on its own
+    session and the pass moves on (the world_sync_tick guarantee).
+    Each plan refreshes in its OWN session — a mid-plan failure rolls
+    back cleanly without poisoning the others."""
+    try:
+        async with session_factory() as db:
+            await refresh_job_claims(db)
+            await db.commit()
+            plan_ids = [
+                plan_id
+                for (plan_id,) in (
+                    await db.execute(
+                        select(BuildPlan.id).where(
+                            BuildPlan.status != "abandoned"
+                        )
+                    )
+                ).all()
+            ]
+        for plan_id in plan_ids:
+            try:
+                async with session_factory() as db:
+                    plan = await db.get(BuildPlan, plan_id)
+                    if plan is None or plan.status == "abandoned":
+                        continue
+                    await refresh_plan(db, plan)
+                    await db.commit()
+            except Exception as exc:
+                logger.warning(
+                    "plan %s refresh failed: %s", plan_id, exc
+                )
+                try:
+                    async with session_factory() as db:
+                        plan = await db.get(BuildPlan, plan_id)
+                        if plan is not None:
+                            plan.refresh_error = str(exc)[:500]
+                            await db.commit()
+                except Exception:
+                    logger.exception(
+                        "plan %s refresh-error write failed", plan_id
+                    )
+    except Exception:
+        logger.exception("plans refresh tick failed")
+
+
+async def plans_refresh_loop(
+    session_factory: async_sessionmaker[AsyncSession],
+    settings,
+) -> None:
+    """The background progress refresh (world_sync_loop pattern): tick
+    once shortly after startup — a restarted server converges without
+    waiting out the interval — then every interval. DB-only reads, so
+    a shorter cadence than the asset sync is cheap."""
+    interval = settings.plans_refresh_interval_minutes * 60
+    while True:
+        await refresh_plans_tick(session_factory)
+        await asyncio.sleep(interval)
+
+
+# --- Progress reads (DB-pure surfaces) -------------------------------------------
+
+
+async def assets_synced_at(db: AsyncSession) -> datetime | None:
+    """The most recent asset-sync completion, any owner — the freshness
+    stamp on the plan detail's availability figures."""
+    return (
+        await db.execute(select(func.max(AssetSync.synced_at)))
+    ).scalar_one_or_none()
+
+
+async def plan_job_views(
+    db: AsyncSession, plan_id: int
+) -> dict[int, dict]:
+    """The detail page's per-node matched-jobs summaries — the eyeball
+    surface for the correlation heuristic: installer names, run counts,
+    statuses, and time-to-delivery (the latest end date among the
+    node's in-flight jobs). Claims whose job left the sync window drop
+    out (the next tick rewrites them away)."""
+    rows = (
+        await db.execute(
+            select(BuildPlanJob, IndustryJob)
+            .where(BuildPlanJob.plan_id == plan_id)
+            .join(
+                IndustryJob,
+                (IndustryJob.owner_type == BuildPlanJob.owner_type)
+                & (IndustryJob.owner_id == BuildPlanJob.owner_id)
+                & (IndustryJob.job_id == BuildPlanJob.job_id),
+            )
+        )
+    ).all()
+    installer_ids = {job.installer_id for _claim, job in rows}
+    names: dict[int, str] = {}
+    if installer_ids:
+        names = {
+            character.character_id: character.name
+            for character in (
+                await db.execute(
+                    select(Character).where(
+                        Character.character_id.in_(installer_ids)
+                    )
+                )
+            ).scalars()
+        }
+    views: dict[int, dict] = {}
+    now = utc_now()
+    for claim, job in rows:
+        view = views.setdefault(
+            claim.node_id,
+            {"jobs": [], "installers": [], "deliver_in": None},
+        )
+        view["jobs"].append(job)
+        installer = names.get(job.installer_id, f"#{job.installer_id}")
+        if installer not in view["installers"]:
+            view["installers"].append(installer)
+        if job.status in ("active", "paused") and job.end_date is not None:
+            remaining = (job.end_date - now).total_seconds()
+            if view["deliver_in"] is None or remaining > view["deliver_in"]:
+                view["deliver_in"] = remaining
+    return views

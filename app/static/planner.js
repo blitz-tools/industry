@@ -264,6 +264,22 @@ window.initPlanPage = () => {
   document.querySelector("main .export-form")?.addEventListener(
     "submit", () => { unsavedPlanUrl = null; }
   );
+
+  // Abandon confirmation (the structures delete-dialog pattern): the
+  // Abandon button opens the on-page dialog; Confirm submits the form
+  // through its form= attribute — a native POST navigation, per the
+  // /plans/{id}/{action} pin (action POSTs never swap in place).
+  // Cancel/Escape/backdrop just close.
+  const abandonOpen = document.getElementById("abandon-open");
+  const abandonDialog = document.getElementById("abandon-dialog");
+  if (abandonOpen && abandonDialog) {
+    abandonOpen.addEventListener("click", () => abandonDialog.showModal());
+    abandonDialog.addEventListener("click", (event) => {
+      if (event.target.id === "abandon-cancel" || event.target === abandonDialog) {
+        abandonDialog.close();
+      }
+    });
+  }
   const select = document.getElementById("material-source-select");
   if (select) {
     const button = select.querySelector(".drop-chip");

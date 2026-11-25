@@ -390,6 +390,12 @@ a:hover {
 /* Compact square icon buttons for card actions. Occasional actions
    (re-auth, set-main, forget) don't need page-level button prominence;
    names live in title/aria-label, icons inherit the button color. */
+/* A form wrapped in a page header's action row (the plan detail's
+   Activate / Abandon): inline, matching the icon buttons beside it. */
+.inline-form {
+  display: inline;
+}
+
 .icon-button {
   display: inline-flex;
   align-items: center;
@@ -1625,7 +1631,8 @@ button.primary,
    delete confirmation and the planner's unsaved-plan guard share one
    shape. */
 #delete-dialog,
-#unsaved-plan-dialog {
+#unsaved-plan-dialog,
+#abandon-dialog {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -1636,18 +1643,21 @@ button.primary,
 }
 
 #delete-dialog::backdrop,
-#unsaved-plan-dialog::backdrop {
+#unsaved-plan-dialog::backdrop,
+#abandon-dialog::backdrop {
   background: rgb(0 0 0 / 60%);
 }
 
 #delete-dialog h3,
-#unsaved-plan-dialog h3 {
+#unsaved-plan-dialog h3,
+#abandon-dialog h3 {
   margin: 0 0 0.75rem;
   font-size: 1.05rem;
 }
 
 #delete-dialog p,
-#unsaved-plan-dialog p {
+#unsaved-plan-dialog p,
+#abandon-dialog p {
   margin: 0 0 0.5rem;
 }
 
