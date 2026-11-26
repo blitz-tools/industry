@@ -417,6 +417,121 @@ a:hover {
   border-top: 1px solid var(--line);
 }
 
+/* --- Observability (M15): per-owner expanding panels over the
+       sync_runs dataset — the roster's corp-row presentation applied
+       to the character/corporation kind sections. --------------------- */
+
+.obs-owner {
+  margin-bottom: 0.75rem;
+}
+
+/* --- Observability charts (M15): server-rendered SVG figures. The
+       marks wear validated hues; furniture (grid, ticks, end labels)
+       wears text/line tokens — text never the series color. ---------- */
+
+.sparkline {
+  width: 100%;
+  height: 36px;
+  display: block;
+  margin-top: 0.4rem;
+}
+
+.chart-tick {
+  fill: var(--muted);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-end {
+  fill: var(--text);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-block {
+  margin-top: 1rem;
+}
+
+.chart-title {
+  margin: 0 0 0.25rem;
+  font-weight: 650;
+  font-size: 0.95rem;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.chart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.chart-key {
+  display: inline-block;
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+}
+
+.chart-figure {
+  position: relative;
+  margin: 0.5rem 0 0;
+}
+
+.chart-figure svg.line-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+  outline: none;
+}
+
+.chart-tooltip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+  z-index: 5;
+}
+
+.chart-tooltip p {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chart-tooltip-key {
+  display: inline-block;
+  width: 12px;
+  height: 2px;
+}
+
+.chart-tooltip-name {
+  color: var(--muted);
+}
+
+.chart-table {
+  margin-top: 0.75rem;
+}
+
+.chart-table summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
 .card-plan {
   display: flex;
   align-items: center;

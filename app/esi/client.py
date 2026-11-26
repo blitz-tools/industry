@@ -30,6 +30,7 @@ from .clock import Clock, RealClock
 from .etag import ETagCache, filter_persisted, make_key, parse_http_date, stored_headers
 from .limiter import ESILimiter, header_float
 from .sso import SSOClient, SSOTokenError
+from .telemetry import record_rate_limit
 
 # Refresh this many seconds before actual expiry, to avoid sending a token
 # that expires mid-flight.
@@ -199,6 +200,9 @@ class ESIClient:
             group = response.headers.get("X-Ratelimit-Group")
             if group is not None:
                 self._route_groups[path] = group
+            # Verbatim rate-control mirror (M15): never raises, commits
+            # mid-fetch like the ETag store below.
+            await record_rate_limit(self._db, response, path=path, owner_id=owner_id)
 
             if response.status_code == 304 and cached is not None:
                 # Revalidated: keep body and ETag, refresh the expiry window

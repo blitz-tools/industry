@@ -43,6 +43,12 @@ from ..db import utc_now
 from ..models import CostIndex, DataSync, MarketPrice
 from .assets import SyncOutcome
 from .client import ESIClient, ESIError
+from .telemetry import (
+    elapsed_ms,
+    monotonic_start,
+    prune_telemetry,
+    record_sync_run,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -64,10 +70,15 @@ async def _record_data_sync(
     kind: str,
     status: str,
     detail: str | None = None,
+    *,
+    duration_ms: int | None = None,
+    item_count: int | None = None,
 ) -> None:
     """Upsert the kind's public data_syncs row (the assets-module
-    pattern, keyed on the constant public owner). Row counts are not
-    recorded — the status view reads them live from the tables."""
+    pattern, keyed on the constant public owner) and append the run to
+    the sync_runs history (M15's one dataset). Row counts are not
+    recorded on the upsert — the status view reads them live from the
+    tables."""
     sync = await db.get(DataSync, (kind, PUBLIC_OWNER_TYPE, PUBLIC_OWNER_ID))
     if sync is None:
         sync = DataSync(
@@ -78,6 +89,16 @@ async def _record_data_sync(
     sync.detail = detail
     sync.synced_at = utc_now()
     await db.commit()
+    await record_sync_run(
+        db,
+        kind=kind,
+        owner_type=PUBLIC_OWNER_TYPE,
+        owner_id=PUBLIC_OWNER_ID,
+        status=status,
+        duration_ms=duration_ms,
+        item_count=item_count,
+        detail=detail,
+    )
 
 
 async def _sync_public_kind(
@@ -88,16 +109,22 @@ async def _sync_public_kind(
 ) -> SyncOutcome:
     """The scaffolding a public family shares: fetch + snapshot replace
     (inside `fetch`, so the replace stays the fetch's last write), the
-    data_syncs record, and the outcome. No scope gate exists to check —
-    a public endpoint either answers or errors."""
+    data_syncs record, the sync_runs history row with the attempt's
+    duration, and the outcome. No scope gate exists to check — a public
+    endpoint either answers or errors."""
     label = "public"
+    start = monotonic_start()
     try:
         item_count = await fetch()
     except ESIError as exc:
         detail = str(exc)
-        await _record_data_sync(db, kind, "error", detail)
+        await _record_data_sync(
+            db, kind, "error", detail, duration_ms=elapsed_ms(start)
+        )
         return SyncOutcome(PUBLIC_OWNER_ID, label, "error", detail=detail)
-    await _record_data_sync(db, kind, "ok")
+    await _record_data_sync(
+        db, kind, "ok", duration_ms=elapsed_ms(start), item_count=item_count
+    )
     return SyncOutcome(PUBLIC_OWNER_ID, label, "synced", item_count=item_count)
 
 
@@ -174,6 +201,9 @@ async def world_sync_tick(
                         outcome.name,
                         outcome.detail,
                     )
+            # Retention pruning rides this tick (it runs unconditionally,
+            # unlike the roster-gated character tick).
+            await prune_telemetry(db)
     except Exception:
         logger.exception("world sync tick failed")
 

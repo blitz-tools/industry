@@ -200,6 +200,86 @@ class DataSync(Base, TimestampMixin):
     )
 
 
+class RateLimitObservation(Base, TimestampMixin):
+    """One ESI response's rate-control headers, verbatim (M15
+    observability): the X-Ratelimit floating-window family and the legacy
+    error-limit family, either, neither, or both — same tolerance as
+    ESILimiter.observe. Append-only: interpretation (headroom, window
+    sums) is the query layer's job (app.esi.telemetry), never the
+    write's. `rate_limit` is ESI's compound "max/window" string
+    ("150/15m"), stored exactly as sent. Buckets are per group + userID
+    (app+character, or source IP for public gets), so owner_id — the
+    bucket-key half this app can see — makes per-character bucket
+    separation queryable."""
+
+    __tablename__ = "rate_limit_observations"
+    __table_args__ = (
+        Index("ix_rlo_group_observed", "group", "observed_at"),
+        Index("ix_rlo_observed", "observed_at"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    observed_at: Mapped[datetime] = mapped_column(
+        DateTime(), nullable=False, default=utc_now
+    )
+    status_code: Mapped[int] = mapped_column(nullable=False)
+    # X-Ratelimit-Group, the server's own string; null when the response
+    # carried only the legacy error-limit family.
+    group: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # X-Ratelimit-Limit VERBATIM — compound "150/15m", never an integer
+    # on the wire; parsed (or degraded) at read time.
+    rate_limit: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    # X-Ratelimit-Remaining: tokens left in this bucket's window.
+    rate_remaining: Mapped[int | None] = mapped_column(nullable=True)
+    # X-Ratelimit-Used: tokens consumed by THIS single request (2XX=2,
+    # 3XX=1, 4XX=5 with 429 exempt, 5XX=0) — per-request cost, NOT
+    # cumulative window usage.
+    rate_used: Mapped[int | None] = mapped_column(nullable=True)
+    # X-Esi-Error-Limit-Remain / -Reset (reset = seconds-to-roll; the
+    # legacy budget is global, not per group).
+    error_limit_remain: Mapped[int | None] = mapped_column(nullable=True)
+    error_limit_reset: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # Client-side correlation, not server-said: which route and which
+    # owner caused the request (0 = the public owner).
+    path: Mapped[str] = mapped_column(String(500), nullable=False)
+    owner_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+
+
+class SyncRun(Base, TimestampMixin):
+    """One sync attempt per kind per owner (M15 observability): the
+    append-only history every sync kind writes — public, character, and
+    corporation alike, the one stored dataset page-filtered views read
+    (the subset rule). data_syncs/asset_syncs keep their last-outcome
+    upsert roles for the pages that read them today; this table is the
+    durable record with durations. Statuses are stored verbatim in the
+    data_syncs/asset_syncs vocabulary ("ok" on success — the in-memory
+    SyncOutcome's "synced" normalizes at the record boundary); display
+    normalizes, storage never rewrites."""
+
+    __tablename__ = "sync_runs"
+    __table_args__ = (
+        Index("ix_sync_runs_kind_owner", "kind", "owner_type", "owner_id", "started_at"),
+        Index("ix_sync_runs_started", "started_at"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kind: Mapped[str] = mapped_column(String(32), nullable=False)
+    owner_type: Mapped[str] = mapped_column(String(16), nullable=False)
+    owner_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    # Verbatim per writer: "ok" | "error" | "reauth" | "no-scope" |
+    # "no-roles".
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    # Wall-clock duration of the attempt; null only if measurement
+    # itself failed (degrades to "—", never loses the row).
+    duration_ms: Mapped[int | None] = mapped_column(nullable=True)
+    item_count: Mapped[int | None] = mapped_column(nullable=True)
+    detail: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Run start; finish derives (started_at + duration_ms).
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(), nullable=False, default=utc_now
+    )
+
+
 class UniverseType(Base, TimestampMixin):
     """Resolved /universe/types/{id}/ data; effectively write-once."""
 

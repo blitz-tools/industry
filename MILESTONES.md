@@ -1193,7 +1193,21 @@ framework.*
   (the ESILimiter throttles defensively in memory only, and /admin/sync
   shows the two light families' status). The telemetry lands with this
   band's completion, before any region expansion decision relies on
-  it.
+  it. **Landed same day (the telemetry-first slice)**: per-response
+  rate-limit observations and per-kind sync-run history persisted
+  verbatim (migration 0013; the one stored dataset under the subset
+  rule, every public/character/corporation kind appending), and the
+  central **Admin > Observability** page grown from `/admin/sync` —
+  per-owner expanding panels, headroom meters with over-time
+  sparklines, sync-duration charts (server-rendered SVG, no client
+  deps), and SQLite health. The ESILimiter's automatic backoff is
+  unchanged: telemetry observes, never throttles. **First real headroom
+  read (dev deployment, 2026-11-25)**: every X-Ratelimit group at ≤
+  0.7% of window (char-wallet the tightest bucket, 150/15m), all
+  observations 304 revalidations costing 1 token; the legacy
+  error-limit budget the most-consumed at ~16% (universe-resolution
+  403/404s — the scope-gate discipline's exact burn). Family order
+  decisions gate on these numbers from here.
   **Central page + subset rule** (2026-11-22): **Admin >
   Observability** holds all available observability data centrally;
   specific pages show subsets (the Markets sync panel shows its
@@ -1223,7 +1237,13 @@ directed ahead of M9/M10)**:
    staleness per table, and the central **Admin > Observability** page
    (growing `/admin/sync`). Then the real headroom numbers are read
    off the live deployment and **the family order is decided from
-   data**, not assumption.
+   data**, not assumption. **All sync kinds join the one dataset**
+   (owner decision 2026-11-25): the character and corporation kinds'
+   status and durations record alongside the public families —
+   separate data points and a separate display treatment where the
+   shapes differ, combined where the data reads better together; the
+   goal is to track as much as reasonably possible, one stored
+   dataset under the subset rule.
 2. **sync_hubs + the market manager** (the design/markets mockup is
    the surface spec) before the families that need a hub set.
 3. **Sync-only**: the consuming surfaces — the planner's sell-side

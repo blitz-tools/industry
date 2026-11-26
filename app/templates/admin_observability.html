@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+{% block title %}soliton — admin: observability{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Observability</h1>
+  <form method="post" action="/admin/sync/run" class="sync-form">
+    <button type="submit">Sync now</button>
+    <span class="last-sync">public syncs at most every {{ interval_minutes }}m · character/corporation every {{ assets_interval_minutes }}m</span>
+  </form>
+</div>
+
+<p class="meta-line" style="margin: -0.5rem 0 1.25rem;">
+  The central view of the one stored telemetry dataset: every sync kind's
+  latest run across the public, character, and corporation sections, plus
+  per-group ESI rate-limit headroom. Specific pages show page-filtered
+  subsets of the same data; the checks are never duplicated.
+</p>
+
+<div class="card">
+  <div class="card-body">
+    <h2>Sync families</h2>
+    <p class="card-sub">Public world-state syncs — endpoints with no character
+    scopes or role gates, refreshed as full snapshots from the ETag-cached
+    public client. The heavier families (contracts, regional orders and
+    history, LP store offers, player-structure markets) join this view when
+    they land (M15).</p>
+
+    <table class="asset-table">
+      <thead>
+        <tr>
+          <th>Family</th>
+          <th>Source</th>
+          <th>Status</th>
+          <th class="num">Rows</th>
+          <th class="num">Duration</th>
+          <th>Last attempt</th>
+          <th>Freshness</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for family in families %}
+        <tr>
+          <td class="type-name">{{ family.label }}</td>
+          <td class="muted">{{ family.source }}</td>
+          <td><span class="job-status {{ family.chip[0] }}">{{ family.chip[1] }}</span>
+            {% if family.detail %}<div class="muted">{{ family.detail }}</div>{% endif %}</td>
+          <td class="num">{{ '{:,}'.format(family.count) }}</td>
+          <td class="num muted">{{ format_duration(family.duration_ms / 1000) if family.duration_ms is not none else '—' }}</td>
+          <td class="muted">{{ format_age(family.last_attempt) }}</td>
+          <td>{% if family.fresh %}<span class="badge owned">fresh</span>
+            {% else %}<span class="badge missing">{{ 'stale' if family.last_attempt else 'pending' }}</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% if duration_chart %}
+    <div class="chart-block">
+      <p class="chart-title">Sync durations over time</p>
+      <div class="chart-legend">
+        {% for entry in duration_series %}
+        <span class="chart-legend-item"><span class="chart-key" style="background: {{ entry.hue }};"></span>{{ entry.name }}</span>
+        {% endfor %}
+      </div>
+      <figure class="chart-figure">
+        {{ duration_chart }}
+        <script type="application/json">{{ duration_chart_json | safe }}</script>
+        <div class="chart-tooltip" hidden></div>
+      </figure>
+      <details class="chart-table">
+        <summary>Table view</summary>
+        <table class="asset-table">
+          <thead>
+            <tr>
+              <th>Family</th>
+              <th>Run at</th>
+              <th class="num">Duration</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in duration_rows %}
+            <tr>
+              <td class="type-name">{{ row.label }}</td>
+              <td class="muted">{{ format_age(row.at) }}</td>
+              <td class="num">{{ '%.2f' % row.seconds }} s</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </details>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <h2>Rate-limit headroom</h2>
+    <p class="card-sub">Per-route-group window usage from the X-Ratelimit
+    headers the ESI limiter observes on every response. This is the number
+    the sync loop checks before expanding the hub set — the staged-rollout
+    gate for the remaining families. The limiter backs off automatically:
+    per-group pauses near the floor, global pause on the error budget, and
+    Retry-After honored on 429s.</p>
+
+    {% if headroom or error_limit_pct is not none %}
+    <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.75rem;">
+      {% for group in headroom %}
+      <div class="meter-cell" style="min-width: 22rem; flex: 1;">
+        <div class="meter"><div class="meter-fill{% if group.meter_class %} {{ group.meter_class }}{% endif %}" style="width: {{ group.pct_used or 0 }}%;"></div></div>
+        <span class="meter-pct">ESI {{ group.group }} group — {% if group.pct_used is not none %}{{ group.pct_used }}% of window used ({{ group.max_tokens - group.remaining }}/{{ group.max_tokens }} tokens){% else %}{{ group.remaining if group.remaining is not none else '—' }} tokens remaining (limit {{ group.limit_raw or 'unknown' }}){% endif %}</span>
+        {% if group.spark %}{{ group.spark }}{% endif %}
+      </div>
+      {% endfor %}
+      {% if error_limit_pct is not none %}
+      <div class="meter-cell" style="min-width: 22rem; flex: 1;">
+        <div class="meter"><div class="meter-fill{% if error_meter_class %} {{ error_meter_class }}{% endif %}" style="width: {{ error_limit_pct }}%;"></div></div>
+        <span class="meter-pct">legacy error-limit budget — {{ error_limit_pct }}% used ({{ error_limit.error_limit_remain }}/{{ error_limit_budget }} remaining)</span>
+        {{ error_spark }}
+      </div>
+      {% endif %}
+    </div>
+
+    {% set crosscheck = headroom | rejectattr('window_used', 'none') | list %}
+    <p class="meta-line" style="margin: 0.75rem 0 0;">
+      <span class="muted">{% if error_limit %}error-limit remainder {{ error_limit.error_limit_remain }}{% if error_limit.error_limit_reset is not none %} · rolls in ~{{ error_limit.error_limit_reset|int }}s{% endif %} · observed {{ format_age(error_limit.observed_at) }}{% else %}no error-limit observations yet{% endif %}{% if crosscheck %} · window cross-check: {% for group in crosscheck %}{{ group.group }} {{ group.window_used }} tokens in the last {{ group.window_label }}{% if not loop.last %} · {% endif %}{% endfor %}{% endif %}</span>
+    </p>
+    {% else %}
+    <p class="meta-line" style="margin: 0.75rem 0 0;">no observations yet</p>
+    {% endif %}
+
+    <p class="meta-line" style="margin: 0.75rem 0 0;">
+      <span class="muted">window usage = the server's remaining tokens against the group limit · per-request token costs: 2 for 2XX, 1 for 3XX revalidations, 5 for 4XX · the standing requirement: <b>the app never rides its rate limits</b></span>
+    </p>
+  </div>
+</div>
+
+{% if character_groups %}
+<div class="card">
+  <div class="card-body">
+    <h2>Character kinds</h2>
+    <p class="card-sub">Per-character data syncs from the same stored dataset —
+    expand a character for each kind's latest attempt with its scope-gate
+    outcome and duration.</p>
+
+    {% for group in character_groups %}
+    <details class="corp-row obs-owner" data-owner="{{ group.owner_ref }}" open>
+      <summary>
+        <span class="corp-name">{{ group.owner }}</span>
+        <span class="corp-count">{{ group.count }} kind{{ 's' if group.count != 1 }}</span>
+        <span class="job-status {{ group.chip[0] }}">{{ group.chip[1] }}</span>
+        <span class="muted">last attempt {{ format_age(group.last_attempt) }}</span>
+      </summary>
+      <div class="roster-rows">
+        <table class="asset-table">
+          <thead>
+            <tr>
+              <th>Kind</th>
+              <th>Status</th>
+              <th class="num">Duration</th>
+              <th>Last attempt</th>
+              <th>Freshness</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in group.rows %}
+            <tr>
+              <td class="type-name">{{ row.label }} <span class="muted">· {{ row.source }}</span></td>
+              <td><span class="job-status {{ row.chip[0] }}">{{ row.chip[1] }}</span>
+                {% if row.detail %}<div class="muted">{{ row.detail }}</div>{% endif %}</td>
+              <td class="num muted">{{ format_duration(row.duration_ms / 1000) if row.duration_ms is not none else '—' }}</td>
+              <td class="muted">{{ format_age(row.last_attempt) }}</td>
+              <td>{% if row.fresh %}<span class="badge owned">fresh</span>
+                {% else %}<span class="badge missing">stale</span>{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if corp_groups %}
+<div class="card">
+  <div class="card-body">
+    <h2>Corporation kinds</h2>
+    <p class="card-sub">The main character's corporation syncs — role-gated
+    before any corp endpoint is called. Expand the corporation for each
+    kind's latest attempt.</p>
+
+    {% for group in corp_groups %}
+    <details class="corp-row obs-owner" data-owner="{{ group.owner_ref }}" open>
+      <summary>
+        <span class="corp-name">{{ group.owner }}</span>
+        <span class="corp-count">{{ group.count }} kind{{ 's' if group.count != 1 }}</span>
+        <span class="job-status {{ group.chip[0] }}">{{ group.chip[1] }}</span>
+        <span class="muted">last attempt {{ format_age(group.last_attempt) }}</span>
+      </summary>
+      <div class="roster-rows">
+        <table class="asset-table">
+          <thead>
+            <tr>
+              <th>Kind</th>
+              <th>Status</th>
+              <th class="num">Duration</th>
+              <th>Last attempt</th>
+              <th>Freshness</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in group.rows %}
+            <tr>
+              <td class="type-name">{{ row.label }} <span class="muted">· {{ row.source }}</span></td>
+              <td><span class="job-status {{ row.chip[0] }}">{{ row.chip[1] }}</span>
+                {% if row.detail %}<div class="muted">{{ row.detail }}</div>{% endif %}</td>
+              <td class="num muted">{{ format_duration(row.duration_ms / 1000) if row.duration_ms is not none else '—' }}</td>
+              <td class="muted">{{ format_age(row.last_attempt) }}</td>
+              <td>{% if row.fresh %}<span class="badge owned">fresh</span>
+                {% else %}<span class="badge missing">stale</span>{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-body">
+    <h2>Database</h2>
+    <p class="card-sub">SQLite health — storage usage and row counts, read
+    live at render. Reclaimable space is the freelist (a large fraction of
+    the file = a VACUUM candidate); a persistent WAL file means write-ahead
+    logging with un-checkpointed frames. Query response times are future
+    work (TODO.md's observability item).</p>
+
+    <p class="meta-line" style="margin: 0.75rem 0 0;">
+      <span class="muted">storage {{ database.storage }} · in use {{ database.used }} · reclaimable {{ database.reclaimable }} · WAL {{ database.wal }} · journal mode {{ database.journal_mode }} · total rows {{ '{:,}'.format(database.total_rows) }}</span>
+    </p>
+
+    <table class="asset-table" style="margin-top: 1rem;">
+      <thead>
+        <tr>
+          <th>Table</th>
+          <th class="num">Rows</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for table in database.tables %}
+        <tr>
+          <td class="type-name">{{ table.name }}</td>
+          <td class="num">{{ '{:,}'.format(table.rows) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<p class="sync-source">sync_runs · rate_limit_observations · row counts live from the tables · ETag revalidation makes the hourly tick near-free once a snapshot exists</p>
+<script src="/static/observability.js?v={{ static_version }}"></script>
+{% endblock %}
