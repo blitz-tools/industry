@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 
 from sqlalchemy import select
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import Settings
@@ -62,11 +63,19 @@ async def corporation_name(
         return None
     if name:
         row = await db.get(UniverseCorporation, corporation_id)
-        if row is None:
-            db.add(UniverseCorporation(corporation_id=corporation_id, name=name))
-            await db.commit()
-        elif row.name != name:
-            row.name = name
+        if row is None or row.name != name:
+            # One atomic upsert, not insert: the roster's cards resolve
+            # corp mates concurrently and share one corporation fetch,
+            # so a lost insert race must not fail the render — either
+            # writer's row carries the same name.
+            await db.execute(
+                sqlite_insert(UniverseCorporation)
+                .values(corporation_id=corporation_id, name=name)
+                .on_conflict_do_update(
+                    index_elements=[UniverseCorporation.corporation_id],
+                    set_={"name": name},
+                )
+            )
             await db.commit()
     return name
 

@@ -301,6 +301,36 @@
 <p class="meta-line" style="margin: 0.5rem 0 0;">{{ covered_count }} type{{ 's' if covered_count != 1 }} fully covered — hidden in this view.</p>
 {% endif %}
 
+{% if lp_view %}
+<!-- LP acquisition (the target's blueprint is LP-store only and the pool holds none) -->
+<h2 style="margin: 1.75rem 0 0.75rem; font-size: 1.05rem; color: var(--cyan);">LP acquisition — {{ target_node.blueprint_name }}</h2>
+<p class="meta-line" style="margin: 0 0 0.75rem;">Pinned participants' live loyalty balances against the pinned offers — {{ lp_view.needed }} BPC{{ 's' if lp_view.needed != 1 }} needed at the pinned 1 run per BPC. LP does not convert between corporations; corporation-held LP has no ESI route (the curated corp balance and the distribution workflow are M16). Lead time is unsynced gameplay in v1; the offer table is a curated pin until the loyalty-store dataset syncs (M15).</p>
+
+<table class="asset-table">
+  <thead>
+    <tr>
+      <th>Source</th>
+      <th class="num">Balance</th>
+      <th>Path</th>
+      <th>Lead time</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in lp_view.rows %}
+    <tr>
+      <td>{{ row.name }}{% if row.breakdown %}<br>
+        <span class="muted" style="font-size: 0.78rem;">{% for name, points in row.breakdown %}{{ name }} {{ '{:,}'.format(points) }}{% if not loop.last %} · {% endif %}{% endfor %}</span>{% endif %}</td>
+      <td class="num">{{ '{:,}'.format(row.balance) }}</td>
+      <td>{{ row.purchases }}× {{ row.offer.label }} — {{ '{:,}'.format(row.lp_total) }} LP + {{ format_isk(row.isk_total) }}{% if row.offer.items %} + {% for type_id, name, qty in row.offer.items %}{{ '{:,}'.format(qty) }}× {{ name }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}</td>
+      <td class="muted">—</td>
+      <td>{% if row.short %}<span class="badge missing">short {{ '{:,}'.format(row.short) }} LP</span>{% else %}<span class="badge owned">sufficient</span>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
 <p class="meta-line" style="margin-top: 1.25rem;">
   <a href="/plans">← all plans</a>
 </p>

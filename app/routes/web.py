@@ -14,6 +14,7 @@ from ..deps import DbDep, EsiDep, is_authenticated, make_esi_client
 from ..esi.client import ESIClient, ESIError, ReauthorizationRequired
 from ..esi.universe import corporation_name
 from ..models import Character
+from ..plans import roster_eligibility
 from ..templates import portrait_url, templates
 
 router = APIRouter()
@@ -78,6 +79,14 @@ class CharacterCard:
     alliance_name: str | None  # None: no alliance, or unresolved
     location_name: str | None  # current system; None without the scope
     training: str | None  # skill in progress, or None
+    # The assignment-eligibility view (M6): {holds, total, plans} for
+    # characters pinned into at least one active plan — plans carries
+    # {id, name, target_type_id} per plan for the participation block;
+    # with active plans elsewhere, None reads "not in an active plan's
+    # pool", and with no active plans at all the active_plans flag
+    # carries the "no active plans" line.
+    plan_view: dict | None
+    active_plans: bool
     # Notification-box messages; non-empty also tints the card background.
     issues: list[CardIssue] = field(default_factory=list)
 
@@ -185,15 +194,30 @@ async def characters_page(request: Request, db: DbDep):
     """Character roster: grid of cards with wallet and character metadata.
 
     Cards resolve in parallel, each with its own DB session + ESI client —
-    a single AsyncSession cannot be shared across concurrent tasks."""
+    a single AsyncSession cannot be shared across concurrent tasks. The
+    plan-eligibility line is DB-pure, so it reads the route's own session
+    before the cards fan out."""
     if not is_authenticated(request):
         return RedirectResponse("/", status_code=302)
 
     characters = await _load_characters(db)
+    eligibility = await roster_eligibility(
+        db, [character.character_id for character in characters]
+    )
     cards = [
         card
         for card in await asyncio.gather(
-            *(_build_card(request, character.character_id) for character in characters)
+            *(
+                _build_card(
+                    request,
+                    character.character_id,
+                    eligibility.get(character.character_id)
+                    if eligibility is not None
+                    else None,
+                    eligibility is not None,
+                )
+                for character in characters
+            )
         )
         if card is not None
     ]
@@ -205,9 +229,17 @@ async def characters_page(request: Request, db: DbDep):
     )
 
 
-async def _build_card(request: Request, character_id: int) -> CharacterCard | None:
+async def _build_card(
+    request: Request,
+    character_id: int,
+    plan_view: dict | None,
+    active_plans: bool,
+) -> CharacterCard | None:
     """Fetch one character's roster metadata with a private session. None
-    means the character was forgotten mid-render — its card is skipped."""
+    means the character was forgotten mid-render — its card is skipped.
+    `plan_view` and `active_plans` ride along from the route's DB-pure
+    read (the private session is for ESI-backed metadata, not plan
+    queries)."""
     async with request.app.state.session_factory() as session:
         character = await session.get(Character, character_id)
         if character is None:
@@ -222,6 +254,8 @@ async def _build_card(request: Request, character_id: int) -> CharacterCard | No
             alliance_name=None,
             location_name=None,
             training=None,
+            plan_view=plan_view,
+            active_plans=active_plans,
         )
         try:
             card.wallet = await esi.get_wallet_balance(character)

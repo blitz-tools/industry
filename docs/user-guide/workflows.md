@@ -149,6 +149,29 @@ lines — sorted by name. **Copy** puts it on the clipboard for the
 in-game multibuy window. (Without scripting, the same button
 downloads the list as a `.txt` file.)
 
+## The LP acquisition front
+
+When the target's blueprint is LP-store-only (no producer anywhere in
+the SDE) and the pool holds none, the calculated page and the plan
+detail gate the target with **BPCs — LP front** instead of the usual
+missing-blueprint text, and an **LP acquisition** table joins the page
+below the raw-materials table: one row per offer corporation, with the
+pooled participants' balance and its per-character breakdown, the best
+pinned offer variant as the path (LP + ISK + any item requirements),
+and a sufficient / short-N-LP status against that path. Lead time is
+"—" for now — the earn rate is gameplay, not synced data.
+
+LP does not convert between corporations, so balances at corporations
+without an offer are not actionable paths — those rows stay hidden
+until there is a balance story worth showing. Corporation-held LP has
+no ESI route (it is visible in-game only); withdrawing it to
+characters turns it into character LP the table picks up on the next
+sync, and the curated corp-balance entry is a later milestone's
+surface. The offer table itself is a curated pin (the Tribal
+Liberation Force's Typhoon Fleet Issue Blueprint variants, including
+the 200k LP + 200M ISK 10-pack); a store change is a code edit until
+the loyalty-store dataset syncs with the world-state band.
+
 ## Watch progress
 
 Once saved, a plan tracks itself. A background refresh re-measures
@@ -175,7 +198,7 @@ sitting in the pool.
 > **Figure — plans.progress** *(pending the screenshot pass)*: a plan
 > detail with an In-progress node carrying its matched job, and the
 > plans list's progress column.
-
+>
 > **Figure — plans.actions** *(pending the screenshot pass)*: a plan
 > detail header with the Copy plan, Branch plan, and Re-plan buttons
 > highlighted.

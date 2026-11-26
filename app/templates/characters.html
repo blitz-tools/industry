@@ -17,7 +17,17 @@
         {% if card.alliance_name %}<p class="meta">Alliance: {{ card.alliance_name }}</p>{% endif %}
         <p class="meta">Location: {{ card.location_name or '—' }}</p>
         <p class="meta">Training: {{ card.training or '—' }}</p>
+        <p class="meta">Plan-eligible: {% if card.plan_view %}holds the skill gates for {{ card.plan_view.holds }} of {{ card.plan_view.total }} active-plan node{{ 's' if card.plan_view.total != 1 }}{% elif card.active_plans %}— not in an active plan's pool{% else %}— no active plans{% endif %}</p>
       </div>
+      {% if card.plan_view %}
+      <div class="card-plans">
+        {% for plan in card.plan_view.plans %}
+        <a class="card-plan" href="/plans/{{ plan.id }}" title="Active plan — {{ plan.name }}">
+          <img class="type-icon" src="{{ type_icon_url(plan.target_type_id, 32) }}" alt="">{{ plan.name }}
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
       <div class="card-footer">
         {% if not card.needs_reauth %}
         <p class="wallet">{{ "{:,.2f}".format(card.wallet) }} ISK</p>

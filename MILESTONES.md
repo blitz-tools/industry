@@ -68,14 +68,18 @@ paid contracts), or **pick a better target**.
 | M3 — structure manager | ✅ **Complete** (PR #86) — registry, multipliers pinned from live dogma, Build Planner nav (2026-11-23) |
 | M4 — planner: single-BP calc | ✅ **Complete** (PR #88) — depth-1 planner + build plan, M15 sync slice soaking |
 | M5 — chain resolution | ✅ **Complete** (2026-11-24) — recursive resolver + phase view, ten-anchor diff proof + census parity |
-| M6 — build plans | 🚧 **In progress** (PRs #90–#98 + PR 8, 2026-11-24/25) — schema, material sources, export + Plans list/detail, job correlation, refresh tick + active surface, Purchase⇄Build markings + multibuy landed (8 of 9 slices), plus the owner-directed Plans-list bulk management (activate / abandon / delete); **remaining**: LP acquisition node + roster eligibility (PR 9) |
+| M6 — build plans | 🚧 **In progress** (PRs #90–#104, 2026-11-24/25) — schema, material sources, export + Plans list/detail, job correlation, refresh tick + active surface, Purchase⇄Build markings + multibuy, Plans-list bulk management, compact ISK tiles + all-open phases landed (PR 9 — the LP acquisition node + roster eligibility — in review); **remaining**: the live validation scenario, then close |
 | M7+ | Not started |
 
-**Pick up at**: **M6 — the last slice** (PR 9: the LP acquisition
-node + the roster assignment-eligibility flag); the optional
-asset_names companion (container custom names, ESIClient.post) is the
-one loose end if it stays out; the M15 framework slice + light
-families keep soaking (cost indices + market prices, hourly).
+**Pick up at**: **M6 — close-out** (PR 9, the LP acquisition node +
+roster eligibility, is in review): after it lands, run the live
+validation scenario of record (export a Typhoon plan, install one
+component job in-game, watch the job appear on its node, the node
+flip to In progress, and phase progress move on delivery) and flip
+the milestone ✅; the asset_names companion (container custom names,
+ESIClient.post) is recorded in TODO as the loose end; the M15
+framework slice + light families keep soaking (cost indices + market
+prices, hourly).
 
 **Order of operations** (refined 2026-11-22, final pre-implementation
 evaluation): the spine holds (M2 → M4 → M5 → M6 → M9) with three
@@ -147,7 +151,7 @@ flowchart TD
     M15["M15 World-state syncs<br/>framework + indices/prices soaking;<br/>contracts, orders/history, LP offers"]
     M4["M4 ✅ Planner: single-BP calc<br/>materials, time, install cost,<br/>facility + skill multipliers"]
     M5["M5 ✅ Chain resolution<br/>recursive BOM explosion → phases,<br/>test-first against ten chain anchors"]
-    M6["M6 🚧 Build plans (8 of 9 slices)<br/>export, correlation, refresh tick,<br/>active surface, markings + multibuy ✅;<br/>LP node remains"]
+    M6["M6 🚧 Build plans (9 of 9 slices — PR 9 in review)<br/>export, correlation, refresh tick,<br/>active surface, markings + multibuy,<br/>bulk management, LP node + roster flag"]
     M8["M8 Invention T2/T3<br/>decryptor + grade + sibling dispatch,<br/>expected-value math, retry loops"]
     M9["M9 Job orchestration<br/>slots, skills, waves,<br/>work distribution"]
     M10["M10 Market analysis<br/>build-vs-buy verdicts,<br/>target profitability"]
@@ -1618,7 +1622,7 @@ inventory.
 
 ---
 
-## M6 — Build plans: export, track, complete — 🚧 IN PROGRESS (PRs #90–#98 + PR 8 of the 9-slice sequence, 2026-11-24/25)
+## M6 — Build plans: export, track, complete — 🚧 IN PROGRESS (PRs #90–#104 + PR 9 in review, 2026-11-24/25)
 
 *Persists a resolved chain as a living document and measures it against
 reality over time.*
@@ -1835,6 +1839,52 @@ reality over time.*
   deactivated plan stays draft while its jobs still correlate, until
   activated again. `activated_at` keeps its value through deactivate
   (it is the never-activated marker, not a current-state flag).
+- **LP acquisition slice** (PR 9 of the sequence, 2026-11-25, revised
+  in owner review): when the target's blueprint is LP-store-only and
+  the pool holds none, the phase-tree gating reads **"BPCs — LP
+  front"** (a display flavor of blueprint-missing — the state
+  machine's reason, the chip lock, and the fresh gate are unchanged;
+  the blocker is a currency the plan must earn, not a contract-market
+  purchase), and an **LP acquisition** table joins both the calculated
+  page and the plan detail below the raw-materials table: one row per
+  OFFER corporation (a store nobody has earned at still renders, at
+  zero — the shortfall from nothing is the acquisition front's story),
+  each carrying the pooled participants' balance with its
+  per-character breakdown, the best pinned offer variant as the path
+  (LP + ISK + item requirements, purchases rounded up to the needed
+  BPC count — the target's run count, at the pinned 1 run per LP
+  BPC), and sufficient / short-N-LP status. **Wrong-currency rows stay
+  hidden in v1** (owner review 2026-11-25): LP does not convert
+  between corporations, and with live balances all zero a no-offer row
+  is noise, not wealth — they return when there is a real balance
+  story to show (the per-character zero-balance breakdown polish
+  defers with them). Lead time is "—" in v1 (the earn rate is
+  gameplay, not synced data), and corporation-held LP has no ESI route
+  at all — the curated corp balance and the distribution workflow are
+  M16. The offers are a curated pin, `LP_OFFERS` in `app/plans.py`
+  (the TFI investigation's live Tribal Liberation Force variants; a
+  store change is a code edit until M15 syncs the loyalty-store
+  dataset); the balances read live `character_loyalty` for the plan's
+  pinned participants — page-render purity holds. **Roster
+  assignment-eligibility flag** rides the same slice: one meta line
+  per roster card — "holds the skill gates for N of M active-plan
+  nodes" — SCOPED to each plan's pinned participants (owner review
+  2026-11-25: the pool is resolved at export, so a non-participant
+  cannot be assigned regardless of skills — their cards read "not in
+  an active plan's pool", with "no active plans" when none exist),
+  computed DB-pure from the active plans' `skills_json` snapshots
+  against current skill levels; no schema change. The card also
+  carries a **participation block** below the metadata (owner review
+  addition): one linked row per active plan the character was pinned
+  into — the target's commodity icon beside the plan name, through to
+  the plan detail. **Concurrent-fix
+  companion**: the roster's parallel cards share corporation-name
+  fetches, and the ETag cache's and `universe_corporations`'
+  get-then-insert writes raced on the shared key (a latent 500 on
+  multi-corp-member rosters, surfaced by the new tests) — both writes
+  are single atomic SQLite upserts now. The optional `asset_names`
+  companion (container custom names + `ESIClient.post`) stayed out
+  again and is recorded in TODO as the milestone's one loose end.
 
 **Schema sketch**
 

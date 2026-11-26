@@ -62,6 +62,8 @@ from ..planner import (
 from ..plans import (
     RAW_ACQUIRE,
     REASON_TEXT,
+    lp_acquisition,
+    lp_gate_text,
     parse_material_sources,
     planner_state,
     raw_label,
@@ -207,6 +209,10 @@ def _phase_views(chain: ChainResult) -> list[dict]:
             gating = None
             if reason == "waiting-upstream":
                 gating = REASON_TEXT[reason].format(phase=node.phase - 1)
+            elif reason == "blueprint-missing" and lp_gate_text(
+                node.blueprint_type_id
+            ):
+                gating = lp_gate_text(node.blueprint_type_id)
             elif reason:
                 gating = REASON_TEXT.get(reason, reason)
             nodes.append(
@@ -553,6 +559,17 @@ async def planner_plan_page(
         1 for _label, rows in raw_groups for row in rows if row["meter"] == "full"
     )
     target_node = plan.chain.target_node
+    # The LP acquisition front: when the target's blueprint is
+    # LP-store-only and none is owned, the acquisition table reads the
+    # pooled participants' loyalty balances against the pinned offers.
+    lp_view = None
+    if target_node.calc is not None and target_node.calc.selected is None:
+        lp_view = await lp_acquisition(
+            db,
+            target_node.blueprint_type_id or 0,
+            [row.character_id for row in plan.participants],
+            target_node.runs or 0,
+        )
     return templates.TemplateResponse(
         request,
         "plan.html",
@@ -582,5 +599,6 @@ async def planner_plan_page(
             ),
             "default_plan_name": f"{target_node.name} ×{qty:,}",
             "from_plan": fork_id,
+            "lp_view": lp_view,
         },
     )

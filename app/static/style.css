@@ -327,6 +327,32 @@ a:hover {
   font-size: 0.85rem;
 }
 
+/* Roster: the active-plan participation block, set apart below the
+   meta-list — one linked plan per row, the target's commodity icon
+   beside the plan name. */
+.card-plans {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.card-plan {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.card-plan:hover {
+  color: var(--cyan);
+}
+
+.card-plan .type-icon {
+  flex: none;
+}
+
 /* Cards with issues (notification box present) get a mild warm tint so
    they stand out from healthy cards at a glance. */
 .card.has-issue {

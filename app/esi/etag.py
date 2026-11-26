@@ -13,6 +13,7 @@ from email.utils import parsedate_to_datetime
 from typing import Any
 
 from sqlalchemy import delete
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import EsiCache
@@ -92,19 +93,31 @@ class ETagCache:
         params: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
     ) -> None:
-        """Upsert a cache entry and prune stale rows."""
-        entry = await self._db.get(EsiCache, key)
-        if entry is None:
-            entry = EsiCache(key=key)
-            self._db.add(entry)
-        entry.character_id = character_id
-        entry.path = path
-        entry.params_json = canonical_params(params)
-        entry.body = body
-        entry.etag = etag
-        entry.expires_at = expires_at
-        entry.last_modified = last_modified
-        entry.headers_json = json.dumps(headers) if headers else None
+        """Upsert a cache entry and prune stale rows. The write is one
+        atomic upsert, not get-then-insert: concurrent readers store the
+        same key in parallel (the roster's cards resolve corp mates
+        concurrently and share one corporation-name fetch), and a lost
+        insert race must not fail the render — the cache is disposable
+        and either writer's entry is correct."""
+        values = {
+            "key": key,
+            "character_id": character_id,
+            "path": path,
+            "params_json": canonical_params(params),
+            "body": body,
+            "etag": etag,
+            "expires_at": expires_at,
+            "last_modified": last_modified,
+            "headers_json": json.dumps(headers) if headers else None,
+        }
+        await self._db.execute(
+            sqlite_insert(EsiCache)
+            .values(**values)
+            .on_conflict_do_update(
+                index_elements=[EsiCache.key],
+                set_={**values, "updated_at": self._clock.now()},
+            )
+        )
         await self._db.commit()
 
         # Opportunistic housekeeping keeps the table bounded; disposable data.
