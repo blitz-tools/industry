@@ -70,15 +70,19 @@ paid contracts), or **pick a better target**.
 | M5 — chain resolution | ✅ **Complete** (2026-11-24) — recursive resolver + phase view, ten-anchor diff proof + census parity |
 | M6 — build plans | ✅ **Complete** (PRs #90–#105, 2026-11-24/25) — all nine slices: schema, material sources, export + Plans list/detail, job correlation, refresh tick + active surface, Purchase⇄Build markings + multibuy, LP acquisition node + roster eligibility; plus the owner-directed Plans-list bulk management, ISK-tile/phase polish, and (riding behind, #106) the roster per-corporation panel refactor |
 | M7+ | Not started (M7 folded into M5; M8–M14, M16+ per the order of operations) |
-| M15 — world-state syncs | 🚧 **In progress** — the framework slice + the two light families (cost indices, market prices) soaking hourly since 2026-11-23 (landed with M4, PR #88); **the band's completion directed 2026-11-25** ahead of M9/M10 — remaining: sync_hubs + the market manager, public contracts, regional orders/history, player-structure markets, LP store offers, observability telemetry |
+| M15 — world-state syncs | 🚧 **In progress** — the framework slice + the two light families (cost indices, market prices) soaking hourly since 2026-11-23 (landed with M4, PR #88); **the observability telemetry slice landed 2026-11-25 (PR #110** — rate-limit observations + sync-run history persisted, the central Admin > Observability page, first real headroom read recorded in the M15 status note**)** — remaining: sync_hubs + the market manager, public contracts, regional orders/history, player-structure markets, LP store offers |
 
-**Pick up at**: **M15 — finish the world-state band** (owner
-direction 2026-11-25; **first slice: the observability telemetry +
-Admin > Observability page, then read real headroom off the live
-deployment and order the families from data** — the completion plan
-in M15 records the decisions); M9 follows, with M8 paralleling; the
-asset_names companion (container custom names, ESIClient.post) is
-TODO'd as M6's one loose end.
+**Pick up at**: **M15 — completion plan item 2: sync_hubs + the market
+manager** (the design/markets mockup is the surface spec; the
+completion plan in M15 records the owner decisions — telemetry landed
+as item 1, PR #110, with the first headroom read recorded: all groups
+≤ 0.7% of window, error budget ~16%). The remaining families follow in
+an order the accumulating headroom data supports — the heavier ones
+(public contracts, regional orders/history) need NEW world.py
+scaffolding (pruning, items-once, append-only history), not the
+full-snapshot kind the two light families use. M9 follows the band,
+with M8 paralleling; the asset_names companion (container custom
+names, ESIClient.post) is TODO'd as M6's one loose end.
 
 **Order of operations** (refined 2026-11-22, final pre-implementation
 evaluation): the spine holds (M2 → M4 → M5 → M6 → M9) with three
