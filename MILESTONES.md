@@ -68,18 +68,15 @@ paid contracts), or **pick a better target**.
 | M3 — structure manager | ✅ **Complete** (PR #86) — registry, multipliers pinned from live dogma, Build Planner nav (2026-11-23) |
 | M4 — planner: single-BP calc | ✅ **Complete** (PR #88) — depth-1 planner + build plan, M15 sync slice soaking |
 | M5 — chain resolution | ✅ **Complete** (2026-11-24) — recursive resolver + phase view, ten-anchor diff proof + census parity |
-| M6 — build plans | 🚧 **In progress** (PRs #90–#104, 2026-11-24/25) — schema, material sources, export + Plans list/detail, job correlation, refresh tick + active surface, Purchase⇄Build markings + multibuy, Plans-list bulk management, compact ISK tiles + all-open phases landed (PR 9 — the LP acquisition node + roster eligibility — in review); **remaining**: the live validation scenario, then close |
+| M6 — build plans | ✅ **Complete** (PRs #90–#105, 2026-11-24/25) — all nine slices: schema, material sources, export + Plans list/detail, job correlation, refresh tick + active surface, Purchase⇄Build markings + multibuy, LP acquisition node + roster eligibility; plus the owner-directed Plans-list bulk management, ISK-tile/phase polish, and (riding behind, #106) the roster per-corporation panel refactor |
 | M7+ | Not started |
 
-**Pick up at**: **M6 — close-out** (PR 9, the LP acquisition node +
-roster eligibility, is in review): after it lands, run the live
-validation scenario of record (export a Typhoon plan, install one
-component job in-game, watch the job appear on its node, the node
-flip to In progress, and phase progress move on delivery) and flip
-the milestone ✅; the asset_names companion (container custom names,
-ESIClient.post) is recorded in TODO as the loose end; the M15
-framework slice + light families keep soaking (cost indices + market
-prices, hourly).
+**Pick up at**: **M9 — job orchestration** (the spine continues:
+slots, skills, capsuleers — the work-distribution core; M8
+invention/T2-T3 parallels off M5, either order); the M15 framework
+slice + light families keep soaking (cost indices + market prices,
+hourly); the asset_names companion (container custom names,
+ESIClient.post) is TODO'd as M6's one loose end.
 
 **Order of operations** (refined 2026-11-22, final pre-implementation
 evaluation): the spine holds (M2 → M4 → M5 → M6 → M9) with three
@@ -151,7 +148,7 @@ flowchart TD
     M15["M15 World-state syncs<br/>framework + indices/prices soaking;<br/>contracts, orders/history, LP offers"]
     M4["M4 ✅ Planner: single-BP calc<br/>materials, time, install cost,<br/>facility + skill multipliers"]
     M5["M5 ✅ Chain resolution<br/>recursive BOM explosion → phases,<br/>test-first against ten chain anchors"]
-    M6["M6 🚧 Build plans (9 of 9 slices — PR 9 in review)<br/>export, correlation, refresh tick,<br/>active surface, markings + multibuy,<br/>bulk management, LP node + roster flag"]
+    M6["M6 ✅ Build plans<br/>export, correlation, refresh tick,<br/>active surface, markings + multibuy,<br/>bulk management, LP node + roster flag"]
     M8["M8 Invention T2/T3<br/>decryptor + grade + sibling dispatch,<br/>expected-value math, retry loops"]
     M9["M9 Job orchestration<br/>slots, skills, waves,<br/>work distribution"]
     M10["M10 Market analysis<br/>build-vs-buy verdicts,<br/>target profitability"]
@@ -1622,7 +1619,7 @@ inventory.
 
 ---
 
-## M6 — Build plans: export, track, complete — 🚧 IN PROGRESS (PRs #90–#104 + PR 9 in review, 2026-11-24/25)
+## M6 — Build plans: export, track, complete — ✅ COMPLETE (PRs #90–#105, 2026-11-24/25)
 
 *Persists a resolved chain as a living document and measures it against
 reality over time.*
@@ -1894,9 +1891,21 @@ reality over time.*
   blueprint ref, produced/available/delivered (materialized by sync for
   cheap page renders).
 
-**Validation**: export a Typhoon plan, install one component job
-in-game, watch the job appear on its node and the phase progress move
-when it delivers.
+**Validation** (the scenario of record; status at close, 2026-11-25):
+export a Typhoon plan, install one component job in-game, watch the
+job appear on its node, the node flip to In progress, and phase
+progress move on delivery. The machinery is live-verified on the dev
+deployment across the milestone: the 9/11 activity map against 26
+live corp reaction jobs (PR #97's matcher), the refresh tick soaking
+clean on live plans (draft/active/abandoned paths, the recency floor
+holding at zero false claims), and PR 9's LP + roster surfaces
+against live loyalty (TFI ×1: "BPCs — LP front" gating, TLF short
+100,000 LP at the pinned Single variant; participants-only
+eligibility 15/15 across the active Typhoon plan's pool). The
+in-game install→correlate→deliver leg runs at the owner's next real
+build — the scenario stands as that session's acceptance check. The
+container-names leg is N/A in v1 (the asset_names companion deferred
+to TODO).
 
 ---
 
