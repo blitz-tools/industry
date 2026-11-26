@@ -327,9 +327,88 @@ a:hover {
   font-size: 0.85rem;
 }
 
-/* Roster: the active-plan participation block, set apart below the
-   meta-list — one linked plan per row, the target's commodity icon
-   beside the plan name. */
+/* --- Roster (M6 refactor): characters as rows inside per-corporation
+       expanding panels — the corp-row presentation from the assets
+       toolbar applied to the roster itself. Label/value metadata: the
+       label stays muted, the value renders white so the information
+       stands out. -------------------------------------------------- */
+
+.roster-corp {
+  margin-bottom: 0.75rem;
+}
+
+.roster-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0 0.25rem 1.1rem; /* indented under the ▸ marker */
+}
+
+.roster-row {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+  padding: 0.6rem 0.75rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+/* Rows with issues (notification box present) keep the cards' mild
+   warm tint so they stand out at a glance. */
+.roster-row.has-issue {
+  background: var(--panel-issue);
+}
+
+.roster-portrait {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  flex: none;
+  background: var(--line);
+}
+
+.roster-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.roster-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.roster-name {
+  font-weight: 650;
+}
+
+/* One "Label: value" item per fact, wrapping across the wide row —
+   the label muted, the value white. */
+.roster-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+}
+
+.meta-item {
+  font-size: 0.85rem;
+}
+
+.meta-label {
+  color: var(--muted);
+}
+
+.meta-value {
+  color: var(--text);
+}
+
+/* The active-plan participation block, set apart below the metadata —
+   one linked plan per row, the target's commodity icon beside the
+   plan name. */
 .card-plans {
   display: flex;
   flex-direction: column;
@@ -351,6 +430,24 @@ a:hover {
 
 .card-plan .type-icon {
   flex: none;
+}
+
+/* Wallet and row actions cluster at the row's right edge; the icon
+   buttons stay compact (no card-footer spread inside a row). */
+.roster-side {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+
+.roster-side .card-actions {
+  padding: 0;
+}
+
+.roster-side .card-actions > :last-child {
+  margin-left: 0;
 }
 
 /* Cards with issues (notification box present) get a mild warm tint so

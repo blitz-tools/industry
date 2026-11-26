@@ -222,10 +222,41 @@ async def characters_page(request: Request, db: DbDep):
         if card is not None
     ]
 
+    # Characters grouped into per-corporation panels (owner direction
+    # 2026-11-25): the main's corporation leads, then alphabetical;
+    # unresolved names share an "Unknown corporation" panel.
+    by_corp: dict[str, list[CharacterCard]] = {}
+    for card in cards:
+        by_corp.setdefault(
+            card.corporation_name or "Unknown corporation", []
+        ).append(card)
+
+    def corp_order(name: str) -> tuple[int, str]:
+        is_mains = any(
+            card.character.is_main for card in by_corp[name]
+        )
+        return (0 if is_mains else 1, name.lower())
+
+    groups = [
+        {
+            "name": name,
+            "corporation_id": next(
+                (
+                    card.character.corporation_id
+                    for card in by_corp[name]
+                    if card.character.corporation_id
+                ),
+                None,
+            ),
+            "cards": by_corp[name],
+        }
+        for name in sorted(by_corp, key=corp_order)
+    ]
+
     return templates.TemplateResponse(
         request,
         "characters.html",
-        {"authenticated": True, "active": "characters", "cards": cards},
+        {"authenticated": True, "active": "characters", "groups": groups},
     )
 
 
@@ -247,7 +278,7 @@ async def _build_card(
         esi = make_esi_client(request, session)
         card = CharacterCard(
             character=character,
-            portrait=portrait_url(character.character_id, 256),
+            portrait=portrait_url(character.character_id, 64),
             wallet=None,
             needs_reauth=False,
             corporation_name=None,
