@@ -39,6 +39,7 @@ from ..models import (
 )
 from .client import ESIClient, ESIError, ReauthorizationRequired
 from .roles import check_corp_access
+from .telemetry import elapsed_ms, monotonic_start, record_sync_run
 from .universe import UniverseResolver, corporation_name
 
 logger = logging.getLogger(__name__)
@@ -59,6 +60,11 @@ KIND_CHAR_BLUEPRINTS = "char-blueprints"
 KIND_CHAR_SKILLS = "char-skills"
 KIND_CHAR_JOBS = "char-jobs"
 KIND_CHAR_LOYALTY = "char-loyalty"
+# The asset kinds record into asset_syncs (owner-keyed, no kind column),
+# so these exist only for the sync_runs history — the one dataset every
+# kind joins (M15's observability slice).
+KIND_CHAR_ASSETS = "char-assets"
+KIND_CORP_ASSETS = "corp-assets"
 
 # ESI's marker item for a rented office (corporation assets only): each
 # office shows up as a type-27 "Office" row (flag "OfficeFolder" for
@@ -137,8 +143,14 @@ async def _sync_one_character(
         (KIND_CHAR_JOBS, _sync_character_jobs),
     ):
         if dead_token:
+            # Near-zero duration is honest: the kind was skipped, not run.
             await _record_data_sync(
-                db, kind, OWNER_CHARACTER, character.character_id, "reauth"
+                db,
+                kind,
+                OWNER_CHARACTER,
+                character.character_id,
+                "reauth",
+                duration_ms=elapsed_ms(monotonic_start()),
             )
             outcomes.append(
                 SyncOutcome(character.character_id, character.name, "reauth")
@@ -159,17 +171,39 @@ async def _sync_character_assets(
     # Calling the endpoint without the scope is a guaranteed 403, and 403s
     # burn ESI's error-limit budget.
     if not has_assets_scope(character):
-        await _record_sync(db, OWNER_CHARACTER, character.character_id, "no-scope")
+        await _record_sync(
+            db,
+            OWNER_CHARACTER,
+            character.character_id,
+            "no-scope",
+            f"Grant lacks {ASSETS_SCOPE}",
+            kind=KIND_CHAR_ASSETS,
+            duration_ms=elapsed_ms(monotonic_start()),
+        )
         return SyncOutcome(character.character_id, character.name, "no-scope")
 
+    start = monotonic_start()
     try:
         rows = await esi.get_paginated(character, "/characters/{character_id}/assets/")
     except ReauthorizationRequired:
-        await _record_sync(db, OWNER_CHARACTER, character.character_id, "reauth")
+        await _record_sync(
+            db,
+            OWNER_CHARACTER,
+            character.character_id,
+            "reauth",
+            kind=KIND_CHAR_ASSETS,
+            duration_ms=elapsed_ms(start),
+        )
         return SyncOutcome(character.character_id, character.name, "reauth")
     except ESIError as exc:
         await _record_sync(
-            db, OWNER_CHARACTER, character.character_id, "error", str(exc)
+            db,
+            OWNER_CHARACTER,
+            character.character_id,
+            "error",
+            str(exc),
+            kind=KIND_CHAR_ASSETS,
+            duration_ms=elapsed_ms(start),
         )
         return SyncOutcome(
             character.character_id, character.name, "error", detail=str(exc)
@@ -185,7 +219,13 @@ async def _sync_character_assets(
     if assets:
         await db.execute(insert(Asset), assets)
     await _record_sync(
-        db, OWNER_CHARACTER, character.character_id, "ok", item_count=len(rows)
+        db,
+        OWNER_CHARACTER,
+        character.character_id,
+        "ok",
+        kind=KIND_CHAR_ASSETS,
+        duration_ms=elapsed_ms(start),
+        item_count=len(rows),
     )
 
     # Universe resolution is best-effort and outside the snapshot write:
@@ -218,17 +258,44 @@ async def _sync_data_kind(
     fetch's last write, so a failure leaves the previous snapshot)."""
     if scope not in holder.scopes.split():
         detail = f"Grant lacks {scope}"
-        await _record_data_sync(db, kind, owner_type, owner_id, "no-scope", detail)
+        await _record_data_sync(
+            db,
+            kind,
+            owner_type,
+            owner_id,
+            "no-scope",
+            detail,
+            duration_ms=elapsed_ms(monotonic_start()),
+        )
         return SyncOutcome(owner_id, owner_name, "no-scope", detail=detail)
+    start = monotonic_start()
     try:
         item_count = await replace()
     except ReauthorizationRequired:
-        await _record_data_sync(db, kind, owner_type, owner_id, "reauth")
+        await _record_data_sync(
+            db, kind, owner_type, owner_id, "reauth", duration_ms=elapsed_ms(start)
+        )
         return SyncOutcome(owner_id, owner_name, "reauth")
     except ESIError as exc:
-        await _record_data_sync(db, kind, owner_type, owner_id, "error", str(exc))
+        await _record_data_sync(
+            db,
+            kind,
+            owner_type,
+            owner_id,
+            "error",
+            str(exc),
+            duration_ms=elapsed_ms(start),
+        )
         return SyncOutcome(owner_id, owner_name, "error", detail=str(exc))
-    await _record_data_sync(db, kind, owner_type, owner_id, "ok")
+    await _record_data_sync(
+        db,
+        kind,
+        owner_type,
+        owner_id,
+        "ok",
+        duration_ms=elapsed_ms(start),
+        item_count=item_count,
+    )
     return SyncOutcome(owner_id, owner_name, "synced", item_count=item_count)
 
 
@@ -652,8 +719,13 @@ async def _record_sync(
     status: str,
     detail: str | None = None,
     *,
+    kind: str,
+    duration_ms: int | None = None,
     item_count: int = 0,
 ) -> None:
+    """Upsert the owner's asset_syncs row (the assets page's read) and
+    append the run to the sync_runs history with its kind (M15's one
+    dataset — the asset kinds join the data kinds there)."""
     sync = await db.get(AssetSync, (owner_type, owner_id))
     if sync is None:
         sync = AssetSync(owner_type=owner_type, owner_id=owner_id)
@@ -662,6 +734,16 @@ async def _record_sync(
     sync.detail = detail
     sync.synced_at = utc_now()
     await db.commit()
+    await record_sync_run(
+        db,
+        kind=kind,
+        owner_type=owner_type,
+        owner_id=owner_id,
+        status=status,
+        duration_ms=duration_ms,
+        item_count=item_count,
+        detail=detail,
+    )
 
 
 async def sync_corporation(
@@ -706,18 +788,40 @@ async def _sync_corporation_locked(
     label = f"corporation {corp_id}"
 
     # Role gate first: the main's tokens stand in for the corporation.
+    gate_start = monotonic_start()
     access = await check_corp_access(esi, main)
     if access.status != "ok":
         if access.status == "insufficient":
             status, detail = "no-roles", "Main holds no Director/CEO role"
         else:
             status, detail = access.status, f"Role gate: {access.status}"
-        await _record_sync(db, OWNER_CORPORATION, corp_id, status, detail)
-        await _record_data_sync(
-            db, KIND_CORP_BLUEPRINTS, OWNER_CORPORATION, corp_id, status, detail
+        duration_ms = elapsed_ms(gate_start)
+        await _record_sync(
+            db,
+            OWNER_CORPORATION,
+            corp_id,
+            status,
+            detail,
+            kind=KIND_CORP_ASSETS,
+            duration_ms=duration_ms,
         )
         await _record_data_sync(
-            db, KIND_CORP_JOBS, OWNER_CORPORATION, corp_id, status, detail
+            db,
+            KIND_CORP_BLUEPRINTS,
+            OWNER_CORPORATION,
+            corp_id,
+            status,
+            detail,
+            duration_ms=duration_ms,
+        )
+        await _record_data_sync(
+            db,
+            KIND_CORP_JOBS,
+            OWNER_CORPORATION,
+            corp_id,
+            status,
+            detail,
+            duration_ms=duration_ms,
         )
         return [SyncOutcome(corp_id, label, status, detail=detail)]
 
@@ -739,16 +843,40 @@ async def _sync_corp_assets(
     """Corporation asset snapshot (role gate already passed)."""
     if not has_corp_assets_scope(main):
         detail = f"Main grant lacks {CORP_ASSETS_SCOPE}"
-        await _record_sync(db, OWNER_CORPORATION, corp_id, "no-scope", detail)
+        await _record_sync(
+            db,
+            OWNER_CORPORATION,
+            corp_id,
+            "no-scope",
+            detail,
+            kind=KIND_CORP_ASSETS,
+            duration_ms=elapsed_ms(monotonic_start()),
+        )
         return SyncOutcome(corp_id, label, "no-scope", detail=detail)
 
+    start = monotonic_start()
     try:
         rows = await esi.get_paginated(main, f"/corporations/{corp_id}/assets/")
     except ReauthorizationRequired:
-        await _record_sync(db, OWNER_CORPORATION, corp_id, "reauth")
+        await _record_sync(
+            db,
+            OWNER_CORPORATION,
+            corp_id,
+            "reauth",
+            kind=KIND_CORP_ASSETS,
+            duration_ms=elapsed_ms(start),
+        )
         return SyncOutcome(corp_id, label, "reauth")
     except ESIError as exc:
-        await _record_sync(db, OWNER_CORPORATION, corp_id, "error", str(exc))
+        await _record_sync(
+            db,
+            OWNER_CORPORATION,
+            corp_id,
+            "error",
+            str(exc),
+            kind=KIND_CORP_ASSETS,
+            duration_ms=elapsed_ms(start),
+        )
         return SyncOutcome(corp_id, label, "error", detail=str(exc))
 
     assets = _build_assets(OWNER_CORPORATION, corp_id, rows)
@@ -760,7 +888,15 @@ async def _sync_corp_assets(
     )
     if assets:
         await db.execute(insert(Asset), assets)
-    await _record_sync(db, OWNER_CORPORATION, corp_id, "ok", item_count=len(rows))
+    await _record_sync(
+        db,
+        OWNER_CORPORATION,
+        corp_id,
+        "ok",
+        kind=KIND_CORP_ASSETS,
+        duration_ms=elapsed_ms(start),
+        item_count=len(rows),
+    )
 
     # Universe resolution is best-effort and outside the snapshot write.
     await _resolve_universe(db, esi, resolver, main, rows, assets)
@@ -876,6 +1012,9 @@ async def _record_data_sync(
     owner_id: int,
     status: str,
     detail: str | None = None,
+    *,
+    duration_ms: int | None = None,
+    item_count: int | None = None,
 ) -> None:
     sync = await db.get(DataSync, (kind, owner_type, owner_id))
     if sync is None:
@@ -885,6 +1024,16 @@ async def _record_data_sync(
     sync.detail = detail
     sync.synced_at = utc_now()
     await db.commit()
+    await record_sync_run(
+        db,
+        kind=kind,
+        owner_type=owner_type,
+        owner_id=owner_id,
+        status=status,
+        duration_ms=duration_ms,
+        item_count=item_count,
+        detail=detail,
+    )
 
 
 async def sync_tick(

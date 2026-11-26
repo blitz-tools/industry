@@ -125,12 +125,72 @@ now carries the platform track and smaller items only.
   central page authoritative.
 - **Storage**: telemetry stored locally by default; exportable to
   third-party storage domains — **Prometheus, Loki, Thanos**, or
-  other open-source observability applications.
+  other open-source observability applications. **No coalescing
+  layer** (owner decision, 2026-11-25): the append-only
+  `rate_limit_observations`/`sync_runs` tables ARE the time series at
+  raw resolution (7/30-day retention) — don't build aggregation before
+  an exporter exists; add one only if a local over-time view is needed
+  first. The eventual exporter maps cleanly onto Prometheus metric
+  types (<https://prometheus.io/docs/concepts/metric_types/>):
+  **gauges** for per-group remaining/max/percentage-of-window and the
+  error-budget remainder (the values float up and down — counters
+  would be wrong), **histograms** for per-request token costs and
+  sync-run durations (the `_count` series covers run totals).
+- **SQLite (database) health** (owner note, 2026-11-25): storage usage,
+  response times, and row counts on the central page. Landed with the
+  slice: page/file storage (WAL file included) and per-table row
+  counts, read live at render (`sqlite_stats` in `app/db.py` — no
+  schema, renders stay side-effect-free). Still future: **query
+  response times** — instrument via SQLAlchemy engine event hooks
+  (`before_cursor_execute`/`after_cursor_execute` in-memory
+  accumulators, snapshotted on the background tick like the sync-run
+  durations) plus slow-query logging. The headroom signals to watch,
+  per SQLite best practice: freelist fraction of the file (a VACUUM
+  candidate), WAL growth (checkpoint health), and busy/write-lock
+  contention — the app runs concurrent background ticks plus request
+  renders against one file, and `journal_mode=WAL` is the standard
+  mitigation (today's engine sets only `PRAGMA foreign_keys=ON`;
+  switching journal modes is a deployment decision to make
+  deliberately).
 - **Code tracing for future debugging** (future work): implement
   via **OpenTelemetry (OTEL)** where possible — request/job spans
   extending the metrics conventions M15 already records (zero-code
   Python instrumentation; the uv bootstrap caveat is documented in
   MILESTONES.md's M15 note).
+
+### Managed release updates — pull from GitHub Releases, migrate in place
+
+(owner note, 2026-11-25)
+
+The project will run with releases, and DB migrations are a real portion
+of the upgrade effort between them — the schema moves with every
+milestone (0013 observability telemetry is the latest), and a deployment
+that lags `alembic upgrade head` breaks on the first new-table read
+(the dev deployment's 500 on `/admin/sync`, 2026-11-25, was exactly
+this). Wanted: a **managed update process** that, after a release is
+published, pulls it in and brings the deployment up cleanly in place:
+
+- **Pull from GitHub Releases**: fetch the published release (versioned
+  artifacts or tag) — not a git checkout — and stage it beside the
+  running deployment (the container image / compose stack is the
+  deployment shape to build on; `compose.dev.yml` is today's only
+  compose file, so a production compose profile arrives with this).
+- **Managed DB migration step**: run `alembic upgrade head` as part of
+  the update flow itself, never left to the operator's memory — the
+  up/down/up cycle convention (CI-proven per release) is the safety net
+  the release process leans on. Migration ordering constraints and
+  hand-written-migration notes live with the alembic versions.
+- **Clean in-place cutover**: backup the SQLite database before
+  migrating, apply the update, restart, and verify with a health check
+  (the Observability page's sync-status read is a natural post-update
+  verification surface) with a documented rollback path (restore
+  backup + previous release).
+- Prerequisites to settle first: a release pipeline producing versioned
+  GitHub Releases (CI already builds and tests per PR; the release
+  artifact shape is the missing piece), a pinned-version production
+  deployment target, and a decision on how the updater runs (a small
+  update script/command wrapping compose, vs. something like
+  watchtower-style automation — start manual-but-managed).
 
 ### Local user accounts + admin menu
 
