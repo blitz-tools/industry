@@ -60,11 +60,15 @@ async def test_callback_happy_path(client, db_session):
     assert "Test Pilot" in characters.text
     assert "4,321.50" in characters.text
     assert "Add character" in characters.text
-    # Card metadata: corporation shown bare, the rest labeled.
+    # Row metadata: corporation is the panel header, the rest labeled
+    # (muted label span, white value span).
     assert "Federal Freight" in characters.text
-    assert "Alliance: Eve University" in characters.text
-    assert "Location: Jita" in characters.text
-    assert "Training: Hull Upgrades V" in characters.text
+    assert '<span class="meta-label">Alliance:</span>' in characters.text
+    assert '<span class="meta-value">Eve University</span>' in characters.text
+    assert '<span class="meta-label">Location:</span>' in characters.text
+    assert '<span class="meta-value">Jita</span>' in characters.text
+    assert '<span class="meta-label">Training:</span>' in characters.text
+    assert '<span class="meta-value">Hull Upgrades V</span>' in characters.text
     assert "Corporation:" not in characters.text
     assert 'aria-label="Re-Auth"' in characters.text  # per-card re-auth button
     # Roster auth buttons return to the roster after the SSO round trip.
@@ -131,8 +135,9 @@ async def test_roster_degrades_when_scope_missing(client, db_session):
     response = await client.get("/characters")
 
     assert response.status_code == 200
-    assert "Location: —" in response.text
-    assert "Training: —" in response.text
+    assert '<span class="meta-label">Location:</span>' in response.text
+    assert '<span class="meta-value">—</span>' in response.text
+    assert '<span class="meta-label">Training:</span>' in response.text
     assert "Federal Freight" in response.text  # public data is unaffected
 
 
@@ -158,12 +163,13 @@ async def test_roster_skips_calls_without_scope(client, db_session):
     assert response.status_code == 200
     assert routes["location"].call_count == 0
     assert routes["skillqueue"].call_count == 0
-    assert "Location: —" in response.text
-    assert "Training: —" in response.text
-    # The card is issue-tinted, and its notification box flags the grant
+    assert '<span class="meta-label">Location:</span>' in response.text
+    assert '<span class="meta-value">—</span>' in response.text
+    assert '<span class="meta-label">Training:</span>' in response.text
+    # The row is issue-tinted, and its notification box flags the grant
     # as predating the current scope list — the whole box carries the
     # missing-scope tooltip.
-    assert 'class="card has-issue"' in response.text
+    assert 'class="roster-row has-issue"' in response.text
     assert 'class="notify"' in response.text
     assert "Scopes out of sync (3)" in response.text
     assert 'title="Missing: esi-assets.read_assets.v1' in response.text
@@ -387,9 +393,9 @@ async def test_roster_shows_paused_queue(client, db_session):
     await client.get("/auth/eve/callback", params={"code": "abc", "state": state})
 
     response = await client.get("/characters")
-    assert "Training: Paused" in response.text
+    assert '<span class="meta-value">Paused</span>' in response.text
 
     queue.respond(json=[])
     response = await client.get("/characters")
-    assert "Training: —" in response.text
-    assert "Training: Paused" not in response.text
+    assert '<span class="meta-value">—</span>' in response.text
+    assert "Paused" not in response.text

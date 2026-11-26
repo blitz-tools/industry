@@ -195,7 +195,9 @@ async def test_roster_eligibility_line(client, chain_db):  # noqa: F811
 
     response = await client.get("/characters")
     assert response.status_code == 200
-    assert "Plan-eligible: — no active plans" in response.text
+    # The label/value split: muted label span, white value span.
+    assert '<span class="meta-label">Plan-eligible:</span>' in response.text
+    assert '<span class="meta-value">— no active plans</span>' in response.text
 
     plan_id = await _export(client, TYPHOON)
     await client.post(f"/plans/{plan_id}/activate", follow_redirects=False)
@@ -203,7 +205,10 @@ async def test_roster_eligibility_line(client, chain_db):  # noqa: F811
     assert response.status_code == 200
     assert "holds the skill gates for 3 of 4 active-plan nodes" in response.text
     assert "holds the skill gates for 2 of 4 active-plan nodes" in response.text
-    assert "Plan-eligible: — not in an active plan's pool" in response.text
+    assert (
+        '<span class="meta-value">— not in an active plan\'s pool</span>'
+        in response.text
+    )
     # The participation block: the plan links to its detail page with
     # the target's commodity icon beside the name — participants only.
     assert f'href="/plans/{plan_id}"' in response.text
