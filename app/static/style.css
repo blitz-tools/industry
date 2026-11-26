@@ -450,6 +450,14 @@ a:hover {
   margin-left: 0;
 }
 
+/* The notification box was shaped for the old card footer's narrow
+   column; in a roster row's wide main column it would stretch
+   border-to-border as a thin full-width strip — it hugs its content
+   instead. */
+.roster-main .notify {
+  width: fit-content;
+}
+
 /* Cards with issues (notification box present) get a mild warm tint so
    they stand out from healthy cards at a glance. */
 .card.has-issue {
