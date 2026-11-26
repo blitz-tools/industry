@@ -47,6 +47,22 @@ Groundwork that already exists and applies broadly:
 
 ## In queue
 
+- **Container custom names sync — `asset_names` + `ESIClient.post()`**
+  (the M6 loose end, deferred from the markings PR and recorded here
+  2026-11-25): the plans surfaces scope material sources per container,
+  but containers render by type name ("Station Container · Amamake")
+  because custom names never sync. The schema exists (migration 0011's
+  `asset_names` table: owner key + item_id + name). The work: a small
+  `post()` on `ESIClient` beside `get()`, then a best-effort
+  `POST /characters/{id}/assets/names/` pass after the asset snapshot
+  replaces (outside the snapshot write, so a failed fetch keeps old
+  names). **Gotcha** (PR #52 investigation): a batch containing any
+  never-named item id fails wholesale with 404 "Invalid IDs in the
+  request" — the pass must fall back per item, with a retry cap (the
+  error-budget discipline). Names are free text (one live container is
+  literally "None") and render verbatim. Natural home: M9's job
+  allocation (containers as work locations), or whenever container
+  labels start misleading in practice.
 - **Blueprint → plan chip** (owner note, 2026-11-24): from the blueprints
   surfaces, a chip that loads a blueprint into a plan — a **BPC loads at
   its max target** (remaining runs × products-per-run units), a **BPO

@@ -21,6 +21,7 @@ from ..plans import (
     apply_sourcing_math,
     assets_synced_at,
     gating_text,
+    lp_acquisition,
     material_groups,
     multibuy_body,
     necessary_nodes,
@@ -137,6 +138,19 @@ async def plan_detail_page(
     delivered_nodes = sum(
         1 for node in build_nodes if node.qty and node.delivered_qty >= node.qty
     )
+    participants = json.loads(plan.participants_json)
+    # The LP acquisition front (the fresh gate, not the export-time
+    # snapshot): when the target's blueprint is LP-store-only and the
+    # pool holds none, the table reads the PINNED participants' live
+    # loyalty balances — roster changes never move a plan.
+    lp_view = None
+    if target_node is not None and not owned.get(target_node.blueprint_type_id):
+        lp_view = await lp_acquisition(
+            db,
+            target_node.blueprint_type_id,
+            [row["character_id"] for row in participants],
+            target_node.runs,
+        )
     return templates.TemplateResponse(
         request,
         "plan_detail.html",
@@ -179,7 +193,8 @@ async def plan_detail_page(
                 ),
                 "phases": len({node.phase for node in nodes}),
             },
-            "participants": json.loads(plan.participants_json),
+            "participants": participants,
+            "lp_view": lp_view,
             "facilities_line": facilities_line,
             "cycles": json.loads(plan.cycles_json),
             "copy_facility": copy_facility,

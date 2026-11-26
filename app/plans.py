@@ -48,8 +48,10 @@ from .models import (
     BuildPlanMaterial,
     BuildPlanNode,
     Character,
+    CharacterLoyalty,
     IndustryJob,
     Structure,
+    UniverseCorporation,
 )
 from .planner import SDE_ACTIVITY_KEYS, ChainPlan, active_node_state, fresh_node_state
 
@@ -626,6 +628,10 @@ def gating_text(node: BuildPlanNode) -> str | None:
     """A node's gating reason as the static template text."""
     if node.state_reason is None:
         return None
+    if node.state_reason == "blueprint-missing":
+        flavor = lp_gate_text(node.blueprint_type_id)
+        if flavor is not None:
+            return flavor
     if node.state_reason == "waiting-upstream":
         return REASON_TEXT["waiting-upstream"].format(phase=node.phase - 1)
     return REASON_TEXT.get(node.state_reason, node.state_reason)
@@ -797,6 +803,262 @@ def stock_gap_meters(
         )
         meters[node.id] = int(100 * covered / required)
     return meters
+
+
+# --- LP acquisition (M6 PR 9: the currency front) ---------------------------------
+
+
+@dataclass(frozen=True)
+class LPOffer:
+    """One curated loyalty-store offer variant: what a purchase buys
+    (BPCs per offer) and what it costs (LP + ISK + item requirements,
+    as (type_id, name, quantity) triples). A pin until M15 syncs the
+    loyalty-store dataset — a store change is a code edit."""
+
+    corporation_id: int
+    blueprint_type_id: int
+    label: str
+    lp_cost: int
+    isk_cost: int
+    items: tuple[tuple[int, str, int], ...]
+    bpcs_per_offer: int
+
+
+# The curated offer table — the TFI investigation's live offers
+# (reference/chains/TFI-CHAIN.md, 2026-11-21: the fuzzwork lpstore
+# dataset; Tribal Liberation Force 1000182, the Minmatar FW militia
+# corporation — the militia store is ~5× cheaper in LP than the navy
+# stores, which carry no exact pinned variants here). Runs per LP BPC
+# pinned at 1 (the community convention; the dataset lacks run counts),
+# so `needed BPCs` reads the target node's run count.
+LP_OFFERS: tuple[LPOffer, ...] = (
+    LPOffer(
+        1000182, 32312, "10-pack", 200_000, 200_000_000,
+        ((93609, "Imperial War Reserves Supply Package", 8),), 10,
+    ),
+    LPOffer(1000182, 32312, "Single", 100_000, 20_000_000, (), 1),
+    LPOffer(
+        1000182, 32312, "Single + chip", 100_000, 0,
+        ((17814, "Minmatar UUC Nexus Chip", 2),), 1,
+    ),
+    LPOffer(
+        1000182, 32312, "Single + tag", 100_000, 0,
+        ((17305, "Hakim Stormare's Tag", 1),), 1,
+    ),
+)
+
+# The blueprint-missing gating flavor for LP-sourced blueprints, beside
+# REASON_TEXT: the state machine's reason stays "blueprint-missing" (the
+# chip lock and the fresh gate are unchanged) — this is the display
+# story, that the blocker is a currency the plan must earn rather than
+# a contract-market purchase.
+LP_GATE_TEXT = "BPCs — LP front"
+
+
+def lp_offers_for(blueprint_type_id: int) -> list[LPOffer]:
+    """The pinned offer variants for one blueprint type."""
+    return [
+        offer
+        for offer in LP_OFFERS
+        if offer.blueprint_type_id == blueprint_type_id
+    ]
+
+
+def lp_gate_text(blueprint_type_id: int) -> str | None:
+    """The gating flavor when the blueprint type has pinned LP offers —
+    an LP-sourced blueprint is currency-gated, not contract-gated, so
+    'blueprint not owned' would point at the wrong acquisition path."""
+    return LP_GATE_TEXT if lp_offers_for(blueprint_type_id) else None
+
+
+def best_lp_offer(offers: list[LPOffer], needed_bpcs: int) -> LPOffer:
+    """The variant shown as the path: least total LP for the needed
+    count (purchases rounded up per variant), ties to lower ISK, then
+    fewer item requirements, then label. A display pin, not an
+    optimization — variant selection stays the owner's decision (the
+    decryptor-choice analog); only the best row renders."""
+    def cost(offer: LPOffer) -> tuple[int, int, int, str]:
+        purchases = -(-needed_bpcs // offer.bpcs_per_offer)
+        return (
+            purchases * offer.lp_cost,
+            purchases * offer.isk_cost,
+            len(offer.items),
+            offer.label,
+        )
+
+    return min(offers, key=cost)
+
+
+async def lp_acquisition(
+    db: AsyncSession,
+    blueprint_type_id: int,
+    participant_ids: list[int],
+    needed_bpcs: int,
+) -> dict | None:
+    """The LP acquisition table's view (the fresh planner page and the
+    plan detail share it): one row per OFFER corporation, carrying the
+    pooled participants' balance with its per-character breakdown, the
+    best variant as the path, and the shortfall against it; lead time
+    is "—" in v1 (the earn rate is gameplay, not synced data). A store
+    nobody has earned at still renders, at zero — the shortfall from
+    nothing is the acquisition front's story. Wrong-currency rows
+    (corporations the participants hold loyalty at without an offer)
+    stay HIDDEN in v1 — an owner review call (2026-11-25): LP does not
+    convert between corporations, and a no-offer row with a zero
+    balance is noise, not wealth; they return when real balances exist
+    to show. None when the blueprint has no pinned offers — the
+    section stays hidden. DB-pure: live character_loyalty plus the
+    universe name cache."""
+    offers = lp_offers_for(blueprint_type_id)
+    if not offers:
+        return None
+
+    balances: dict[int, int] = {}
+    breakdown: dict[int, list[tuple[str, int]]] = {}
+    if participant_ids:
+        names = {
+            character.character_id: character.name
+            for character in (
+                await db.execute(
+                    select(Character).where(
+                        Character.character_id.in_(participant_ids)
+                    )
+                )
+            ).scalars()
+        }
+        for row in (
+            (
+                await db.execute(
+                    select(CharacterLoyalty)
+                    .where(
+                        CharacterLoyalty.character_id.in_(participant_ids)
+                    )
+                    .order_by(CharacterLoyalty.points.desc())
+                )
+            )
+            .scalars()
+        ):
+            balances[row.corporation_id] = (
+                balances.get(row.corporation_id, 0) + row.points
+            )
+            breakdown.setdefault(row.corporation_id, []).append(
+                (names.get(row.character_id, str(row.character_id)), row.points)
+            )
+    offer_corps = {offer.corporation_id for offer in offers}
+    corp_names: dict[int, str] = {}
+    if offer_corps:
+        corp_names = dict(
+            (
+                await db.execute(
+                    select(
+                        UniverseCorporation.corporation_id,
+                        UniverseCorporation.name,
+                    ).where(
+                        UniverseCorporation.corporation_id.in_(offer_corps)
+                    )
+                )
+            ).all()
+        )
+
+    rows = []
+    for corporation_id in sorted(offer_corps):
+        at_store = [
+            offer
+            for offer in offers
+            if offer.corporation_id == corporation_id
+        ]
+        offer = best_lp_offer(at_store, needed_bpcs)
+        purchases = -(-needed_bpcs // offer.bpcs_per_offer)
+        lp_total = purchases * offer.lp_cost
+        rows.append(
+            {
+                "corporation_id": corporation_id,
+                "name": corp_names.get(corporation_id, str(corporation_id)),
+                "balance": balances.get(corporation_id, 0),
+                "breakdown": breakdown.get(corporation_id, []),
+                "offer": offer,
+                "purchases": purchases,
+                "lp_total": lp_total,
+                "isk_total": purchases * offer.isk_cost,
+                "short": max(
+                    0, lp_total - balances.get(corporation_id, 0)
+                ),
+            }
+        )
+    return {"needed": needed_bpcs, "rows": rows}
+
+
+async def roster_eligibility(
+    db: AsyncSession, character_ids: list[int]
+) -> dict[int, dict] | None:
+    """The roster's assignment-eligibility view: per character, how many
+    of the active plans' nodes they hold the skill gates for (the
+    nodes' snapshotted skills_json tested against current active skill
+    levels) plus the plans they participate in (id, name, and target
+    type for the card's commodity icon). SCOPED to each plan's pinned
+    participants (owner review 2026-11-25): the pool is resolved at
+    export, so a non-participant cannot be assigned regardless of
+    skills — their cards render the not-in-a-pool line instead, and
+    only plans they were pinned into count toward their N and M. Only
+    participants key the result (absent = not in any active plan's
+    pool); None when no active plans exist. DB-pure; no schema change
+    (M6 PR 9)."""
+    plans = (
+        (
+            await db.execute(
+                select(BuildPlan).where(BuildPlan.status == "active")
+            )
+        )
+        .scalars()
+        .all()
+    )
+    if not plans:
+        return None
+    wanted = set(character_ids)
+    levels = await active_skill_levels(db, character_ids)
+    views: dict[int, dict] = {}
+
+    def holds(character_id: int, skills: list[dict]) -> bool:
+        sheet = levels.get(character_id, {})
+        return all(
+            sheet.get(skill["skill_id"], 0) >= skill["level"]
+            for skill in skills
+        )
+
+    for plan in plans:
+        participants = {
+            row["character_id"]
+            for row in json.loads(plan.participants_json)
+        } & wanted
+        if not participants:
+            continue
+        nodes = (
+            (
+                await db.execute(
+                    select(BuildPlanNode).where(
+                        BuildPlanNode.plan_id == plan.id
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+        reqs = [json.loads(node.skills_json) for node in nodes]
+        entry = {
+            "id": plan.id,
+            "name": plan.name,
+            "target_type_id": plan.target_type_id,
+        }
+        for character_id in participants:
+            view = views.setdefault(
+                character_id, {"holds": 0, "total": 0, "plans": []}
+            )
+            view["plans"].append(entry)
+            view["holds"] += sum(
+                1 for skills in reqs if holds(character_id, skills)
+            )
+            view["total"] += len(reqs)
+    return views
 
 
 # --- Job correlation (M6 PR 6: the pure matcher + build_plan_jobs writes) --------
