@@ -69,14 +69,16 @@ paid contracts), or **pick a better target**.
 | M4 — planner: single-BP calc | ✅ **Complete** (PR #88) — depth-1 planner + build plan, M15 sync slice soaking |
 | M5 — chain resolution | ✅ **Complete** (2026-11-24) — recursive resolver + phase view, ten-anchor diff proof + census parity |
 | M6 — build plans | ✅ **Complete** (PRs #90–#105, 2026-11-24/25) — all nine slices: schema, material sources, export + Plans list/detail, job correlation, refresh tick + active surface, Purchase⇄Build markings + multibuy, LP acquisition node + roster eligibility; plus the owner-directed Plans-list bulk management, ISK-tile/phase polish, and (riding behind, #106) the roster per-corporation panel refactor |
-| M7+ | Not started |
+| M7+ | Not started (M7 folded into M5; M8–M14, M16+ per the order of operations) |
+| M15 — world-state syncs | 🚧 **In progress** — the framework slice + the two light families (cost indices, market prices) soaking hourly since 2026-11-23 (landed with M4, PR #88); **the band's completion directed 2026-11-25** ahead of M9/M10 — remaining: sync_hubs + the market manager, public contracts, regional orders/history, player-structure markets, LP store offers, observability telemetry |
 
-**Pick up at**: **M9 — job orchestration** (the spine continues:
-slots, skills, capsuleers — the work-distribution core; M8
-invention/T2-T3 parallels off M5, either order); the M15 framework
-slice + light families keep soaking (cost indices + market prices,
-hourly); the asset_names companion (container custom names,
-ESIClient.post) is TODO'd as M6's one loose end.
+**Pick up at**: **M15 — finish the world-state band** (owner
+direction 2026-11-25; **first slice: the observability telemetry +
+Admin > Observability page, then read real headroom off the live
+deployment and order the families from data** — the completion plan
+in M15 records the decisions); M9 follows, with M8 paralleling; the
+asset_names companion (container custom names, ESIClient.post) is
+TODO'd as M6's one loose end.
 
 **Order of operations** (refined 2026-11-22, final pre-implementation
 evaluation): the spine holds (M2 → M4 → M5 → M6 → M9) with three
@@ -1085,17 +1087,28 @@ setting a new default demotes the previous one. ✅ (covered as tests —
 
 ---
 
-## M15 — World-state data syncs (public industry & market data)
+## M15 — World-state data syncs (public industry & market data) — 🚧 IN PROGRESS (framework + light families soaking since 2026-11-23; completion directed 2026-11-25)
 
 *Numbered out of sequence on purpose: M-numbers are stable references
 across the docs, mockups, and merged history, so this late number sits
-with the data-sync track it belongs to. Land it before or alongside the
-planner surfaces that consume it — M4's install cost and
-contract-backfill peek, the M5/M6 backfill tables, M9's BPC selection
-bias. Sequencing refined 2026-11-22: the framework slice + The Forge
-seed start right after M3 and soak while M4/M5/M6 build — the
-pre-consumer gap is the deliberate soak test, and early start
-maximizes it.*
+with the data-sync track it belongs to. Sequencing refined 2026-11-22:
+the framework slice starts right after M3 and soaks while M4/M5/M6
+build — the pre-consumer gap is the deliberate soak test. **Status at
+the 2026-11-25 re-pickup**: that slice landed with M4 (PR #88) — the
+public-sync category (`app/esi/world.py`: per-kind `data_syncs` rows
+under the "public" owner, never-raises hourly tick with its own loop,
+ETag-cached snapshot replaces) plus the two light families, cost
+indices (32,910 rows) and market prices (16,116 rows), both ok on the
+dev deployment's live soak. M4's install cost consumes them today.
+"The Forge seed" below never ran — hub seeding arrives with the
+sync_hubs slice, the band's remaining work. The M5/M6 backfill tables
+and the contract-backfill peek shipped WITHOUT contract data (the M6
+folded-scope triage deferred contract-match fallbacks until this band
+lands them), and M6's LP surfaces read the curated `LP_OFFERS` pin
+until the lpstore family replaces it. **Owner direction 2026-11-25:
+finish the band now** — the soak window did its job, and the next
+consumers (M9's BPC selection bias, M10's market analysis, the
+M6-deferred fallbacks) want the data.*
 
 *Origin: scoped 2026-11-19 to the public-contracts sync alone; widened
 the same day into the cohesive world-state band. The remaining
@@ -1174,6 +1187,13 @@ framework.*
   per-family sync duration, and staleness per table. The standing
   requirement: the app never rides its rate limits — the panel exists
   to answer that question continuously while the band soaks.
+  **Status note (2026-11-25)**: the soak so far validates fetch
+  correctness, ETag revalidation, and snapshot stability — NOT
+  rate-limit headroom, because the usage recording doesn't exist yet
+  (the ESILimiter throttles defensively in memory only, and /admin/sync
+  shows the two light families' status). The telemetry lands with this
+  band's completion, before any region expansion decision relies on
+  it.
   **Central page + subset rule** (2026-11-22): **Admin >
   Observability** holds all available observability data centrally;
   specific pages show subsets (the Markets sync panel shows its
@@ -1193,6 +1213,33 @@ framework.*
   (<https://opentelemetry.io/docs/zero-code/python/>); the uv
   bootstrap caveat is documented at
   <https://opentelemetry.io/docs/zero-code/python/troubleshooting/#bootstrap-using-uv>.
+
+**Completion plan (owner decisions, 2026-11-25 — the band's finish is
+directed ahead of M9/M10)**:
+
+1. **Telemetry first**: the observability slice lands alone before any
+   new family — per-group X-Ratelimit usage recording (the headers the
+   ESILimiter already sees, persisted), per-family sync durations,
+   staleness per table, and the central **Admin > Observability** page
+   (growing `/admin/sync`). Then the real headroom numbers are read
+   off the live deployment and **the family order is decided from
+   data**, not assumption.
+2. **sync_hubs + the market manager** (the design/markets mockup is
+   the surface spec) before the families that need a hub set.
+3. **Sync-only**: the consuming surfaces — the planner's sell-side
+   market selector, M6's deferred contract-match acquisition
+   fallbacks, M9's BPC selection bias, M10's analysis — land with
+   their owning milestones once the data exists (the recorded
+   "implementation does not imply consumption" principle holds).
+4. **The LP store offers family is in this band** (the fuzzwork
+   dataset, outside the ESI rate budget): the plans-side consumption
+   swaps from M6's curated `LP_OFFERS` pin to the synced table, so a
+   store change stops being a code edit.
+5. **Player-structure markets scope registered now** (owner direction):
+   `esi-markets.structure_markets.v1` joins the portal + `.env`
+   scope set ahead of the family's slice, so its landing has no
+   external dependency — the early re-auth cycle is the point.
+
 - ETag-cached GETs through the existing ESI client (`esi_cache`) for
   every family: cold sweeps happen once, later ticks revalidate with
   If-None-Match and are near-free — the mechanism that keeps the
@@ -2325,7 +2372,13 @@ and held.
   2026-11-22 from M6's triage): the TLF militia balance has no ESI
   route, so the curated user-state entry and the
   distribute-to-characters workflow land here with the wallet work
-  they naturally belong to.
+  they naturally belong to. **Upstream tracker (noted 2026-11-25)**:
+  [esi/esi-issues#1350](https://github.com/esi/esi-issues/issues/1350)
+  is the open feature request for corporation-level loyalty points —
+  confirmed impossible from ESI today. If it resolves, corp LP
+  balances become a direct sync and the curated entry retires (the
+  in-game distribution step stays a workflow either way — withdrawing
+  corp LP to characters is gameplay, not an API).
 
 **Validation**: tag a material-contract expense against a Typhoon
 plan's job; the industry fees join automatically; the plan's
